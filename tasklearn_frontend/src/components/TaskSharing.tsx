@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import "../../src/app/globals.css";
 import { FiPlus } from 'react-icons/fi';
 import Image from "next/image";
@@ -21,7 +21,7 @@ const TaskSharing = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showStar, setShowStar] = useState(false);
     const [showQuiz, setShowQuiz] = useState<boolean>(false);
-    const [tasksList, setTasksList] = useState<[]>([]);
+    const [tasksList, setTasksList] = useState<Task[]>([]); /*V End*/
     const [showForm, setShowForm] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [filter, setFilter] = useState('All Task');
@@ -39,7 +39,9 @@ const TaskSharing = () => {
         'Deleted Task',
         'Learning',
     ];
-
+    useEffect(() => {
+        fetchTasks(filter)
+    }, []);
 
 
     const handleShare = async (e: React.FormEvent) => {
@@ -169,7 +171,29 @@ const TaskSharing = () => {
     const handleBackToForm = () => {
         setShowForm(true);
     };
+/*V start*/
+const handleseach = (param: any) => {
+    if (param) {
+        setSearch(param);
+        setFilter("All Task");
+        setShowForm(false);
+        console.log('test', tasksList);
 
+        const filtered = tasksList.filter((task) => {
+            // Check if any of the columns contain the search term
+            return Object.values(task).some(value =>
+                value?.toString().toLowerCase().includes(param.toLowerCase())
+            );
+        });
+
+        setTasksList(filtered);
+    } else {
+        setSearch('');
+        fetchTasks(filter);
+    }
+}
+
+/*V End*/
     const handleAnswerSubmit = () => {
         if (currentAnswer.trim().toLowerCase() === task?.action.trim().toLowerCase()) {
             setScore(1); // Correct answer
@@ -221,7 +245,7 @@ const TaskSharing = () => {
                                 type="text"
                                 placeholder="Search @ User, Patient ID..."
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                onChange={(e) => handleseach(e.target.value)}
                                 className="w-full p-1 border border-gray-300 bg-gray-100 text-[#BEBEBE] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
                             />
                         </div>

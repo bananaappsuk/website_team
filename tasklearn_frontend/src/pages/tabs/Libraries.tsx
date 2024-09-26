@@ -131,11 +131,11 @@ const Libraries = () => {
 
                             <div className="flex flex-col items-center justify-center ml-4 p-4">
                                 <p className='ml-auto'>
-                                    [
-                                    {
-                                        filteredLibraries[currentLibraryIndex]?.createdAt instanceof Timestamp
-                                            ? filteredLibraries[currentLibraryIndex]?.createdAt.toDate().toLocaleDateString()
-                                            : new Date(filteredLibraries[currentLibraryIndex]?.createdAt).toLocaleDateString()
+                                [
+                                    { //Start
+                                       library?.createdAt instanceof Timestamp
+                                            ? library?.createdAt.toDate().toLocaleDateString()
+                                            : new Date(library?.createdAt).toLocaleDateString() //End
                                     }
                                     ]
                                 </p>

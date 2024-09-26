@@ -1257,9 +1257,6 @@ video {
 .top-1\/2 {
   top: 50%;
 }
-.top-10 {
-  top: 2.5rem;
-}
 .top-\[12px\] {
   top: 12px;
 }
@@ -1268,6 +1265,9 @@ video {
 }
 .top-full {
   top: 100%;
+}
+.top-10 {
+  top: 2.5rem;
 }
 .z-40 {
   z-index: 40;
@@ -1425,11 +1425,11 @@ video {
 .w-\[80\%\] {
   width: 80%;
 }
-.w-\[90\%\] {
-  width: 90%;
-}
 .w-full {
   width: 100%;
+}
+.w-\[90\%\] {
+  width: 90%;
 }
 .min-w-full {
   min-width: 100%;
