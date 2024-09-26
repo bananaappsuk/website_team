@@ -318,7 +318,7 @@ const TaskSharing = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block mb-1 text-black">Task Name/Instruction</label>
+                                    <label className="block mb-1 text-black">Task/Instruction</label>
                                     <input
                                         type="text"
                                         placeholder=""
