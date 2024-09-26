@@ -1,54 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import "../../src/app/globals.css";
-import TaskSharing from '@/components/TaskSharing';
-import { User } from 'firebase/auth';
-import { auth } from '../firebase';
-import { useRouter } from 'next/router';
+import TaskSharing from "@/components/TaskSharing";
+import { User } from "firebase/auth";
+import { auth } from "../firebase";
+import { useRouter } from "next/router";
 
 const HomePage = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-    const [redirecting, setRedirecting] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [redirecting, setRedirecting] = useState(false);
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
-        });
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
 
-        return () => unsubscribe();
-    }, []);
+    return () => unsubscribe();
+  }, []);
 
-    useEffect(() => {
-        if (!loading && !user) {
-            setRedirecting(true);
-            const timer = setTimeout(() => {
-                router.push('/signin');
-            }, 1000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [loading, user, router]);
-
-    if (loading) {
-        return <div>Loading...</div>;
+  useEffect(() => {
+    if (router.pathname === "/Homepage") {
+      localStorage.removeItem("activeLink");
     }
+  }, [router.pathname]);
 
-    if (redirecting) {
-        return <div>You are not logged in. Redirecting...</div>;
+  useEffect(() => {
+    if (!loading && !user) {
+      setRedirecting(true);
+      const timer = setTimeout(() => {
+        router.push("/signin");
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
+  }, [loading, user, router]);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-    return (
-        <>
-            <div className="bg-gray-100 flex justify-start items-start gap-2 w-full min-h-screen">
-                <TaskSharing />
-                <p>text</p>
-            </div>
+  if (redirecting) {
+    return <div>You are not logged in. Redirecting...</div>;
+  }
 
-        </>
-    );
+  return (
+    <>
+      <div className="bg-gray-100 flex justify-start items-start gap-2 w-full min-h-screen">
+        <TaskSharing />
+        <p>text</p>
+      </div>
+    </>
+  );
 };
 
 export default HomePage;
