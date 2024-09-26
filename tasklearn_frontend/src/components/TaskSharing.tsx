@@ -10,12 +10,11 @@ import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useTask } from '../components/TaskContext';
 import clear from "../../src/assets/home/image 2.png";
 import submit from "../../src/assets/home/image 1.png";
 import star from "../../src/assets/home/Vector.png";
+import back from "../../src/assets/home/back.png";
 
 const TaskSharing = () => {
     const [search, setSearch] = useState('');
@@ -471,7 +470,7 @@ const TaskSharing = () => {
                             onClick={handleBackToForm}
                             className="cursor-pointer my-4 text-[#68A86B] font-bold py-2 px-2"
                         >
-                            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" /> Back
+                            <Image src={back} alt="back" className="h-4 w-4" />
                         </a>
                         <h2 className="text-xl font-bold my-4 text-black">Tasks List</h2>
                         {tasksList.length > 0 ? (
