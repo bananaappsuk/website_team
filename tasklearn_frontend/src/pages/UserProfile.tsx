@@ -146,6 +146,40 @@ const UserProfile = () => {
                             {activeTab === 'My Quiz' ? (
                                 <div className='flex justify-center'>
                                     <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                    <div className='flex justify-between items-center'>
+                <div className="text-center font-semibold flex-1">
+                Quiz visible to
+                </div>
+                <div className="ml-auto relative">
+                    <input
+                        type="text"
+                        placeholder="Search key words"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                    />
+                    <Image
+                        src={searchIcon}
+                        alt="Search Icon"
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                    />
+                </div>
+            </div>
+
+            <div className="px-28 pt-8 pb-4 flex justify-between items-center">
+                <div>
+                    <input type="radio" id="onlyMe" name="visibility" defaultChecked />
+                    <label htmlFor="onlyMe" className="ml-2">Only Me</label>
+                </div>
+                <div>
+                    <input type="radio" id="followers" name="visibility" />
+                    <label htmlFor="followers" className="ml-2">Followers</label>
+                </div>
+                <div>
+                    <input type="radio" id="public" name="visibility" />
+                    <label htmlFor="public" className="ml-2">Public</label>
+                </div>
+            </div>
                                         <Quizzes />
                                     </div>
                                 </div>

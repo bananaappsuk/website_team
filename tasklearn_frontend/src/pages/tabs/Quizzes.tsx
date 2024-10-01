@@ -141,42 +141,9 @@ const Quizzes = () => {
 
     return (
         <div className="w-full min-h-screen bg-white">
-            <div className='flex justify-between items-center'>
-                <div className="text-center font-semibold flex-1">
-                    Quiz visible to
-                </div>
-                <div className="ml-auto relative">
-                    <input
-                        type="text"
-                        placeholder="Search key words"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
-                    />
-                    <Image
-                        src={searchIcon}
-                        alt="Search Icon"
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
-                    />
-                </div>
-            </div>
-
-            <div className="px-28 pt-8 pb-4 flex justify-between items-center">
-                <div>
-                    <input type="radio" id="onlyMe" name="visibility" defaultChecked />
-                    <label htmlFor="onlyMe" className="ml-2">Only Me</label>
-                </div>
-                <div>
-                    <input type="radio" id="followers" name="visibility" />
-                    <label htmlFor="followers" className="ml-2">Followers</label>
-                </div>
-                <div>
-                    <input type="radio" id="public" name="visibility" />
-                    <label htmlFor="public" className="ml-2">Public</label>
-                </div>
-            </div>
+            
             <main className="">
-                <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
+                <div className="text-sm text-black flex flex-row justify-between items-center gap-4" >
                     {searchTerm && (
                         <div className="flex justify-start font-bold">
                             <span className="w-48">Total Questions (Filtered):</span>
