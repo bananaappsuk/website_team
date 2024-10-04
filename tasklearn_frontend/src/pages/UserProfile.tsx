@@ -12,11 +12,12 @@ import goldStar from "../../src/assets/Library/Vector (1).png";
 import grayStar from "../../src/assets/Library/Vector.png";
 import { useRouter } from "next/router";
 import Libraries from "./tabs/Libraries";
+import Tracking from "./tabs/Tracking";
 
 const tabs = [
   { name: "My Quiz" },
   { name: "Library" },
-  { name: "Tracking", content: "Tracking Content" },
+  { name: "Tracking"},
   { name: "Feed", content: "Feed Content" },
   { name: "Followers", content: "Followers Content" },
   { name: "Following", content: "Following Content" },
@@ -178,6 +179,12 @@ const UserProfile = () => {
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                     <Libraries />
+                  </div>
+                </div>
+              ) : activeTab === "Tracking" ? (
+                <div className="flex justify-center">
+                  <div className="w-[90%] shadow-lg border-2 rounded-lg p-8">
+                    <Tracking />
                   </div>
                 </div>
               ) : (

@@ -16,6 +16,7 @@ import submit from "../../src/assets/home/image 1.png";
 import star from "../../src/assets/home/Vector.png";
 import back from "../../src/assets/home/back.png";
 import deleteIcon from "../assets/Quiz/Vector.png";
+import { HiChevronDown } from "react-icons/hi";
 
 const TaskSharing = () => {
   const [search, setSearch] = useState("");
@@ -33,7 +34,6 @@ const TaskSharing = () => {
   const [totalQuestions, setTotalQuestions] = useState<number>(1);
   const [showAnswer, setShowAnswer] = useState(false);
   const [newTasksList, setnewTasksList] = useState<any[]>([]);
-
   const taskCategories = [
     "All Task",
     "Pending Task",
@@ -41,7 +41,10 @@ const TaskSharing = () => {
     "Deleted Task",
     "Learning",
   ];
-
+  const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
+    Array(taskCategories.length).fill(false)
+  );
+  const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
   const handleShare = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -192,7 +195,7 @@ const TaskSharing = () => {
     fetchTs();
   }, [tasksList]);
 
-  const fetchTasks = async (filter: string) => {
+  const fetchTasks = async (filter: any) => {
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?filter=${filter}`
@@ -201,41 +204,91 @@ const TaskSharing = () => {
       if (filter === "Pending Task") {
         setTasksList(
           response.data.filter(
-            (task: { isShared: Boolean; isDeleted: Boolean }, index: any) =>
+            (task: { isShared: Boolean; isDeleted: Boolean }) =>
               task.isShared && !task.isDeleted
           )
         );
+        const pendingTasks = response.data.filter(
+          (task: { isShared: boolean; isDeleted: boolean }) =>
+            task.isShared && !task.isDeleted
+        );
+        setFilteredTasks((prev) => {
+          return {
+            ...prev,
+            [filter]: pendingTasks,
+          };
+        });
       }
       if (filter === "All Task") {
         setTasksList(
           response.data.filter(
-            (task: { isDeleted: Boolean }, index: any) => !task.isDeleted
+            (task: { isDeleted: Boolean }) => !task.isDeleted
           )
         );
+        const allTasks = response.data.filter(
+          (task: { isDeleted: boolean }) => !task.isDeleted
+        );
+
+        setFilteredTasks((prev) => {
+          return {
+            ...prev,
+            [filter]: allTasks,
+          };
+        });
       }
       if (filter === "Completed Task") {
         setTasksList(
           response.data.filter(
-            (task: { isCompleted: Boolean; isDeleted: Boolean }, index: any) =>
+            (task: { isCompleted: Boolean; isDeleted: Boolean }) =>
               task.isCompleted && !task.isDeleted
           )
         );
+
+        const completedTasks = response.data.filter(
+          (task: { isCompleted: boolean; isDeleted: Boolean }) =>
+            task.isCompleted && !task.isDeleted
+        );
+        setFilteredTasks((prev) => {
+          return {
+            ...prev,
+            [filter]: completedTasks,
+          };
+        });
       }
       if (filter === "Learning") {
         setTasksList(
           response.data.filter(
-            (task: { Learn: Boolean; isDeleted: Boolean }, index: any) =>
+            (task: { Learn: Boolean; isDeleted: Boolean }) =>
               task.Learn && !task.isDeleted
           )
         );
-      }
 
+        const learnTasks = response.data.filter(
+          (task: { Learn: boolean; isDeleted: Boolean }) =>
+            task.Learn && !task.isDeleted
+        );
+        setFilteredTasks((prev) => {
+          return {
+            ...prev,
+            [filter]: learnTasks,
+          };
+        });
+      }
       if (filter === "Deleted Task") {
         setTasksList(
-          response.data.filter(
-            (task: { isDeleted: Boolean }, index: any) => task.isDeleted
-          )
+          response.data.filter((task: { isDeleted: Boolean }) => task.isDeleted)
         );
+
+        const deletedTasks = response.data.filter(
+          (task: { isDeleted: Boolean }) => task.isDeleted
+        );
+
+        setFilteredTasks((prev) => {
+          return {
+            ...prev,
+            [filter]: deletedTasks,
+          };
+        });
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -249,6 +302,14 @@ const TaskSharing = () => {
     setShowForm(false);
     setShowQuiz(false);
     fetchTasks(item);
+  };
+
+  const handleDropdown = (index: any) => {
+    const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
+      i === index ? !isVisible : isVisible
+    );
+
+    setDropdownVisible(newDropdownVisible);
   };
 
   const handleBackToForm = () => {
@@ -270,29 +331,58 @@ const TaskSharing = () => {
     setShowAnswer(true);
   };
 
- const handleDeleteTask = async (id: String) => {
-   try {
-     const response = await fetch(
-       `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
-       {
-         method: "PATCH",
-         headers: {
-           "Content-Type": "application/json",
-         },
-       }
-     );
+  //Move the task to deleted task tab
 
-     const data = await response.json();
-     setnewTasksList((prev) =>
-       prev.map((task: any) =>
-         task._id === data._id ? { ...task, isDeleted: true } : task
-       )
-     );
-     fetchTasks(filter); //fetch all tasks
-   } catch (error: any) {
-     toast.error(error.message);
-   }
- };
+  const handleDeleteTask = async (id: String) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      setnewTasksList((prev) =>
+        prev.map((task: any) =>
+          task._id === data._id ? { ...task, isDeleted: true } : task
+        )
+      );
+      fetchTasks(filter);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  //delete the task from dB
+
+  const handleDeletedTask = async (taskId: String) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${taskId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        fetchTasks(filter);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+ 
+  const handleDelete = (task: any) => {
+    if (!task.isDeleted) {
+      handleDeleteTask(task._id);
+    }
+    if (task.isDeleted) {
+      handleDeletedTask(task._id);
+    }
+  };
 
   return (
     <>
@@ -344,30 +434,54 @@ const TaskSharing = () => {
             </div>
 
             <ul className="p-4 space-y-4">
-              {taskCategories.map((item) => (
-                <li
-                  key={item}
-                  onClick={() => handleTasksClick(item)}
-                  className="flex justify-between items-center text-gray-600 hover:text-black cursor-pointer"
-                >
-                  {item}
-                  <HiChevronRight />
-                </li>
+              {taskCategories.map((item: any, index: any) => (
+                <>
+                  <li
+                    key={item}
+                    onClick={() => {
+                      handleTasksClick(item);
+                      handleDropdown(index);
+                    }}
+                    className="flex justify-between items-center text-gray-600 hover:text-black cursor-pointer"
+                  >
+                    {item}
+                    {dropdownVisible[index] ? (
+                      <HiChevronDown />
+                    ) : (
+                      <HiChevronRight />
+                    )}
+                  </li>
+                  {dropdownVisible[index] &&
+                    filteredTasks[item]?.map((task: any, index: any) => {
+                      return (
+                        <div key={index} className={`justify-between flex `}>
+                          <p>{task.taskName}</p>
+                          <Image
+                            className=" object-contain w-[16px] cursor-pointer"
+                            src={deleteIcon}
+                            alt="delete"
+                            onClick={() => handleDelete(task)}
+                          />
+                        </div>
+                      );
+                    })}
+                </>
               ))}
+
               {newTasksList
                 ?.filter((task: any, index: any) => !task.isDeleted)
                 .map((newList: any, index: any) => {
                   return (
                     <li
                       key={index}
-                      className="flex justify-between items-center text-gray-600 hover:text-black cursor-pointer"
+                      className="flex gap-x-2 items-center text-gray-600 hover:text-black cursor-pointer"
                     >
                       {newList.taskName}
                       <button onClick={() => handleDeleteTask(newList._id)}>
                         <Image
                           src={deleteIcon}
                           alt="delete"
-                          className=" object-contain w-[20px]"
+                          className=" object-contain w-[15px]"
                         />
                       </button>
                     </li>
