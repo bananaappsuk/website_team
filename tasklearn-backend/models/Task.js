@@ -16,6 +16,21 @@ const taskSchema = new mongoose.Schema({
   action: String,
   Library: Boolean,
   Learn: Boolean,
+  isShared: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  isCompleted: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  isDeleted: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
 });
 
 const Task = mongoose.model('Task', taskSchema);

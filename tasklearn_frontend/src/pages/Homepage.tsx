@@ -21,6 +21,12 @@ const HomePage = () => {
     }, []);
 
     useEffect(() => {
+        if (router.pathname === "/Homepage") {
+            localStorage.removeItem("activeLink");
+        }
+    }, [router.pathname]);
+
+    useEffect(() => {
         if (!loading && !user) {
             setRedirecting(true);
             const timer = setTimeout(() => {
@@ -44,9 +50,7 @@ const HomePage = () => {
         <>
             <div className="bg-gray-100 flex justify-start items-start gap-2 w-full min-h-screen">
                 <TaskSharing />
-                <p>text</p>
             </div>
-
         </>
     );
 };

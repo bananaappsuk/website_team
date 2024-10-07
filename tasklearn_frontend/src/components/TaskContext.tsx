@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface Task {
+export interface Task {
     createdBy: string;
     taggedStaff: string;
     contributingStaff: string;
@@ -16,6 +16,9 @@ interface Task {
     action: string;
     Library: boolean;
     Learn: boolean;
+    isShared: boolean;
+    isCompleted: boolean;
+    isDeleted: boolean;
 }
 
 interface TaskContextType {
@@ -42,6 +45,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         action: '',
         Library: false,
         Learn: false,
+        isShared: false,
+        isCompleted: false,
+        isDeleted: false,
     });
 
     return (

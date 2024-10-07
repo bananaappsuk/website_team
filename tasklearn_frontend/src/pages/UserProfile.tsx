@@ -12,6 +12,7 @@ import goldStar from "../../src/assets/Library/Vector (1).png";
 import grayStar from "../../src/assets/Library/Vector.png";
 import { useRouter } from 'next/router';
 import Libraries from './tabs/Libraries';
+import Tracking from './tabs/Tracking';
 
 
 const tabs = [
@@ -37,6 +38,19 @@ const UserProfile = () => {
     const [redirecting, setRedirecting] = useState(false);
 
     useEffect(() => {
+        const storedLink = localStorage.getItem("activeLink");
+        if (storedLink) {
+            setActiveTab(storedLink);
+        } else {
+            setActiveTab("My Quiz");
+        }
+    }, [router.pathname]);
+
+    const handleBeforeUnload = () => {
+        localStorage.removeItem("activeLink");
+    };
+
+    useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             setUser(currentUser);
             setLoading(false);
@@ -55,6 +69,7 @@ const UserProfile = () => {
             return () => clearTimeout(timer);
         }
     }, [loading, user, router]);
+
 
     if (loading) {
         return <div>Loading...</div>;
@@ -90,7 +105,7 @@ const UserProfile = () => {
                         </div>
 
                         <div className="px-4 text-black font-bold items-center flex justify-end gap-2">
-                            <a href="/Homepage">H</a>
+                            <a href="/Homepage" onClick={handleBeforeUnload}>H</a>
                             <a href="/UserProfile">P</a>
                         </div>
                     </div>
@@ -124,7 +139,10 @@ const UserProfile = () => {
                                     key={tab.name}
                                     className={`px-4 py-2 ${activeTab === tab.name ? 'rounded-md border-b-2 border-[#68A86B] bg-[#68A86B] text-white' : 'text-gray-500'
                                         }`}
-                                    onClick={() => setActiveTab(tab.name)}
+                                    onClick={() => {
+                                        setActiveTab(tab.name);
+                                        localStorage.setItem("activeLink", tab.name);
+                                    }}
                                 >
                                     <span className="flex items-center">
                                         {tab.name}{' '}
@@ -146,6 +164,20 @@ const UserProfile = () => {
                             {activeTab === 'My Quiz' ? (
                                 <div className='flex justify-center'>
                                     <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <div className="px-28 pt-8 pb-4 flex justify-between items-center">
+                                            <div>
+                                                <input type="radio" id="onlyMe" name="visibility" defaultChecked />
+                                                <label htmlFor="onlyMe" className="ml-2">Only Me</label>
+                                            </div>
+                                            <div>
+                                                <input type="radio" id="followers" name="visibility" />
+                                                <label htmlFor="followers" className="ml-2">Followers</label>
+                                            </div>
+                                            <div>
+                                                <input type="radio" id="public" name="visibility" />
+                                                <label htmlFor="public" className="ml-2">Public</label>
+                                            </div>
+                                        </div>
                                         <Quizzes />
                                     </div>
                                 </div>
@@ -153,6 +185,12 @@ const UserProfile = () => {
                                 <div className='flex justify-center'>
                                     <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
                                         <Libraries />
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Tracking' ? (
+                                <div className='flex justify-center'>
+                                    <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <Tracking />
                                     </div>
                                 </div>
                             ) : (

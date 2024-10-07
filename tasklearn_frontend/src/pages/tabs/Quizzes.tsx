@@ -141,9 +141,9 @@ const Quizzes = () => {
 
     return (
         <div className="w-full min-h-screen bg-white">
-            <div className='flex justify-between items-center'>
+            <div className='my-4 flex justify-between items-center'>
                 <div className="text-center font-semibold flex-1">
-                    Quiz visible to
+                    Quiz
                 </div>
                 <div className="ml-auto relative">
                     <input
@@ -161,20 +161,6 @@ const Quizzes = () => {
                 </div>
             </div>
 
-            <div className="px-28 pt-8 pb-4 flex justify-between items-center">
-                <div>
-                    <input type="radio" id="onlyMe" name="visibility" defaultChecked />
-                    <label htmlFor="onlyMe" className="ml-2">Only Me</label>
-                </div>
-                <div>
-                    <input type="radio" id="followers" name="visibility" />
-                    <label htmlFor="followers" className="ml-2">Followers</label>
-                </div>
-                <div>
-                    <input type="radio" id="public" name="visibility" />
-                    <label htmlFor="public" className="ml-2">Public</label>
-                </div>
-            </div>
             <main className="">
                 <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
                     {searchTerm && (
@@ -258,7 +244,9 @@ const Quizzes = () => {
                     <button onClick={handlePrevQuiz} disabled={currentQuizIndex === 0}>
                         <FaArrowLeft size={24} />
                     </button>
-                    <button onClick={handleNextQuiz} disabled={currentQuizIndex === quizzes.length - 1}>
+                    <button onClick={handleNextQuiz} disabled={currentQuizIndex === quizzes.length - 1 ||
+                        currentQuizIndex === filteredQuizzes.length - 1
+                    }>
                         <FaArrowRight size={24} />
                     </button>
                 </div>

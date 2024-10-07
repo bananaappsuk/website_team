@@ -36,7 +36,7 @@ app.use('/api/libraries', libraryRoutes); // Use library routes
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the Task!</h1>');
+  res.send('<h1>Welcome to the Task</h1>');
 });
 
 // Error handling middleware
