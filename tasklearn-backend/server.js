@@ -30,6 +30,7 @@ const libraryRoutes = require('./routes/libraryRoutes'); // New library routes
 
 
 app.use('/api/tasks', taskRoutes);
+app.use("/api/task", taskRoutes); 
 app.use('/api/quizzes', quizRoutes); // Use quiz routes
 app.use('/api/libraries', libraryRoutes); // Use library routes
 

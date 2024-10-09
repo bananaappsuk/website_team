@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface Task {
+    [x: string]: any;
     createdBy: string;
     taggedStaff: string;
     contributingStaff: string;
@@ -20,6 +21,7 @@ export interface Task {
     isCompleted: boolean;
     isDeleted: boolean;
 }
+
 
 interface TaskContextType {
     task: Task;
@@ -49,6 +51,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isCompleted: false,
         isDeleted: false,
     });
+
 
     return (
         <TaskContext.Provider value={{ task, setTask }}>
