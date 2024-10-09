@@ -428,7 +428,6 @@ const TaskSharing = () => {
         if (response.data._id === taskId) {
           setselectedTask(true);
           setShowForm(true);
-          setShowQuiz(true);
         } else {
           setselectedTask(false);
         }
@@ -554,26 +553,6 @@ const TaskSharing = () => {
               <div className="p-4">
                 <p className="text-2xl text-black font-bold">Task Sharing</p>
               </div>
-            </div>
-            <div className="p-4 flex justify-between gap-12">
-              <a
-                href="/Homepage"
-                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-              >
-                Admin <FiPlus className="ml-2" />
-              </a>
-              <a
-                href="/Homepage"
-                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-              >
-                Triage <FiPlus className="ml-2" />
-              </a>
-              <a
-                href="/Homepage"
-                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-              >
-                Test <FiPlus className="ml-2" />
-              </a>
             </div>
             <form className="p-4 rounded">
               <div className="flex flex-col gap-4">
