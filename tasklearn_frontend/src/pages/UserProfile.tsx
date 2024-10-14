@@ -79,6 +79,9 @@ const UserProfile = () => {
         return <div>You are not logged in. Redirecting...</div>;
     }
 
+  console.log(user);
+  
+
     return (
         <>
             <div className='w-full flex gap-2 bg-gray-100'>
