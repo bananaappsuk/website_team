@@ -14,6 +14,7 @@ interface FormData {
   email: string;
   userName: string;
   password: string;
+  confirmPassword: string;
   jobRole: string;
   profilePic: File | null;
 }
@@ -25,6 +26,7 @@ const SignUp: React.FC = () => {
     email: "",
     userName: "",
     password: "",
+    confirmPassword: "",
     jobRole: "",
     profilePic: null,
   });
@@ -32,6 +34,7 @@ const SignUp: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [passwordVisible, setPasswordVisible] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const instructionsRef = useRef<HTMLDivElement>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -43,6 +46,12 @@ const SignUp: React.FC = () => {
     hasNumber: false,
     hasSymbol: false,
   });
+
+  const allRequirementsMet = Object.values(passwordRequirements).every(
+    (value) => value === true
+  );
+
+  
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -71,6 +80,9 @@ const SignUp: React.FC = () => {
 
   const toggleInstructions = () => {
     setShowInstructions(!showInstructions);
+  };
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
   };
 
   const validatePassword = (password: string) => {
@@ -176,9 +188,9 @@ const SignUp: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if(isUsernameTaken){
+    if (isUsernameTaken) {
       toast.error("Username is already taken.");
-      return
+      return;
     }
 
     if (
@@ -192,6 +204,11 @@ const SignUp: React.FC = () => {
       toast.error("Password does not meet all the requirements.");
       setShowInstructions(true);
       return;
+    }
+
+    if(formData.password!==formData.confirmPassword){
+       toast.error("Passwords do not match!"); 
+       return
     }
     if (!formData.profilePic) {
       toast.error("Please upload a profile picture.");
@@ -241,6 +258,7 @@ const SignUp: React.FC = () => {
     }
   };
 
+  
 
   return (
     <>
@@ -249,12 +267,12 @@ const SignUp: React.FC = () => {
         className="min-h-screen flex flex-col w-full bg-center bg-cover "
         style={{ backgroundImage: `url(${BgImage.src})` }}
       >
-        <div className="mt-2 lg:mt-4 flex items-center justify-center px-4">
+        <div className="mt-2 lg:mt-2 flex items-center justify-center px-4">
           <div className="bg-white shadow-lg rounded-2xl p-6 sm:p-8 w-full sm:w-[60%] lg:w-[40%] mt-4">
             <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">
               T-askLearn
             </h1>
-            <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-2 sm:mb-8">
+            <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-2 sm:mb-7">
               Collaborate to Learn, Learn to Collaborate
             </p>
             <h2 className="text-2xl sm:text-2xl font-Poppins font-medium text-center text-black mb-3">
@@ -387,6 +405,45 @@ const SignUp: React.FC = () => {
                   </div>
                 </div>
               </div>
+              <div className="mb-4">
+                <div className="flex justify-between">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-gray-700 mb-1 text-sm sm:text-base"
+                  >
+                    Confirm Password
+                  </label>
+                  <div
+                    className="right-3 top-[40px] text-[#666666CC] cursor-pointer"
+                    onClick={toggleConfirmPasswordVisibility}
+                  >
+                    {confirmPasswordVisible ? (
+                      <>
+                        <div className="flex gap-x-1 items-center font-Poppins">
+                          <AiFillEyeInvisible className="" size={19} />
+                          <span className="text-[15px]">Hide</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex gap-x-1 items-center font-Poppins">
+                          <AiFillEye className="" size={19} />
+                          <span className="text-[15px]">Show</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <input
+                  type={confirmPasswordVisible ? "text" : "password"}
+                  name="confirmPassword"
+                  id="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required={allRequirementsMet}
+                  className="w-full px-4 py-2 border text-black rounded-lg"
+                />
+              </div>
 
               <div className="mb-4">
                 <div className="flex justify-between">
@@ -403,7 +460,7 @@ const SignUp: React.FC = () => {
                   id="jobRole"
                   value={formData.jobRole}
                   onChange={handleChange}
-                  required
+                  required={allRequirementsMet && formData.password===formData.confirmPassword}
                   className="w-full px-4 py-2 border text-black rounded-lg"
                 />
               </div>
@@ -436,7 +493,7 @@ const SignUp: React.FC = () => {
                   accept="image/*"
                 />
               </div>
-              <div className="mb-4 mt-6 flex items-center">
+              <div className="mb-2 mt-4 flex items-center">
                 <input
                   type="checkbox"
                   name="termsAccepted"
@@ -462,7 +519,7 @@ const SignUp: React.FC = () => {
 
               <button
                 type="submit"
-                className="mt-6 w-full mb-6 py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300 font-Poppins"
+                className="mt-3 w-full  py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300 font-Poppins"
               >
                 Sign Up
               </button>
