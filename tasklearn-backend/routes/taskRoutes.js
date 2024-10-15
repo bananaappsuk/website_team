@@ -23,6 +23,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+//get task by id
+
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Task.findById(id);
+    res.status(200).json(task);
+    if (!task) {
+      return res.status(404).send("Task not found");
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving task", error });
+  }
+});
+
 // update tasks
 router.patch("/:id", async (req, res) => {
   const { id } = req.params;
@@ -38,8 +53,27 @@ router.patch("/:id", async (req, res) => {
     if (!updatedItem) {
       return res.status(404).send("Task not found");
     }
+    res.status(200).json({message:"task removed successfully"});
+  } catch (error) {
+    res.status(500).json({ message: "Error Updating tasks", error });
+  }
+});
 
-    res.status(200).json(updatedItem);
+// update task for complete
+router.patch("/update/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updatedItem = await Task.findByIdAndUpdate(
+      id,
+      { isCompleted: true,isShared:false },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json({ message: "Task Completed successfully" });
+    if (!updatedItem) {
+      return res.status(404).send("Task not found");
+    }
   } catch (error) {
     res.status(500).json({ message: "Error Updating tasks", error });
   }

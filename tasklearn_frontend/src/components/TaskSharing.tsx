@@ -16,6 +16,7 @@ import back from "../../src/assets/home/back.png";
 import deleteIcon from "../assets/Quiz/Vector.png";
 import { HiChevronDown } from "react-icons/hi";
 import Quizzes from "@/pages/tabs/Quizzes";
+import { useRouter } from "next/router";
 
 const TaskSharing = () => {
     const [search, setSearch] = useState("");
@@ -40,9 +41,11 @@ const TaskSharing = () => {
         Array(taskCategories.length).fill(false)
     );
     const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
+    const [selectedTask, setselectedTask] = useState<any>(false);
+    const router = useRouter();
 
     useEffect(() => {
-        fetchTasks(filter)
+        fetchTasks(filter);
     }, []);
 
     const handlesearch = (param: any) => {
@@ -50,18 +53,44 @@ const TaskSharing = () => {
             setSearch(param);
             setFilter("All Task");
             setShowForm(false);
-            console.log('test', tasksList);
+            console.log("test", tasksList);
 
             const filtered = tasksList.filter((task) => {
-                return Object.values(task).some(value =>
+                return Object.values(task).some((value) =>
                     value?.toString().toLowerCase().includes(param.toLowerCase())
                 );
             });
             setTasksList(filtered);
         } else {
-            setSearch('');
+            setSearch("");
+            handleTasksClick("All Task");
             fetchTasks(filter);
         }
+    };
+
+    const handleResetInputs = () => {
+        const { _id, ...newTask } = task;
+        setTask({
+            ...newTask,
+            createdBy: "",
+            taggedStaff: "",
+            contributingStaff: "",
+            taskName: "",
+            history: "",
+            examination: "",
+            diagnosis: "",
+            plan: "",
+            followUp: "",
+            postConsultation: "",
+            feedback: "",
+            keyLearningPoint: "",
+            action: "",
+            Library: false,
+            Learn: false,
+            isShared: false,
+            isCompleted: false,
+            isDeleted: false,
+        });
     };
 
     const handleShare = async (e: React.FormEvent) => {
@@ -103,7 +132,6 @@ const TaskSharing = () => {
                     setShowStar(false);
                 }
                 toast.success("Task shared successfully");
-
                 // Check if Learn is selected
                 if (task.Learn) {
                     // Create quiz
@@ -119,9 +147,8 @@ const TaskSharing = () => {
                     });
                     setShowQuiz(true);
                 } else {
-                    handleTasksClick("All Task");
+                    router.reload();
                 }
-
                 if (task.Library) {
                     // Create Library
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
@@ -169,51 +196,59 @@ const TaskSharing = () => {
             return;
         }
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ ...task, isCompleted: true }),
+        //complete task
+        if (selectedTask) {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/task/update/${task?._id}`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+                if (response.ok) {
+                    toast.success("Task Completed Successfully");
+                    setShowQuiz(false);
+                    handleTasksClick("All Task");
+                    setDropdownVisible(Array(taskCategories.length).fill(false));
                 }
-            );
-
-            if (response.ok) {
-                toast.success("Task saved successfully");
-                setShowQuiz(false);
-                setTask({
-                    ...task,
-                    Library: false,
-                    Learn: false,
-                });
-                handleTasksClick("All Task");
-            } else {
-                throw new Error("Failed to save task");
+            } catch (error: any) {
+                toast.error(error.message);
             }
-        } catch (error) {
-            toast.error("Error saving task: " + (error as Error).message);
+        }
+        if (!selectedTask) {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ ...task, isCompleted: true }),
+                    }
+                );
+
+                if (response.ok) {
+                    toast.success("Task saved successfully");
+                    setShowQuiz(false);
+                    setTask({
+                        ...task,
+                        Library: false,
+                        Learn: false,
+                    });
+                    handleTasksClick("All Task");
+                    setDropdownVisible(Array(taskCategories.length).fill(false));
+                } else {
+                    throw new Error("Failed to save task");
+                }
+            } catch (error) {
+                toast.error("Error saving task: " + (error as Error).message);
+            }
         }
     };
-
-    const fetchTs = async () => {
-        try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?filter=${filter}`
-            );
-            setnewTasksList(response.data);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (error) {
-            toast.error("Failed to fetch tasks");
-        }
-    };
-
-    //useEffect for fetch tasks
-    useEffect(() => {
-        fetchTs();
-    }, [tasksList]);
 
     const fetchTasks = async (filter: any) => {
         try {
@@ -230,7 +265,7 @@ const TaskSharing = () => {
                 );
                 const pendingTasks = response.data.filter(
                     (task: { isShared: boolean; isDeleted: boolean }) =>
-                        task.isShared && !task.isDeleted
+                        task?.isShared && !task?.isDeleted
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -246,7 +281,7 @@ const TaskSharing = () => {
                     )
                 );
                 const allTasks = response.data.filter(
-                    (task: { isDeleted: boolean }) => !task.isDeleted
+                    (task: { isDeleted: boolean }) => !task?.isDeleted
                 );
 
                 setFilteredTasks((prev) => {
@@ -266,7 +301,7 @@ const TaskSharing = () => {
 
                 const completedTasks = response.data.filter(
                     (task: { isCompleted: boolean; isDeleted: Boolean }) =>
-                        task.isCompleted && !task.isDeleted
+                        task?.isCompleted && !task?.isDeleted
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -285,7 +320,7 @@ const TaskSharing = () => {
 
                 const learnTasks = response.data.filter(
                     (task: { Learn: boolean; isDeleted: Boolean }) =>
-                        task.Learn && !task.isDeleted
+                        task?.Learn && !task?.isDeleted
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -300,7 +335,7 @@ const TaskSharing = () => {
                 );
 
                 const deletedTasks = response.data.filter(
-                    (task: { isDeleted: Boolean }) => task.isDeleted
+                    (task: { isDeleted: Boolean }) => task?.isDeleted
                 );
 
                 setFilteredTasks((prev) => {
@@ -318,27 +353,23 @@ const TaskSharing = () => {
     };
 
     const handleTasksClick = (item: string) => {
-        setFilter(item);
-        setShowForm(false);
+        handleResetInputs();
+        setselectedTask(false);
         setShowQuiz(false);
+        setFilter(item);
         fetchTasks(item);
-    };
-
-    const handleDropdown = (index: any) => {
-        const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
-            i === index ? !isVisible : isVisible
-        );
-
-        setDropdownVisible(newDropdownVisible);
-    };
-
-    const handleBackToForm = () => {
         setShowForm(true);
     };
 
-    //Move the task to deleted task tab
+    const handleDropdown = (index: any) => {
+        setselectedTask(false);
+        const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
+            i === index ? !isVisible : isVisible
+        );
+        setDropdownVisible(newDropdownVisible);
+    };
 
-    const handleDeleteTask = async (id: String) => {
+    const handleDeleteTask = async (id: String, filter: any) => {
         try {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
@@ -349,14 +380,10 @@ const TaskSharing = () => {
                     },
                 }
             );
-
-            const data = await response.json();
-            setnewTasksList((prev) =>
-                prev.map((task: any) =>
-                    task._id === data._id ? { ...task, isDeleted: true } : task
-                )
-            );
-            fetchTasks(filter);
+            if (response.ok) {
+                fetchTasks(filter);
+                fetchTasks("Deleted Task");
+            }
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -380,14 +407,42 @@ const TaskSharing = () => {
         }
     };
 
-    const handleDelete = (task: any) => {
-        if (!task.isDeleted) {
-            handleDeleteTask(task._id);
+    const handleDelete = (newItem: any, filter: any) => {
+        if (!newItem.isDeleted) {
+            handleDeleteTask(newItem._id, filter);
         }
-        if (task.isDeleted) {
-            handleDeletedTask(task._id);
+        if (newItem.isDeleted) {
+            handleDeletedTask(newItem._id);
         }
     };
+
+    const fetchTaskById = async (taskId: string) => {
+        try {
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
+            );
+
+            if (response) {
+                setTask(response.data);
+
+                if (response.data._id === taskId) {
+                    setselectedTask(true);
+                    setShowForm(true);
+                } else {
+                    setselectedTask(false);
+                }
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
+    const handleTaskEdit = (taskId: string) => {
+        fetchTaskById(taskId);
+    };
+
+    console.log(filter);
+    console.log(filteredTasks);
 
     return (
         <>
@@ -457,45 +512,36 @@ const TaskSharing = () => {
                                         )}
                                     </li>
                                     {dropdownVisible[index] &&
-                                        filteredTasks[item]?.map((task: any, index: any) => {
+                                        filteredTasks[item]?.map((newItem: any, index: any) => {
                                             return (
-                                                <div key={index} className={`text-black justify-between flex `}>
-                                                    <p>{task.taskName}</p>
+                                                <div
+                                                    key={index}
+                                                    className={`text-black justify-between flex `}
+                                                >
+                                                    <p
+                                                        className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
+                                                                ? "text-[#68A86B]"
+                                                                : ""
+                                                            }`}
+                                                        onClick={() => handleTaskEdit(newItem._id)}
+                                                    >
+                                                        {newItem?.taskName}
+                                                    </p>
                                                     <Image
                                                         className=" object-contain w-[16px] cursor-pointer"
                                                         src={deleteIcon}
                                                         alt="delete"
-                                                        onClick={() => handleDelete(task)}
+                                                        onClick={() => handleDelete(newItem, item)}
                                                     />
                                                 </div>
                                             );
                                         })}
                                 </>
                             ))}
-
-                            {/* {newTasksList
-                                ?.filter((task: any, index: any) => !task.isDeleted)
-                                .map((newList: any, index: any) => {
-                                    return (
-                                        <li
-                                            key={index}
-                                            className="flex gap-x-2 items-center text-gray-600 hover:text-black cursor-pointer"
-                                        >
-                                            {newList.taskName}
-                                            <button onClick={() => handleDeleteTask(newList._id)}>
-                                                <Image
-                                                    src={deleteIcon}
-                                                    alt="delete"
-                                                    className=" object-contain w-[15px]"
-                                                />
-                                            </button>
-                                        </li>
-                                    );
-                                })} */}
                         </ul>
                     </div>
                 </div>
-                {showForm ? (
+                {showForm && (
                     <section className="w-[70%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-11 px-4 text-black font-bold items-center flex justify-end gap-2">
@@ -507,26 +553,6 @@ const TaskSharing = () => {
                                 <p className="text-2xl text-black font-bold">Task Sharing</p>
                             </div>
                         </div>
-                        <div className="p-4 flex justify-between gap-12">
-                            <a
-                                href="/Homepage"
-                                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-                            >
-                                Admin <FiPlus className="ml-2" />
-                            </a>
-                            <a
-                                href="/Homepage"
-                                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-                            >
-                                Triage <FiPlus className="ml-2" />
-                            </a>
-                            <a
-                                href="/Homepage"
-                                className="w-full border border-[#BFBFBF] bg-white hover:bg-[#68A86B] text-[#BFBFBF] hover:text-white font-bold py-2 px-4 rounded-full flex justify-center items-center"
-                            >
-                                Test <FiPlus className="ml-2" />
-                            </a>
-                        </div>
                         <form className="p-4 rounded">
                             <div className="flex flex-col gap-4">
                                 <div className="relative">
@@ -537,12 +563,14 @@ const TaskSharing = () => {
                                         <input
                                             type="text"
                                             placeholder="@ Username"
-                                            className="flex-1 outline-none text-black"
+                                            className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
+                                                }`}
                                             value={task.createdBy}
                                             onChange={(e) =>
                                                 setTask({ ...task, createdBy: e.target.value })
                                             }
                                             required
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                 </div>
@@ -555,12 +583,14 @@ const TaskSharing = () => {
                                         <input
                                             type="text"
                                             placeholder="@ Username"
-                                            className="flex-1 outline-none text-black"
+                                            className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
+                                                }`}
                                             value={task.taggedStaff}
                                             onChange={(e) =>
                                                 setTask({ ...task, taggedStaff: e.target.value })
                                             }
                                             required
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                 </div>
@@ -573,12 +603,14 @@ const TaskSharing = () => {
                                         <input
                                             type="text"
                                             placeholder="@ Username"
-                                            className="flex-1 outline-none  text-black"
+                                            className={`flex-1 outline-none  text-black ${selectedTask ? "cursor-default" : ""
+                                                }`}
                                             value={task.contributingStaff}
                                             onChange={(e) =>
                                                 setTask({ ...task, contributingStaff: e.target.value })
                                             }
                                             required
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                 </div>
@@ -590,24 +622,28 @@ const TaskSharing = () => {
                                     <input
                                         type="text"
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.taskName}
                                         onChange={(e) =>
                                             setTask({ ...task, taskName: e.target.value })
                                         }
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block mb-1 text-black">History:</label>
                                     <textarea
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.history}
                                         onChange={(e) =>
                                             setTask({ ...task, history: e.target.value })
                                         }
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="flex gap-4 w-full">
@@ -617,24 +653,28 @@ const TaskSharing = () => {
                                         </label>
                                         <textarea
                                             placeholder=""
-                                            className="w-full border border-gray p-1 rounded-md text-black"
+                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                                }`}
                                             value={task.examination}
                                             onChange={(e) =>
                                                 setTask({ ...task, examination: e.target.value })
                                             }
                                             required
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                     <div className="flex-1">
                                         <label className="block mb-1 text-black">Diagnosis:</label>
                                         <textarea
                                             placeholder=""
-                                            className="w-full border border-gray p-1 rounded-md text-black"
+                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                                }`}
                                             value={task.diagnosis}
                                             onChange={(e) =>
                                                 setTask({ ...task, diagnosis: e.target.value })
                                             }
                                             required
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                 </div>
@@ -643,22 +683,26 @@ const TaskSharing = () => {
                                     <label className="block mb-1 text-black">Plan:</label>
                                     <textarea
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.plan}
                                         onChange={(e) => setTask({ ...task, plan: e.target.value })}
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block mb-1 text-black">Follow Up:</label>
                                     <textarea
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.followUp}
                                         onChange={(e) =>
                                             setTask({ ...task, followUp: e.target.value })
                                         }
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="col-span-2">
@@ -667,24 +711,28 @@ const TaskSharing = () => {
                                     </label>
                                     <textarea
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.postConsultation}
                                         onChange={(e) =>
                                             setTask({ ...task, postConsultation: e.target.value })
                                         }
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block mb-1 text-black">Feedback:</label>
                                     <textarea
                                         placeholder=""
-                                        className="w-full input-field border border-gray p-1 rounded-md text-black"
+                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                            }`}
                                         value={task.feedback}
                                         onChange={(e) =>
                                             setTask({ ...task, feedback: e.target.value })
                                         }
                                         required
+                                        readOnly={selectedTask}
                                     />
                                 </div>
                                 <div className="flex gap-4 w-full">
@@ -694,54 +742,75 @@ const TaskSharing = () => {
                                         </label>
                                         <textarea
                                             placeholder=""
-                                            className="w-full border border-gray p-1 rounded-md text-black"
+                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                                }`}
                                             value={task.keyLearningPoint}
                                             onChange={(e) =>
                                                 setTask({ ...task, keyLearningPoint: e.target.value })
                                             }
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                     <div className="flex-1">
                                         <label className="block mb-1 text-black">Action:</label>
                                         <textarea
                                             placeholder=""
-                                            className="w-full border border-gray p-1 rounded-md text-black"
+                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                                }`}
                                             value={task.action}
                                             onChange={(e) =>
                                                 setTask({ ...task, action: e.target.value })
                                             }
+                                            readOnly={selectedTask}
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex mt-4 justify-between">
+                            <div
+                                className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
+                                        ? "justify-center"
+                                        : "justify-between"
+                                    }`}
+                            >
                                 <button
                                     type="submit"
                                     onClick={handleShare}
-                                    className="btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
+                                            ? "hidden"
+                                            : "block"
+                                        }`}
                                 >
                                     Share
                                 </button>
                                 <label className="block mb-2 text-black font-bold">
                                     <input
                                         type="checkbox"
-                                        className="mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 cursor-pointer relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px]"
+                                        className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200  relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer"
+                                            }`}
                                         checked={task.Library}
                                         onChange={(e) =>
                                             setTask({ ...task, Library: e.target.checked })
                                         }
+                                        disabled={selectedTask}
                                     />
                                     Library
                                 </label>
-                                <label className="block mb-2 text-black font-bold">
+                                <label
+                                    className={`block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
+                                            ? "absolute right-0"
+                                            : ""
+                                        }`}
+                                >
                                     <input
                                         type="checkbox"
-                                        className="mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 cursor-pointer relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px]"
+                                        className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer "
+                                            }`}
                                         checked={task.Learn}
                                         onChange={(e) =>
                                             setTask({ ...task, Learn: e.target.checked })
                                         }
+                                        disabled={selectedTask}
                                     />
                                     Learn
                                 </label>
@@ -755,131 +824,19 @@ const TaskSharing = () => {
                                 <button
                                     type="button"
                                     onClick={handleComplete}
-                                    className="w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className={`w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+                                        }`}
                                 >
                                     Complete
                                 </button>
                             </div>
                         </form>
                     </section>
-                ) : (
-                    <section className="w-[70%] p-4 bg-white">
-                        <a
-                            onClick={handleBackToForm}
-                            className="cursor-pointer my-4 text-[#68A86B] font-bold py-2 px-2"
-                        >
-                            <Image src={back} alt="back" className="h-4 w-4" />
-                        </a>
-                        <h2 className="text-xl font-bold my-4 text-black">Tasks List</h2>
-                        {tasksList.length > 0 ? (
-                            <table className="min-w-full bg-white text-black rounded border-collapse table-auto shadow-md">
-                                <thead>
-                                    <tr>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Tasks
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Task Name
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Created By
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Tagged Staff
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Contributing Staff
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            History
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Examination
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Diagnosis
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Plan
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Follow Up
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Post Consultation
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Feedback
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Key Learning Point
-                                        </th>
-                                        <th className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                            Action
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tasksList.map((task: any, index) => (
-                                        <tr key={index} className="border-t">
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {index + 1}
-                                            </td>{" "}
-                                            {/* SNo */}
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.taskName}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.createdBy}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.taggedStaff}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.contributingStaff}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.history}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.examination}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.diagnosis}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.plan}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.followUp}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.postConsultation}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.feedback}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.keyLearningPoint}
-                                            </td>
-                                            <td className="py-2 px-4 border border-gray-300 whitespace-nowrap">
-                                                {task.action}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <p className="flex justify-center items-center text-black">
-                                No tasks available
-                            </p>
-                        )}
-                    </section>
                 )}
 
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className='text-black w-[40%] shadow-lg border-2 bg-white rounded-lg'>
+                    <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">
                         <div className="mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>
