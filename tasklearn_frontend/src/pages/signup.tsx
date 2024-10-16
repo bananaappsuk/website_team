@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useContext } from "react";
 import { toast } from "react-toastify";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
@@ -9,6 +9,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { FaInfoCircle } from "react-icons/fa";
 import BgImage from "../../public/assets/Rectangle68.png";
 import { doc, setDoc, getDocs, collection, query } from "firebase/firestore";
+import { useTask } from "../components/TaskContext";
 
 interface FormData {
   email: string;
@@ -20,6 +21,7 @@ interface FormData {
 }
 
 const SignUp: React.FC = () => {
+  const { jobRoleLists } = useTask();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
@@ -50,8 +52,6 @@ const SignUp: React.FC = () => {
   const allRequirementsMet = Object.values(passwordRequirements).every(
     (value) => value === true
   );
-
-  
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -132,11 +132,17 @@ const SignUp: React.FC = () => {
     }
   }, 500);
 
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     let maxSize = 5 * 1024 * 1024;
-    const { name, value, checked, type, files } = e.target;
+    const { name, value, type } = e.target as
+      | HTMLInputElement
+      | HTMLSelectElement;
+    const { files } = e.target as HTMLInputElement;
 
     if (name === "termsAccepted") {
+      const { checked } = e.target as HTMLInputElement;
       setTermsAccepted(checked);
     }
     if (type === "file" && files) {
@@ -144,6 +150,7 @@ const SignUp: React.FC = () => {
         toast.error("Please upload an image file.");
       } else if (files[0].type.startsWith("image/")) {
         //check image file size
+
         if (files[0].size > maxSize) {
           toast.error("File size is too large. Maximum size is 5MB.");
           return;
@@ -206,9 +213,9 @@ const SignUp: React.FC = () => {
       return;
     }
 
-    if(formData.password!==formData.confirmPassword){
-       toast.error("Passwords do not match!"); 
-       return
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
     }
     if (!formData.profilePic) {
       toast.error("Please upload a profile picture.");
@@ -257,8 +264,6 @@ const SignUp: React.FC = () => {
       }
     }
   };
-
-  
 
   return (
     <>
@@ -454,15 +459,23 @@ const SignUp: React.FC = () => {
                     Job Role
                   </label>
                 </div>
-                <input
-                  type="text"
+                <select
+                  className="w-full py-2 border text-black rounded-lg  "
                   name="jobRole"
-                  id="jobRole"
                   value={formData.jobRole}
                   onChange={handleChange}
-                  required={allRequirementsMet && formData.password===formData.confirmPassword}
-                  className="w-full px-4 py-2 border text-black rounded-lg"
-                />
+                  required={
+                    allRequirementsMet &&
+                    formData.password === formData.confirmPassword
+                  }
+                >
+                  <option value="" disabled>Select a Job Role</option>
+                  {jobRoleLists.map((role, index) => (
+                    <option key={index} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="mb-4 mt-4">
                 <label className="block text-gray-700 mb-1 text-sm sm:text-base">
