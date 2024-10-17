@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -27,17 +28,21 @@ mongoose.connect(process.env.DB, {
 const taskRoutes = require('./routes/taskRoutes');
 const quizRoutes = require('./routes/quizRoutes'); // New quiz routes
 const libraryRoutes = require('./routes/libraryRoutes'); // New library routes
+const profileRoutes = require("./routes/profileRoutes");
+const serverRoutes = require('./routes/serverRoutes');
 
 
 app.use('/api/tasks', taskRoutes);
 app.use("/api/task", taskRoutes); 
 app.use('/api/quizzes', quizRoutes); // Use quiz routes
 app.use('/api/libraries', libraryRoutes); // Use library routes
+app.use("/api/upload", profileRoutes);
+app.use('/api/servers', serverRoutes);
 
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the Task</h1>');
+  res.send('<h1>Welcome to the Task!</h1>');
 });
 
 // Error handling middleware

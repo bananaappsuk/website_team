@@ -1,10 +1,13 @@
 import { AppProps } from 'next/app';
 import { TaskProvider } from '../components/TaskContext';
+import { AuthProvider } from '../auth';
 function MyApp({ Component, pageProps }: AppProps) {
     return (
-        <TaskProvider>
-            <Component {...pageProps} />
-        </TaskProvider>
+        <AuthProvider>
+            <TaskProvider>
+                <Component {...pageProps} />
+            </TaskProvider>
+        </AuthProvider>
     );
 }
 

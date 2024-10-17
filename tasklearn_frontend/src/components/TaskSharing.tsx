@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 /* eslint-disable @next/next/no-html-link-for-pages */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../../src/app/globals.css";
 import { FiPlus } from "react-icons/fi";
 import Image from "next/image";
@@ -12,13 +12,18 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useTask, Task } from "../components/TaskContext";
-import back from "../../src/assets/home/back.png";
 import deleteIcon from "../assets/Quiz/Vector.png";
 import { HiChevronDown } from "react-icons/hi";
 import Quizzes from "@/pages/tabs/Quizzes";
 import { useRouter } from "next/router";
+import { getDoc, doc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { User } from "firebase/auth";
+import { useAuth } from '../auth';
 
 const TaskSharing = () => {
+    const [showLogout, setShowLogout] = useState(false);
+    const dropdownRef = useRef(null);
     const [search, setSearch] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showStar, setShowStar] = useState(false);
@@ -28,8 +33,6 @@ const TaskSharing = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [filter, setFilter] = useState("All Task");
     const { task, setTask } = useTask();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [newTasksList, setnewTasksList] = useState<any[]>([]);
     const taskCategories = [
         "All Task",
         "Pending Task",
@@ -37,6 +40,12 @@ const TaskSharing = () => {
         "Deleted Task",
         "Learning",
     ];
+    type UserData = {
+        email: string;
+        userName: string;
+        jobRole: string;
+        profilePicUrl: string | undefined
+    };
     const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
         Array(taskCategories.length).fill(false)
     );
@@ -44,9 +53,53 @@ const TaskSharing = () => {
     const [selectedTask, setselectedTask] = useState<any>(false);
     const router = useRouter();
 
+    const [user, setUser] = useState<User | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const { logout } = useAuth();
+
+    const handleToggle = () => {
+        setShowLogout((prev) => !prev);
+    };
+
+    // Handle click outside the dropdown to close it
     useEffect(() => {
-        fetchTasks(filter);
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowLogout(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownRef]);
+
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                setUser(user);
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data() as UserData);
+                }
+            } else {
+                setUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+
+        // Cleanup 
+        return () => unsubscribe();
     }, []);
+
+    if (loading) {
+        return <p className="w-full h-screen bg-white">Loading...</p>;
+    }
 
     const handlesearch = (param: any) => {
         if (param) {
@@ -441,9 +494,6 @@ const TaskSharing = () => {
         fetchTaskById(taskId);
     };
 
-    console.log(filter);
-    console.log(filteredTasks);
-
     return (
         <>
             <ToastContainer />
@@ -520,8 +570,8 @@ const TaskSharing = () => {
                                                 >
                                                     <p
                                                         className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
-                                                                ? "text-[#68A86B]"
-                                                                : ""
+                                                            ? "text-[#68A86B]"
+                                                            : ""
                                                             }`}
                                                         onClick={() => handleTaskEdit(newItem._id)}
                                                     >
@@ -544,9 +594,32 @@ const TaskSharing = () => {
                 {showForm && (
                     <section className="w-[70%] bg-white shadow">
                         <div className="pt-1">
-                            <div className="pt-11 px-4 text-black font-bold items-center flex justify-end gap-2">
-                                <a href="/Homepage">H</a>
-                                <a href="/UserProfile">P</a>
+                            <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
+                                <div ref={dropdownRef} className="flex gap-x-2 items-center">
+                                    <div className="flex items-center cursor-pointer gap-2" onClick={handleToggle}>
+                                        <img
+                                            src={userData?.profilePicUrl}
+                                            alt="profilePic"
+                                            className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
+                                        />
+                                        <p>{userData?.userName},</p>
+                                        <p>{userData?.jobRole}</p>
+                                    </div>
+
+                                    {/* Conditionally render the Logout button */}
+                                    {showLogout && (
+                                        <button
+                                            onClick={logout}
+                                            className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                                        >
+                                            Logout
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <a href="/Homepage">H</a>
+                                    <a href="/UserProfile">P</a>
+                                </div>
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
@@ -769,16 +842,16 @@ const TaskSharing = () => {
 
                             <div
                                 className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                        ? "justify-center"
-                                        : "justify-between"
+                                    ? "justify-center"
+                                    : "justify-between"
                                     }`}
                             >
                                 <button
                                     type="submit"
                                     onClick={handleShare}
                                     className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                            ? "hidden"
-                                            : "block"
+                                        ? "hidden"
+                                        : "block"
                                         }`}
                                 >
                                     Share
@@ -798,8 +871,8 @@ const TaskSharing = () => {
                                 </label>
                                 <label
                                     className={`block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                            ? "absolute right-0"
-                                            : ""
+                                        ? "absolute right-0"
+                                        : ""
                                         }`}
                                 >
                                     <input

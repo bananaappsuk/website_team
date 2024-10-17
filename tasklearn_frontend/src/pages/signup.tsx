@@ -1,21 +1,36 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useRef, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../firebase';
+import { auth, db } from "../firebase";
 import "../app/globals.css";
-import { useRouter } from 'next/navigation';
-import { ToastContainer } from 'react-toastify';
-// import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
-import { FaInfoCircle } from 'react-icons/fa';
+import { useRouter } from "next/navigation";
+import { ToastContainer } from "react-toastify";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { FaInfoCircle } from "react-icons/fa";
 import BgImage from "../../public/assets/Rectangle68.png";
+import { doc, setDoc, getDocs, collection, query } from "firebase/firestore";
+import { useTask } from "../components/TaskContext";
+
+interface FormData {
+    email: string;
+    userName: string;
+    password: string;
+    confirmPassword: string;
+    jobRole: string;
+    profilePic: File | null;
+}
 
 const SignUp: React.FC = () => {
+    const { jobRoleLists } = useTask();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const router = useRouter();
-    const [formData, setFormData] = useState({
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
+    const [formData, setFormData] = useState<FormData>({
+        email: "",
+        userName: "",
+        password: "",
+        confirmPassword: "",
+        jobRole: "",
+        profilePic: null,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,6 +40,7 @@ const SignUp: React.FC = () => {
     const [showInstructions, setShowInstructions] = useState(false);
     const instructionsRef = useRef<HTMLDivElement>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [isUsernameTaken, setIsUsernameTaken] = useState(false);
 
     const [passwordRequirements, setPasswordRequirements] = useState({
         minLength: false,
@@ -33,34 +49,40 @@ const SignUp: React.FC = () => {
         hasSymbol: false,
     });
 
-    // const togglePasswordVisibility = () => {
-    //     setPasswordVisible(!passwordVisible);
-    // };
+    const allRequirementsMet = Object.values(passwordRequirements).every(
+        (value) => value === true
+    );
 
-    // const toggleConfirmPasswordVisibility = () => {
-    //     setConfirmPasswordVisible(!confirmPasswordVisible);
-    // };
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
 
     const handleClickOutside = (event: MouseEvent) => {
-        if (instructionsRef.current && !instructionsRef.current.contains(event.target as Node)) {
+        if (
+            instructionsRef.current &&
+            !instructionsRef.current.contains(event.target as Node)
+        ) {
             setShowInstructions(false);
         }
     };
 
     useEffect(() => {
         if (showInstructions) {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener("mousedown", handleClickOutside);
         } else {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         }
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [showInstructions]);
 
     const toggleInstructions = () => {
         setShowInstructions(!showInstructions);
+    };
+    const toggleConfirmPasswordVisibility = () => {
+        setConfirmPasswordVisible(!confirmPasswordVisible);
     };
 
     const validatePassword = (password: string) => {
@@ -72,74 +94,175 @@ const SignUp: React.FC = () => {
         });
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, checked } = e.target;
+    const debounce = (func: any, delay: any) => {
+        let timeout: any;
+        return (...args: any) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func(...args);
+            }, delay);
+        };
+    };
 
-        if (name === 'phone') {
-            // Allow only digits and limit to 10 digits
-            if (/^\+?\d*$/.test(value) && value.length <= 13) {
-                setFormData({ ...formData, [name]: value });
+    //check username exists
+
+    const checkAllUsernames = async () => {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef);
+
+        const allData = await getDocs(q);
+        const usernames = allData.docs.map((doc) => doc.data().userName);
+        return usernames;
+    };
+
+    const checkUsernameExists = async (userName: any) => {
+        const usernames = await checkAllUsernames();
+        return usernames.includes(userName);
+    };
+
+    const debouncedCheckUsername = debounce(async (userName: any) => {
+        if (userName) {
+            const usernameExists = await checkUsernameExists(userName);
+            if (usernameExists) {
+                setIsUsernameTaken(true);
+                toast.error("Username is already taken.", { autoClose: 2500 });
+            } else {
+                setIsUsernameTaken(false);
             }
-        } else if (name === 'termsAccepted') {
+        }
+    }, 500);
+
+    const handleChange = async (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        let maxSize = 5 * 1024 * 1024;
+        const { name, value, type } = e.target as
+            | HTMLInputElement
+            | HTMLSelectElement;
+        const { files } = e.target as HTMLInputElement;
+
+        if (name === "termsAccepted") {
+            const { checked } = e.target as HTMLInputElement;
             setTermsAccepted(checked);
+        }
+        if (type === "file" && files) {
+            if (!files[0].type.startsWith("image/")) {
+                toast.error("Please upload an image file.");
+            } else if (files[0].type.startsWith("image/")) {
+
+                //check image file size
+
+                if (files[0].size > maxSize) {
+                    toast.error("File size is too large. Maximum size is 5MB.");
+                    return;
+                } else {
+                    setFormData({ ...formData, [name]: files[0] });
+                }
+            }
         } else {
             setFormData({ ...formData, [name]: value });
-
-            if (name === 'password') {
+            if (name === "password") {
                 validatePassword(value);
             }
         }
+    };
 
+    useEffect(() => {
+        debouncedCheckUsername(formData.userName);
+    }, [formData.userName]);
+
+    const profilePicUpload = async (profilePic: any) => {
+        try {
+            const profile = new FormData();
+            profile.append("profilePic", profilePic);
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/upload/profile`,
+                {
+                    method: "POST",
+                    body: profile,
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            }
+        } catch (error: any) {
+            toast.error(error);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!termsAccepted) {
-            toast.error('You must accept the Terms of Use and Privacy Policy.');
+        if (isUsernameTaken) {
+            toast.error("Username is already taken.");
             return;
         }
 
-        if (formData.password !== formData.confirmPassword) {
-            toast.error('Passwords do not match.');
-            return;
-        }
-
-        if (!(
-            passwordRequirements.minLength &&
-            passwordRequirements.hasUppercase &&
-            passwordRequirements.hasNumber &&
-            passwordRequirements.hasSymbol
-        )) {
-            toast.error('Password does not meet all the requirements.');
+        if (
+            !(
+                passwordRequirements.minLength &&
+                passwordRequirements.hasUppercase &&
+                passwordRequirements.hasNumber &&
+                passwordRequirements.hasSymbol
+            )
+        ) {
+            toast.error("Password does not meet all the requirements.");
             setShowInstructions(true);
             return;
         }
 
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords do not match!");
+            return;
+        }
+        if (!formData.profilePic) {
+            toast.error("Please upload a profile picture.");
+            return;
+        }
+
+        if (!termsAccepted) {
+            toast.error("You must accept the Terms of Use and Privacy Policy.");
+            return;
+        }
         try {
-            await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            toast.success('Account created successfully!', { autoClose: 3000 });
-            setTimeout(() => {
-                router.push('/signin');
-            }, 3000);
+            const signupResponse = await createUserWithEmailAndPassword(
+                auth,
+                formData.email,
+                formData.password
+            );
+            const profilePicData = await profilePicUpload(formData.profilePic);
+            if (profilePicData) {
+                const user = signupResponse.user;
+                await setDoc(doc(db, "users", user.uid), {
+                    email: formData.email,
+                    userName: formData.userName,
+                    jobRole: formData.jobRole,
+                    profilePicUrl: profilePicData.profilePicUrl,
+                });
+                toast.success("Account created successfully!", { autoClose: 3000 });
+                setTimeout(() => {
+                    router.push("/signin");
+                }, 3000);
+            }
         } catch (error) {
             if (error instanceof Error) {
                 switch (error.message) {
-                    case 'Firebase: Error (auth/email-already-in-use).':
-                        toast.error('Email already exists. Please use a different email.');
+                    case "Firebase: Error (auth/email-already-in-use).":
+                        toast.error("Email already exists. Please use a different email.");
                         break;
-                    case 'Firebase: Error (auth/invalid-email).':
-                        toast.error('Invalid email format. Please enter a valid email.');
+                    case "Firebase: Error (auth/invalid-email).":
+                        toast.error("Invalid email format. Please enter a valid email.");
                         break;
-                    case 'Firebase: Error (auth/weak-password).':
-                        toast.error('Weak password. Please use a stronger password.');
+                    case "Firebase: Error (auth/weak-password).":
+                        toast.error("Weak password. Please use a stronger password.");
                         break;
                     default:
                         toast.error(`Failed to create account: ${error.message}`);
                         break;
                 }
             } else {
-                toast.error('Failed to create account.');
+                toast.error("Failed to create account.");
             }
         }
     };
@@ -148,19 +271,26 @@ const SignUp: React.FC = () => {
         <>
             <ToastContainer />
             <div
-                className="min-h-screen flex flex-col w-full bg-center"
-                style={{ backgroundImage: `url(${BgImage.src})` }}>
-                <div className='bg-[#E7E7E7] h-12 flex justify-center text-black font-bold text-xl sm:text-2xl items-end'>
-                    <p>Affinity</p>
-                </div>
-                <div className="mt-4 lg:mt-4 flex items-center justify-center px-4">
-                    <div className="bg-white shadow-lg rounded-2xl p-6 sm:p-8 w-full sm:w-[60%] lg:w-[40%]">
-                        <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">T-askLearn</h1>
-                        <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-4 sm:mb-8">Collaborate to Learn, Learn to Collaborate</p>
-                        <h2 className="text-xl sm:text-2xl font-semibold text-center text-black mb-4">Create an account</h2>
-                        <form onSubmit={handleSubmit}>
+                className="min-h-screen flex flex-col w-full bg-center bg-cover "
+                style={{ backgroundImage: `url(${BgImage.src})` }}
+            >
+                <div className="mt-1 lg:mt-1 flex items-center justify-center px-4">
+                    <div className="bg-white shadow-lg rounded-2xl p-6 sm:p-8 w-full sm:w-[60%] lg:w-[40%] mt-4">
+                        <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">
+                            T-askLearn
+                        </h1>
+                        <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-2 sm:mb-7">
+                            Collaborate to Learn, Learn to Collaborate
+                        </p>
+                        <h2 className="text-2xl sm:text-2xl font-Poppins font-medium text-center text-black mb-3">
+                            Create an account
+                        </h2>
+                        <form onSubmit={handleSubmit} className="font-Poppins">
                             <div className="mb-4">
-                                <label htmlFor="email" className="block text-gray-700 mb-1 text-sm sm:text-base">
+                                <label
+                                    htmlFor="email"
+                                    className="block text-gray-700 mb-1 text-sm sm:text-base"
+                                >
                                     Email
                                 </label>
                                 <input
@@ -174,47 +304,52 @@ const SignUp: React.FC = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="phone" className="block text-gray-700 mb-1 text-sm sm:text-base">
-                                    Phone
+                                <label
+                                    htmlFor="userName"
+                                    className="block text-gray-700 mb-1 text-sm sm:text-base"
+                                >
+                                    User Name
                                 </label>
                                 <input
-                                    type="tel"
-                                    name="phone"
-                                    id="phone"
-                                    value={formData.phone}
+                                    type="text"
+                                    name="userName"
+                                    id="userName"
+                                    value={formData.userName}
                                     onChange={handleChange}
                                     required
                                     className="w-full px-4 py-2 border text-black rounded-lg"
                                 />
-                                <p className="text-xs sm:text-xs text-gray-500 mt-2">
-                                    We strongly recommend adding a phone number. This will help verify your account and keep it safe.
-                                </p>
                             </div>
                             <div className="mb-4 relative">
-                                <div className='flex justify-between'>
-                                    <label htmlFor="password" className="block text-gray-700 mb-1 text-sm sm:text-base">
+                                <div className="flex justify-between">
+                                    <label
+                                        htmlFor="password"
+                                        className="block text-gray-700 mb-1 text-sm sm:text-base"
+                                    >
                                         Password
                                     </label>
-                                    {/* <div
-                                    className="right-3 top-[40px] text-gray-700 cursor-pointer"
-                                    onClick={togglePasswordVisibility}
-                                >
-                                    {passwordVisible ? (
-                                        <>
-                                            <div className='flex'>
-                                                <AiFillEyeInvisible className="mr-1" />
-                                                <span className='text-xs'>Hide</span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className='flex'>
-                                                <AiFillEye className="mr-1" />
-                                                <span className='text-xs'>Show</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div> */}
+                                    {
+                                        <div
+                                            className="right-3 top-[40px] text-[#666666CC] cursor-pointer"
+                                            onClick={togglePasswordVisibility}
+                                        >
+                                            {passwordVisible ? (
+                                                <>
+                                                    <div className="flex gap-x-1 items-center font-Poppins">
+                                                        <AiFillEyeInvisible size={19} />
+                                                        <span className="text-[15px]">Hide</span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex gap-x-1 items-center font-Poppins">
+                                                        <AiFillEye size={19} />
+                                                        <span className="text-[15px]">Show</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    }
                                 </div>
                                 <input
                                     type={passwordVisible ? "text" : "password"}
@@ -225,8 +360,7 @@ const SignUp: React.FC = () => {
                                     required
                                     className="w-full px-4 py-2 border text-black rounded-lg"
                                 />
-                                <div
-                                    className="absolute right-0 top-[40px] flex items-center">
+                                <div className="absolute right-0 top-[40px] flex items-center">
                                     <div className="relative">
                                         <FaInfoCircle
                                             className="mr-3 text-black cursor-pointer"
@@ -235,17 +369,38 @@ const SignUp: React.FC = () => {
                                         {showInstructions && (
                                             <div
                                                 ref={instructionsRef}
-                                                className='z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg'>
-                                                <p className={`text-start text-xs ${passwordRequirements.minLength ? 'text-[#68A86B]' : 'text-red-500'}`}>
+                                                className="z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg"
+                                            >
+                                                <p
+                                                    className={`text-start text-xs ${passwordRequirements.minLength
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                        }`}
+                                                >
                                                     Use 8 or more characters
                                                 </p>
-                                                <p className={`text-start text-xs ${passwordRequirements.hasUppercase ? 'text-[#68A86B]' : 'text-red-500'}`}>
+                                                <p
+                                                    className={`text-start text-xs ${passwordRequirements.hasUppercase
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                        }`}
+                                                >
                                                     Use upper and lower case letters (e.g. Aa)
                                                 </p>
-                                                <p className={`text-start text-xs ${passwordRequirements.hasNumber ? 'text-[#68A86B]' : 'text-red-500'}`}>
+                                                <p
+                                                    className={`text-start text-xs ${passwordRequirements.hasNumber
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                        }`}
+                                                >
                                                     Use a number (e.g. 1234)
                                                 </p>
-                                                <p className={`text-start text-xs ${passwordRequirements.hasSymbol ? 'text-[#68A86B]' : 'text-red-500'}`}>
+                                                <p
+                                                    className={`text-start text-xs ${passwordRequirements.hasSymbol
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                        }`}
+                                                >
                                                     Use a symbol (e.g. !@#$)
                                                 </p>
                                             </div>
@@ -253,32 +408,34 @@ const SignUp: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="mb-4">
-                                <div className='flex justify-between'>
-                                    <label htmlFor="confirmPassword" className="block text-gray-700 mb-1 text-sm sm:text-base">
+                                <div className="flex justify-between">
+                                    <label
+                                        htmlFor="confirmPassword"
+                                        className="block text-gray-700 mb-1 text-sm sm:text-base"
+                                    >
                                         Confirm Password
                                     </label>
-                                    {/* <div
-                                    className="right-3 top-[40px] text-gray-700 cursor-pointer"
-                                    onClick={toggleConfirmPasswordVisibility}
-                                >
-                                    {confirmPasswordVisible ? (
-                                        <>
-                                            <div className='flex'>
-                                                <AiFillEyeInvisible className="mr-1" />
-                                                <span className='text-xs'>Hide</span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className='flex'>
-                                                <AiFillEye className="mr-1" />
-                                                <span className='text-xs'>Show</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div> */}
+                                    <div
+                                        className="right-3 top-[40px] text-[#666666CC] cursor-pointer"
+                                        onClick={toggleConfirmPasswordVisibility}
+                                    >
+                                        {confirmPasswordVisible ? (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEyeInvisible className="" size={19} />
+                                                    <span className="text-[15px]">Hide</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEye className="" size={19} />
+                                                    <span className="text-[15px]">Show</span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 <input
                                     type={confirmPasswordVisible ? "text" : "password"}
@@ -286,11 +443,70 @@ const SignUp: React.FC = () => {
                                     id="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    required
+                                    required={allRequirementsMet}
                                     className="w-full px-4 py-2 border text-black rounded-lg"
                                 />
                             </div>
-                            <div className="mb-4 flex items-center">
+
+                            <div className="mb-4">
+                                <div className="flex justify-between">
+                                    <label
+                                        htmlFor="jobRole"
+                                        className="block text-gray-700 mb-1 text-sm sm:text-base"
+                                    >
+                                        Job Role
+                                    </label>
+                                </div>
+                                <select
+                                    className="w-full py-2 border text-black rounded-lg  "
+                                    name="jobRole"
+                                    value={formData.jobRole}
+                                    onChange={handleChange}
+                                    required={
+                                        allRequirementsMet &&
+                                        formData.password === formData.confirmPassword
+                                    }
+                                >
+                                    <option value="" disabled>
+                                        Select a Job Role
+                                    </option>
+                                    {jobRoleLists.map((role, index) => (
+                                        <option key={index} value={role}>
+                                            {role}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="mb-4 mt-4">
+                                <label className="block text-gray-700 mb-1 text-sm sm:text-base">
+                                    Upload Profile Picture
+                                </label>
+                                <div className="flex gap-x-2 mt-4  items-center">
+                                    <label
+                                        htmlFor="fileInput"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        {formData.profilePic
+                                            ? formData.profilePic.name
+                                            : "Choose File "}
+                                    </label>
+                                    <p
+                                        className="border border-[#EAEAEA] bg-[#EAEAEA] p-1 px-3 w-[108px]  h-[30px] flex justify-center items-center cursor-pointer rounded-[5px]"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        Upload
+                                    </p>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleChange}
+                                    style={{ display: "none" }}
+                                    name="profilePic"
+                                    accept="image/*"
+                                />
+                            </div>
+                            <div className="mb-2 mt-4 flex items-center">
                                 <input
                                     type="checkbox"
                                     name="termsAccepted"
@@ -299,21 +515,24 @@ const SignUp: React.FC = () => {
                                     onChange={handleChange}
                                     className="mr-2 appearance-none h-4 w-4 border border-black rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 cursor-pointer relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px]"
                                 />
-                                <label htmlFor="termsAccepted" className="text-sm text-gray-600">
-                                    I accept the{' '}
-                                    <a href="#" className="text-[#68A86B] underline">
+                                <label
+                                    htmlFor="termsAccepted"
+                                    className="text-sm text-gray-600 font-Poppins"
+                                >
+                                    <a href="#" className="text-[#111111] underline">
                                         Terms of Use
-                                    </a>{' '}
-                                    and{' '}
-                                    <a href="#" className="text-[#68A86B] underline">
+                                    </a>{" "}
+                                    and{" "}
+                                    <a href="#" className=" text-[#111111] underline">
                                         Privacy Policy
-                                    </a>.
+                                    </a>
+                                    .
                                 </label>
                             </div>
 
                             <button
                                 type="submit"
-                                className="mt-2 w-full py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300"
+                                className="mt-3 w-full  py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300 font-Poppins"
                             >
                                 Sign Up
                             </button>
