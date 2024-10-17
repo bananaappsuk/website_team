@@ -27,11 +27,13 @@ mongoose.connect(process.env.DB, {
 const taskRoutes = require('./routes/taskRoutes');
 const quizRoutes = require('./routes/quizRoutes'); // New quiz routes
 const libraryRoutes = require('./routes/libraryRoutes'); // New library routes
+const userRoutes = require('./routes/userroutes'); // New user routes
 
 
 app.use('/api/tasks', taskRoutes);
 app.use('/api/quizzes', quizRoutes); // Use quiz routes
 app.use('/api/libraries', libraryRoutes); // Use library routes
+app.use('/api/user', userRoutes); // Use user routes
 
 
 // Root route for testing the API

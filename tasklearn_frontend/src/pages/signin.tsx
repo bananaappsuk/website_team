@@ -120,17 +120,18 @@ const SignIn: React.FC = () => {
 
                             </div>
                             <div className='flex flex-col justify-center items-center gap-8'>
+                            <a href="/Forgotpassword" className="fP_1">Forgot Password</a></div>
+                            
+
+                            <div className='flex flex-col justify-center items-center gap-8'>
                                 <button
                                     type="submit"
-                                    className="w-[25%] lg:w-[12%] bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
-                                >
-                                    Login
+                                    className="w-[25%] lg:w-[12%] bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300">Login
                                 </button>
+                                    <p className="fp_2">Or</p>
                                 <button type="button"
                                     onClick={() => router.push('/signup')}
-                                    className="w-[54%] lg:w-[30%] bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
-                                >
-                                    Create account
+                                    className="w-[54%] lg:w-[30%] bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300">Create account
                                 </button>
                             </div>
                         </form>

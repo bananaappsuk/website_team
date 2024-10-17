@@ -16,6 +16,9 @@ import submit from "../../src/assets/home/image 1.png";
 import star from "../../src/assets/home/Vector.png";
 import back from "../../src/assets/home/back.png";
 import Quizzes from '@/pages/tabs/Quizzes';
+//import  "bootstrap/dist/css/bootstrap.min.css"
+import Createyourserver from '../components/Createyourserver';
+
 
 const TaskSharing = () => {
     const [search, setSearch] = useState('');
@@ -32,6 +35,12 @@ const TaskSharing = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [totalQuestions, setTotalQuestions] = useState<number>(1);
     const [showAnswer, setShowAnswer] = useState(false);
+//v
+  const [showModal, setShowModal] = useState(false);
+
+  const openModal = () => setShowModal(true);
+  const closeModal = () => setShowModal(false);
+
 
     const taskCategories = [
         'All Task',
@@ -223,7 +232,7 @@ const handleseach = (param: any) => {
                         />
                     </div>
 
-                    <button className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gray-300 rounded-full text-3xl text-white">
+                    <button onClick={openModal} className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gray-300 rounded-full text-3xl text-white">
                         +
                     </button>
                 </div>
@@ -623,8 +632,8 @@ const handleseach = (param: any) => {
                     //V Start
                     
                     <div className="w-[40%] min-h-screen bg-white">
-                    <div className="mt-20 h-[1px] w-full bg-gray-300"> 
-                        
+                    <div className="mt-20 h-[1px] w-full bg-gray-300"></div>
+                       
                         <header className="p-4 flex justify-center items-center bg-white">
                         <div className="text-xl text-black font-bold">Learning </div>
                         </header>
@@ -639,9 +648,12 @@ const handleseach = (param: any) => {
                     <Quizzes />
                    
                     </div>
-                    </div>
+                    
                     //V End
                 )}
+                
+                <Createyourserver show={showModal} onClose={closeModal}></Createyourserver>
+            
             </div>
         </>
     );
