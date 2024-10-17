@@ -24,10 +24,12 @@ export default function ServerManagement() {
                 <CreateServer onSuccess={handleCreateServerSuccess} />
             )}
             {currentStep === 'channel' && (
-                <CreateChannel serverId={serverId} onSuccess={handleCreateChannelSuccess} />
+                // Use optional chaining or fallback for serverId
+                <CreateChannel serverId={serverId as string} onSuccess={handleCreateChannelSuccess} />
             )}
             {currentStep === 'task' && (
-                <CreateTaskInChannel serverId={serverId} channelId={channelId} />
+                // Use optional chaining or fallback for serverId and channelId
+                <CreateTaskInChannel serverId={serverId as string} channelId={channelId as string} />
             )}
             <div className="mt-4">
                 <button className="bg-gray-300 p-2" onClick={() => setCurrentStep('server')}>

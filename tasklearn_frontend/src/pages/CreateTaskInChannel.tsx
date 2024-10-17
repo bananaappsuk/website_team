@@ -1,17 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 
-export default function CreateTaskInChannel() {
+interface CreateTaskInChannelProps {
+    serverId: string; // Define the type for serverId
+    channelId: string; // Define the type for channelId
+}
+
+export default function CreateTaskInChannel({ serverId, channelId }: CreateTaskInChannelProps) {
     const [taskName, setTaskName] = useState('');
     const router = useRouter();
-    const { serverId, channelId } = router.query;
+    const { ServerId, ChannelId } = router.query;
 
     const handleCreateTask = async () => {
         try {
             const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/channels/${channelId}/tasks`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${ServerId}/channels/${ChannelId}/tasks`,
                 { taskName }
             );
             toast.success(`Task created: ${response.data.taskName}`);

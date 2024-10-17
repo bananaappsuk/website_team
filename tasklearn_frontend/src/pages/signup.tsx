@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -373,32 +376,32 @@ const SignUp: React.FC = () => {
                                             >
                                                 <p
                                                     className={`text-start text-xs ${passwordRequirements.minLength
-                                                            ? "text-[#68A86B]"
-                                                            : "text-red-500"
+                                                        ? "text-[#68A86B]"
+                                                        : "text-red-500"
                                                         }`}
                                                 >
                                                     Use 8 or more characters
                                                 </p>
                                                 <p
                                                     className={`text-start text-xs ${passwordRequirements.hasUppercase
-                                                            ? "text-[#68A86B]"
-                                                            : "text-red-500"
+                                                        ? "text-[#68A86B]"
+                                                        : "text-red-500"
                                                         }`}
                                                 >
                                                     Use upper and lower case letters (e.g. Aa)
                                                 </p>
                                                 <p
                                                     className={`text-start text-xs ${passwordRequirements.hasNumber
-                                                            ? "text-[#68A86B]"
-                                                            : "text-red-500"
+                                                        ? "text-[#68A86B]"
+                                                        : "text-red-500"
                                                         }`}
                                                 >
                                                     Use a number (e.g. 1234)
                                                 </p>
                                                 <p
                                                     className={`text-start text-xs ${passwordRequirements.hasSymbol
-                                                            ? "text-[#68A86B]"
-                                                            : "text-red-500"
+                                                        ? "text-[#68A86B]"
+                                                        : "text-red-500"
                                                         }`}
                                                 >
                                                     Use a symbol (e.g. !@#$)

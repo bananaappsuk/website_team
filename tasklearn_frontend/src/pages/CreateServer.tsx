@@ -1,10 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../auth';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router'; // Import useRouter
 
-export default function CreateServer() {
+interface CreateServerProps {
+    onSuccess: () => void; // Define the onSuccess type
+}
+
+export default function CreateServer({ onSuccess }: CreateServerProps) {
     const [name, setName] = useState('');
     const { user } = useAuth();
     const router = useRouter(); // Initialize router

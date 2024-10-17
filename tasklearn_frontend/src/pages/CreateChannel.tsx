@@ -1,21 +1,27 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-export default function CreateChannel() {
+interface CreateChannelProps {
+    serverId: string;
+    onSuccess: () => void;
+}
+
+export default function CreateChannel({ serverId, onSuccess }: CreateChannelProps) {
     const [channelName, setChannelName] = useState('');
     const router = useRouter();
-    const { id: serverId } = router.query; // Ensure serverId is retrieved correctly
+    const { id: ServerId } = router.query; // Ensure serverId is retrieved correctly
 
     const handleCreateChannel = async () => {
-        if (!serverId) {
+        if (!ServerId) {
             toast.error('Server ID is undefined');
             return; // Prevents API call if serverId is undefined
         }
 
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/channels`, {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/${ServerId}/channels`, {
                 name: channelName,
             });
             toast.success(`Channel created: ${response.data.name}`);

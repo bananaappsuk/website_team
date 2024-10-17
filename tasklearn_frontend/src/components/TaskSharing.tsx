@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 /* eslint-disable @next/next/no-html-link-for-pages */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,7 +25,7 @@ import { useAuth } from '../auth';
 
 const TaskSharing = () => {
     const [showLogout, setShowLogout] = useState(false);
-    const dropdownRef = useRef(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const [search, setSearch] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showStar, setShowStar] = useState(false);
@@ -64,8 +66,8 @@ const TaskSharing = () => {
 
     // Handle click outside the dropdown to close it
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowLogout(false);
             }
         };

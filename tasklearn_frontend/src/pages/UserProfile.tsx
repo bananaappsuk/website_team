@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @next/next/no-html-link-for-pages */
 import React, { useEffect, useRef, useState } from "react";
 import { useTask } from "../components/TaskContext";
@@ -36,7 +37,7 @@ const UserProfile = () => {
         profilePicUrl: string | undefined;
     };
     const [showLogout, setShowLogout] = useState(false);
-    const dropdownRef = useRef(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("My Quiz");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -54,8 +55,8 @@ const UserProfile = () => {
 
     // Handle click outside the dropdown to close it
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowLogout(false);
             }
         };
