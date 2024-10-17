@@ -2,22 +2,17 @@ const express = require("express");
 const router = express.Router();
 
 const upload = require("../middleware/multerConfig"); //multer middleware
-const multer = require("multer");
-
-let uploadHandler = upload.single("profilePic");
 
 //upload profile pic
-router.post("/profile", (req, res) => {
-  uploadHandler(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: err.message });
+router.post("/profile", upload.single("profilePic"), (req, res) => {
+  try {
+    if (req.file) {
+      res
+        .status(200)
+        .json({ message: "profile uploaded", profilePicUrl: req.file.location });
     }
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else {
-      return res.status(200).send("Profile Uploaded Successfully");
-    }
-  });
+  } catch (err) {
+    res.status(400).json({error:err.message});
+  }
 });
-
 module.exports = router;

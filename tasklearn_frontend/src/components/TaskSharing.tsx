@@ -12,11 +12,13 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useTask, Task } from "../components/TaskContext";
-import back from "../../src/assets/home/back.png";
 import deleteIcon from "../assets/Quiz/Vector.png";
 import { HiChevronDown } from "react-icons/hi";
 import Quizzes from "@/pages/tabs/Quizzes";
 import { useRouter } from "next/router";
+import { getDoc,doc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { User } from "firebase/auth";
 
 const TaskSharing = () => {
   const [search, setSearch] = useState("");
@@ -28,8 +30,6 @@ const TaskSharing = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [filter, setFilter] = useState("All Task");
   const { task, setTask } = useTask();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [newTasksList, setnewTasksList] = useState<any[]>([]);
   const taskCategories = [
     "All Task",
     "Pending Task",
@@ -37,6 +37,12 @@ const TaskSharing = () => {
     "Deleted Task",
     "Learning",
   ];
+  type UserData = {
+    email: string;
+    userName: string;
+    jobRole: string;
+    profilePicUrl: string | undefined 
+  };
   const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
     Array(taskCategories.length).fill(false)
   );
@@ -44,10 +50,33 @@ const TaskSharing = () => {
   const [selectedTask, setselectedTask] = useState<any>(false);
   const router = useRouter();
 
+  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
   useEffect(() => {
-    fetchTasks(filter);
+    const unsubscribe = auth.onAuthStateChanged( async (user) => {
+      if (user) {
+        setUser(user);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data() as UserData);
+        }
+      } else {
+        setUser(null);
+        setUserData(null);
+      }
+      setLoading(false);
+    });
+
+    // Cleanup 
+    return () => unsubscribe();
   }, []);
 
+    if (loading) {
+      return <p className="w-full h-screen bg-white">Loading...</p>;
+    }
+    
   const handlesearch = (param: any) => {
     if (param) {
       setSearch(param);
@@ -441,9 +470,6 @@ const TaskSharing = () => {
     fetchTaskById(taskId);
   };
 
-  console.log(filter);
-  console.log(filteredTasks);
-
   return (
     <>
       <ToastContainer />
@@ -545,9 +571,20 @@ const TaskSharing = () => {
         {showForm && (
           <section className="w-[70%] bg-white shadow">
             <div className="pt-1">
-              <div className="pt-11 px-4 text-black font-bold items-center flex justify-end gap-2">
-                <a href="/Homepage">H</a>
-                <a href="/UserProfile">P</a>
+              <div className="pt-11 px-4 text-black font-bold items-center flex justify-between">
+                <div className="flex gap-x-2 items-center">
+                  <img
+                    src={userData?.profilePicUrl}
+                    alt="profilePic"
+                    className=" bg-cover object-cover flex w-[48.14px] h-[48.14px] rounded-full"
+                  />
+                  <p>{userData?.userName},</p>
+                  <p>{userData?.jobRole}</p>
+                </div>
+                <div className="flex gap-2">
+                  <a href="/Homepage">H</a>
+                  <a href="/UserProfile">P</a>
+                </div>
               </div>
               <div className="mt-2 h-[1px] w-full bg-gray-300" />
               <div className="p-4">

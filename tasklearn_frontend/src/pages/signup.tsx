@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useContext } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
@@ -149,6 +149,7 @@ const SignUp: React.FC = () => {
       if (!files[0].type.startsWith("image/")) {
         toast.error("Please upload an image file.");
       } else if (files[0].type.startsWith("image/")) {
+
         //check image file size
 
         if (files[0].size > maxSize) {
@@ -182,10 +183,8 @@ const SignUp: React.FC = () => {
         }
       );
       if (response.ok) {
-        toast.success("Account created successfully!", { autoClose: 3000 });
-        setTimeout(() => {
-          router.push("/signin");
-        }, 3000);
+        const data = await response.json();
+        return data;
       }
     } catch (error: any) {
       toast.error(error);
@@ -232,16 +231,19 @@ const SignUp: React.FC = () => {
         formData.email,
         formData.password
       );
-
-      if (signupResponse) {
+      const profilePicData = await profilePicUpload(formData.profilePic);
+      if (profilePicData) {
         const user = signupResponse.user;
-
         await setDoc(doc(db, "users", user.uid), {
           email: formData.email,
           userName: formData.userName,
           jobRole: formData.jobRole,
+          profilePicUrl: profilePicData.profilePicUrl,
         });
-        profilePicUpload(formData.profilePic);
+        toast.success("Account created successfully!", { autoClose: 3000 });
+        setTimeout(() => {
+          router.push("/signin");
+        }, 3000);
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -272,7 +274,7 @@ const SignUp: React.FC = () => {
         className="min-h-screen flex flex-col w-full bg-center bg-cover "
         style={{ backgroundImage: `url(${BgImage.src})` }}
       >
-        <div className="mt-2 lg:mt-2 flex items-center justify-center px-4">
+        <div className="mt-1 lg:mt-1 flex items-center justify-center px-4">
           <div className="bg-white shadow-lg rounded-2xl p-6 sm:p-8 w-full sm:w-[60%] lg:w-[40%] mt-4">
             <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">
               T-askLearn
@@ -469,7 +471,9 @@ const SignUp: React.FC = () => {
                     formData.password === formData.confirmPassword
                   }
                 >
-                  <option value="" disabled>Select a Job Role</option>
+                  <option value="" disabled>
+                    Select a Job Role
+                  </option>
                   {jobRoleLists.map((role, index) => (
                     <option key={index} value={role}>
                       {role}

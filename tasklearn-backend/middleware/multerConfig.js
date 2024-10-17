@@ -1,17 +1,30 @@
 const multer = require("multer");
-const path = require("path");
+const multerS3 = require("multer-s3");
+const { S3Client } = require("@aws-sdk/client-s3");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../images/profilePic"));
+
+
+
+const myS3 = new S3Client({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS,
   },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
+  region: process.env.AWS_S3_REGION,
 });
+
 
 const upload = multer({
-  storage: storage,
+  storage: multerS3({
+    s3: myS3,
+    acl: "public-read",
+    bucket: process.env.BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      cb(null, file.originalname);
+    },
+  }),
 });
+
 
 module.exports = upload;
