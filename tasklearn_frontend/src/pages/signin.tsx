@@ -131,7 +131,7 @@ const SignIn: React.FC = () => {
                                 className="ml-[16.4rem] w-[147px] cursor-pointer"
                                 onClick={() => router.push("/ForgetPassword")}
                             >
-                                <p className="text-[#A0A0A0]">Forget Password?</p>
+                                <p className="text-[#A0A0A0]">Forgot Password?</p>
                             </div>
                             <div className="flex flex-col mt-[2rem] justify-center items-center gap-[1.2rem]">
                                 <button
