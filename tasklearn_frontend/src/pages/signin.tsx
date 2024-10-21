@@ -17,10 +17,39 @@ const SignIn: React.FC = () => {
   const [isUsername, setIsUsername] = useState<boolean>(false);
   const identifierRef = useRef<HTMLInputElement>(null);
   const [emailError, setEmailError] = useState(false);
+  const [userNameExists, setUserNameExists] = useState(false);
 
   useEffect(() => {
     if (identifierRef.current) {
       setIsUsername(!identifierRef.current.value.includes("@"));
+    }
+
+    const userName = async () => {
+      setUserNameExists(false);
+      if (isUsername) {
+        const q = query(
+          collection(db, "users"),
+          where("userName", "==", formData.identifier)
+        );
+        const queryDoc = await getDocs(q);
+
+        if (queryDoc.empty) {
+          console.log(queryDoc);
+
+          setUserNameExists(true);
+        }
+        if (!queryDoc.empty) {
+          setUserNameExists(false);
+        }
+      }
+      else{
+        setUserNameExists(false)
+      }
+    };
+
+       
+    if (isUsername) {
+      userName();
     }
   }, [formData.identifier]);
   // const [passwordVisible, setPasswordVisible] = useState(false);
@@ -49,7 +78,11 @@ const SignIn: React.FC = () => {
         setEmailError(true);
         return;
       }
+      else{
+        setUserNameExists(false)
+      }
     }
+
     // Restore cursor position
     requestAnimationFrame(() => {
       if (identifierRef.current) {
@@ -79,7 +112,9 @@ const SignIn: React.FC = () => {
 
         if (queryDoc.empty) {
           toast.error("Username not found");
+          setUserNameExists(true);
         } else {
+          setUserNameExists(false);
           const userDoc = queryDoc.docs[0].data().email;
           await signInWithEmailAndPassword(auth, userDoc, formData.password);
           toast.success("Login successful!");
@@ -172,7 +207,7 @@ const SignIn: React.FC = () => {
                   name="password"
                   id="password"
                   value={formData.password}
-                  required={!emailError}
+                  required={!emailError && !userNameExists}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border  border-black rounded-lg text-black"
                 />
