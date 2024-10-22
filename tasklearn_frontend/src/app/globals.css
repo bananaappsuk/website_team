@@ -41,18 +41,21 @@ body {
   float: left;
 }
 .ml_v1{
+  margin-left: auto;
+  margin-right: auto;
   position: relative;
-    margin-left: auto;
-    margin-right: auto;
+  z-index: 1;
 }
 .ml_v2{
-  position: fixed;
-  top: 40%;
+  position: absolute;
+  z-index: 3;
+  margin-top: -96px;
   margin-left: 242px;
 }
 .ml_v3{
-  position: fixed;
-  top: 48%;
+  position: absolute;
+  z-index: 2; 
+  margin-top: -45px;
   margin-left: 236px;
 }
 .ml_v6{
@@ -61,4 +64,43 @@ body {
 }
 .Co_1{
   color: #04AA6D;
+}
+.Co_2{
+  margin-top: -7px;
+}
+
+.fo_1{
+  width: 100%;
+  margin-top: 23px;
+}
+.fo_2{
+  width: 50%;
+  float: left;
+}
+.fo_3{
+  width: 50%;
+  float: right;
+}
+.fo_4{
+  width: 50%;
+  text-align: center;
+}
+.fo_22 {
+  color: #000000;
+  font-weight: 700;
+}
+.sn_1{
+  color: #000000;
+  font-weight: 700;
+}
+.pn_1{
+    font-weight: 400;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .fo_4 {
+    width: 100%;
+    text-align: center;
+}
 }

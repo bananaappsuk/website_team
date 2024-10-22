@@ -18,7 +18,7 @@ import back from "../../src/assets/home/back.png";
 import Quizzes from '@/pages/tabs/Quizzes';
 //import  "bootstrap/dist/css/bootstrap.min.css"
 import Createyourserver from '../components/Createyourserver';
-
+import Tellusmoreabout from '../pages/Tellusmoreabout';
 
 const TaskSharing = () => {
     const [search, setSearch] = useState('');

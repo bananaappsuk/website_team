@@ -14,6 +14,7 @@ import { useRouter } from 'next/router';
 import Libraries from './tabs/Libraries';
 
 
+
 const tabs = [
     { name: 'My Quiz' },
     { name: 'Library' },
@@ -27,6 +28,7 @@ const tabs = [
 ];
 
 const UserProfile = () => {
+    const [search, setSearch] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('My Quiz');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -63,7 +65,58 @@ const UserProfile = () => {
     if (redirecting) {
         return <div>You are not logged in. Redirecting...</div>;
     }
+/*V start*/
+const handleseach = (param: any) => {
+    if (param) {
+        setSearch(param);
+        setFilter("All Task");
+        setShowForm(false);
+        console.log('test', tasksList);
 
+        const filtered = tasksList.filter((task) => {
+            // Check if any of the columns contain the search term
+            return Object.values(task).some(value =>
+                value?.toString().toLowerCase().includes(param.toLowerCase())
+            );
+        });
+
+        setTasksList(filtered);
+    } else {
+        setSearch('');
+        fetchTasks(filter);
+    }
+}
+
+/*V End*/
+
+async function queryUsersByDisplayName(searchString: string) {
+    try {
+      const users: { uid: any; email: any; displayName: any; }[] = [];
+      
+      // List all users (can be paginated if you have many users)
+      const listUsersResult = await auth.listUsers();
+      
+      // Filter users by displayName
+      listUsersResult.users.forEach((userRecord) => {
+        const displayName = userRecord.displayName || '';
+        
+        // Check if the displayName contains the searchString
+        if (displayName.toLowerCase().includes(searchString.toLowerCase())) {
+          users.push({
+            uid: userRecord.uid,
+            email: userRecord.email,
+            displayName: userRecord.displayName,
+          });
+        }
+      });
+      
+      return users; // Return filtered users
+    } catch (error) {
+      console.error('Error querying users:', error);
+    }
+  }
+  
+  
     return (
         <>
             <div className='w-full flex gap-2 bg-gray-100'>
@@ -104,7 +157,9 @@ const UserProfile = () => {
                                     type="text"
                                     placeholder="Search for users by name, job title"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => queryUsersByDisplayName(e.target.value)}
+                                    //value={search}
+                                //onChange={(e) => handleseach(e.target.value)}
                                     className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100 w-full sm:w-96"
                                 />
                                 <Image
@@ -148,7 +203,7 @@ const UserProfile = () => {
                                     <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
                                     <div className='flex justify-between items-center'>
                 <div className="text-center font-semibold flex-1">
-                Quiz visible to
+                Quiz visible
                 </div>
                 <div className="ml-auto relative">
                     <input
