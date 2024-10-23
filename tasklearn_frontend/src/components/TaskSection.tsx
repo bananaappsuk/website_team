@@ -123,7 +123,6 @@ const TaskSection: React.FC<Props> = ({
     }
   };
 
-  console.log(filter);
 
   return (
     <div>
@@ -156,7 +155,7 @@ const TaskSection: React.FC<Props> = ({
                       }`}
                       onClick={() => fetchTaskById(newItem._id)}
                     >
-                      {newItem?.taskName}
+                      {newItem?.patientId}
                     </p>
                     <Image
                       className=" object-contain w-[16px] cursor-pointer"

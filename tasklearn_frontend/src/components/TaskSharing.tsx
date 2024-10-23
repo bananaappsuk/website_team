@@ -32,7 +32,7 @@ const TaskSharing = () => {
   const [showForm, setShowForm] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [filter, setFilter] = useState("All Task");
-  const { task, setTask } = useTask();
+  const { task, setTask, fetchPatientId, updatePatientId } = useTask();
   const taskCategories = [
     "All Task",
     "Pending Task",
@@ -94,7 +94,7 @@ const TaskSharing = () => {
       }
       setLoading(false);
     });
-
+    fetchPatientId();
     // Cleanup
     return () => unsubscribe();
   }, []);
@@ -124,9 +124,11 @@ const TaskSharing = () => {
   };
 
   const handleResetInputs = () => {
+    fetchPatientId();
     const { _id, ...newTask } = task;
     setTask({
       ...newTask,
+      patientId: task.patientId,
       createdBy: "",
       taggedStaff: "",
       contributingStaff: "",
@@ -186,6 +188,7 @@ const TaskSharing = () => {
         } else {
           setShowStar(false);
         }
+        updatePatientId();
         toast.success("Task shared successfully");
         // Check if Learn is selected
         if (task.Learn) {
@@ -265,6 +268,7 @@ const TaskSharing = () => {
         );
         if (response.ok) {
           toast.success("Task Completed Successfully");
+
           setShowQuiz(false);
           handleTasksClick("All Task");
           setDropdownVisible(Array(taskCategories.length).fill(false));
@@ -294,7 +298,10 @@ const TaskSharing = () => {
             Library: false,
             Learn: false,
           });
+          updatePatientId();
           handleTasksClick("All Task");
+          fetchPatientId();
+
           setDropdownVisible(Array(taskCategories.length).fill(false));
         } else {
           throw new Error("Failed to save task");

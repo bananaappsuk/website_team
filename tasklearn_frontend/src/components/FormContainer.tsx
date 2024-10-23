@@ -13,13 +13,25 @@ const FormContainer: React.FC<Props> = ({
   handleComplete,
 }) => {
   const { task, setTask } = useTask();
-
-  console.log(task);
-
+  
   return (
     <div>
       <form className="p-4 rounded">
         <div className="flex flex-col gap-4">
+          <div className=" relative">
+            <div className="flex items-center border border-gray p-1 rounded-md">
+              <label className="whitespace-nowrap mr-2 text-black">
+                Patient ID:
+              </label>
+              <input
+                type="text"
+                className={`flex-1 outline-none text-black ${"cursor-default"}`}
+                value={task.patientId}
+                required
+                readOnly
+              />
+            </div>
+          </div>
           <div className="relative">
             <div className="flex items-center border border-gray p-1 rounded-md">
               <label className="whitespace-nowrap mr-2 text-black">
