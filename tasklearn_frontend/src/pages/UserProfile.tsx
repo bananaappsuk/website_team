@@ -12,6 +12,10 @@ import goldStar from "../../src/assets/Library/Vector (1).png";
 import grayStar from "../../src/assets/Library/Vector.png";
 import { useRouter } from 'next/router';
 import Libraries from './tabs/Libraries';
+import Followers from './tabs/Followers';
+import Following from './tabs/Following';
+import Requests from './tabs/Requests';
+import Career from './Career';
 
 
 
@@ -242,6 +246,30 @@ async function queryUsersByDisplayName(searchString: string) {
                                 <div className='flex justify-center'>
                                     <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
                                         <Libraries />
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Followers' ? (
+                                <div className='flex justify-center'>
+                                    <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <Followers />
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Following' ? ( 
+                                <div className='flex justify-center'>
+                                    <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <Following />
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Requests' ? ( 
+                                <div className='flex justify-center'>
+                                    <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <Requests />
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Career' ? ( 
+                                <div className='flex justify-center'>
+                                    <div className='w-[70%] shadow-lg border-2 rounded-lg p-8'>
+                                        <Career />
                                     </div>
                                 </div>
                             ) : (

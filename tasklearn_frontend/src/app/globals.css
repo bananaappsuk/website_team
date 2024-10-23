@@ -92,9 +92,33 @@ body {
 .sn_1{
   color: #000000;
   font-weight: 700;
+  margin-left: 53px;
 }
 .pn_1{
     font-weight: 400;
+}
+.bgco_1{
+background: #67A76B;
+border-radius: 0.375rem;
+padding-left: 45px;
+padding-right: 45px;
+margin-right: 53px;
+/* width: 40%; */
+}
+.bgco_2{
+  background: #67A76B;
+  border-radius: 0.375rem;
+  padding-left: 45px;
+  padding-right: 45px;
+}
+.bgco_3{
+  background: #D26767;
+  border-radius: 0.375rem;
+  padding-left: 45px;
+  padding-right: 45px;
+}
+.mr1{
+  margin-right: 53px;
 }
 
 /* Extra small devices (phones, 600px and down) */
@@ -104,3 +128,10 @@ body {
     text-align: center;
 }
 }
+
+
+
+
+
+
+

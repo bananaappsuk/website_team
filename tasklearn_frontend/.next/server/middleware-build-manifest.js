@@ -17,10 +17,10 @@ self.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/Homepage.js"
     ],
-    "/Tellusmoreabout": [
+    "/UserProfile": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/Tellusmoreabout.js"
+      "static/chunks/pages/UserProfile.js"
     ],
     "/_app": [
       "static/chunks/webpack.js",
@@ -31,11 +31,6 @@ self.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
-    ],
-    "/uplodeimage": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/uplodeimage.js"
     ]
   },
   "ampFirstPages": []

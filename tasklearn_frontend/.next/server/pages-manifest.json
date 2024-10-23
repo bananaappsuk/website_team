@@ -3,6 +3,5 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/Homepage": "pages/Homepage.js",
-  "/Tellusmoreabout": "pages/Tellusmoreabout.js",
-  "/uplodeimage": "pages/uplodeimage.js"
+  "/UserProfile": "pages/UserProfile.js"
 }
