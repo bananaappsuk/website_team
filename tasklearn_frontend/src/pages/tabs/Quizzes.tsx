@@ -199,7 +199,7 @@ const Quizzes = () => {
                         <div className="bg-white rounded-md">
                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">Key Learning Points</h3>
                             <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
-                                {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
+                                {/* {filteredQuizzes[currentQuizIndex]?.keyLearningPoint} */}Ajith11
                             </p>
                         </div>
 
@@ -208,8 +208,6 @@ const Quizzes = () => {
                             <input
                                 type="text"
                                 placeholder="Enter Answer"
-                                value={currentAnswer}
-                                onChange={(e) => setCurrentAnswer(e.target.value)}
                                 className="w-full px-10 py-6 placeholder:text-[#67A76B] text-center border shadow-sm text-black"
                             />
                         </div>
@@ -217,10 +215,10 @@ const Quizzes = () => {
                 </div>
 
                 <div className="flex justify-center mt-4 gap-8">
-                    <button className="text-red-600 flex items-center" onClick={() => setCurrentAnswer('')}>
+                    <button className="text-red-600 flex items-center">
                         <span className="mr-1"><Image src={clear} alt="clear" className="h-8 w-8" /></span>
                     </button>
-                    <button onClick={handleAnswerSubmit} className="text-green-600 flex items-center">
+                    <button >
                         <span className="mr-1"><Image src={submit} alt="submit" className="h-10 w-10" /></span>
                     </button>
                 </div>
