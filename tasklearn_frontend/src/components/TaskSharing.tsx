@@ -183,28 +183,9 @@ const TaskSharing = () => {
       );
 
       if (response.ok) {
-        if (task.Library && task.Learn) {
-          setShowStar(true);
-        } else {
-          setShowStar(false);
-        }
         updatePatientId();
         toast.success("Task shared successfully");
-        // Check if Learn is selected
-        if (task.Learn) {
-          // Create quiz
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              keyLearningPoint: task.keyLearningPoint,
-              action: task.action,
-            }),
-          });
-          setShowQuiz(true);
-        } else {
+        if (!task.Learn && !task.Library) {
           router.reload();
         }
         if (task.Library) {
@@ -220,20 +201,59 @@ const TaskSharing = () => {
             }),
           });
         }
-
         setTask({
           ...task,
           Library: false,
           Learn: false,
         });
-      } else {
-        throw new Error("Failed to share task");
+        if (task.Library && task.Learn) {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              keyLearningPoint: task.keyLearningPoint,
+              action: task.action,
+              Library: true,
+            }),
+          });
+          setShowQuiz(true);
+          setTask({
+            ...task,
+            Library: false,
+            Learn: false,
+          });
+          handleResetInputs();
+        }
+
+        // Check if Learn is selected
+        else if (task.Learn && !task.Library) {
+          // Create quiz
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              keyLearningPoint: task.keyLearningPoint,
+              action: task.action,
+              Library: false,
+            }),
+          });
+          setTask({
+            ...task,
+            Library: false,
+            Learn: false,
+          });
+          handleResetInputs();
+          setShowQuiz(true);
+        }
       }
     } catch (error) {
       toast.error("Error sharing task: " + (error as Error).message);
     }
   };
-
   const handleComplete = async (e: React.FormEvent) => {
     e.preventDefault();
 

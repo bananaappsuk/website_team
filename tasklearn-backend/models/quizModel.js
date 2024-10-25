@@ -1,5 +1,5 @@
 // models/quizModel.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const quizSchema = new mongoose.Schema({
   keyLearningPoint: {
@@ -14,7 +14,11 @@ const quizSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  Library: {
+    type: Boolean,
+    required: true,
+  },
 });
 
-const Quiz = mongoose.model('Quiz', quizSchema);
+const Quiz = mongoose.model("Quiz", quizSchema);
 module.exports = Quiz;
