@@ -1,6 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const taskSchema = new mongoose.Schema({
+  patientId: {
+    type: String,
+    unique: true,
+  },
   createdBy: String,
   taggedStaff: String,
   contributingStaff: String,
@@ -33,6 +37,6 @@ const taskSchema = new mongoose.Schema({
   },
 });
 
-const Task = mongoose.model('Task', taskSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 module.exports = Task;

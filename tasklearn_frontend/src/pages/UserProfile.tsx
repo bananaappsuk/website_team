@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @next/next/no-html-link-for-pages */
 import React, { useEffect, useRef, useState } from "react";
@@ -7,7 +8,6 @@ import { auth, db } from "../firebase";
 import { getDoc, doc } from "firebase/firestore";
 import "../../src/app/globals.css";
 import Quizzes from "./tabs/Quizzes";
-import Profile from "../../src/assets/home/Ellipse 1.png";
 import Image from "next/image";
 import searchIcon from "../../src/assets/Quiz/Group 1.png";
 import goldStar from "../../src/assets/Library/Vector (1).png";
@@ -16,6 +16,12 @@ import { useRouter } from "next/router";
 import Libraries from "./tabs/Libraries";
 import Tracking from "./tabs/Tracking";
 import { useAuth } from '../auth';
+import { collection, getDocs } from "firebase/firestore";
+import SidebarProfile from "@/components/SidebarProfile";
+import Followers from "./tabs/Followers";
+import Following from "./tabs/Following";
+import Career from "./tabs/Career";
+import Requests from "./tabs/FollowRequests";
 
 const tabs = [
     { name: "My Quiz" },
@@ -31,6 +37,7 @@ const tabs = [
 
 const UserProfile = () => {
     type UserData = {
+        uid: any;
         email: string;
         userName: string;
         jobRole: string;
@@ -48,6 +55,62 @@ const UserProfile = () => {
     const router = useRouter();
     const [redirecting, setRedirecting] = useState(false);
     const { logout } = useAuth();
+    const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
+    const searchRef = useRef<HTMLDivElement>(null);
+    const [showResults, setShowResults] = useState(false);
+
+
+    useEffect(() => {
+        const searchUsers = async () => {
+            if (searchTerm.trim() !== "") {
+                const userDocs = await getDocs(collection(db, "users"));
+                const users = userDocs.docs.map((doc) => doc.data() as UserData);
+
+                const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+                // Determine the match type based on the length of the search term
+                const filtered = users.filter((user) => {
+                    const userName = user.userName?.toLowerCase();
+                    const jobRole = user.jobRole?.toLowerCase();
+
+                    // Match one letter or two or more letters
+                    if (lowerCaseSearchTerm.length === 1) {
+                        return (
+                            (userName && userName.includes(lowerCaseSearchTerm))
+                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                        );
+                    } else if (lowerCaseSearchTerm.length >= 2) {
+                        return (
+                            (userName && userName.includes(lowerCaseSearchTerm))
+                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                        );
+                    }
+                    return false; // No match if the search term is empty or less than 1
+                });
+
+                setFilteredUsers(filtered);
+            } else {
+                setFilteredUsers([]);
+            }
+        };
+        searchUsers();
+    }, [searchTerm]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setFilteredUsers([]); // Clear search results when clicking outside
+                setShowResults(false); // Hide search results
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [searchRef]); // Removed the other `handleClickOutsidee` logic
+
 
     const handleToggle = () => {
         setShowLogout((prev) => !prev);
@@ -84,10 +147,15 @@ const UserProfile = () => {
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
-                setUser(user);
-                const userDoc = await getDoc(doc(db, "users", user.uid));
+                setUser(user); // Store Firebase user object
+                const userDoc = await getDoc(doc(db, "users", user.uid)); // Fetch user data from Firestore
+
                 if (userDoc.exists()) {
-                    setUserData(userDoc.data() as UserData);
+                    // Add UID to the user data
+                    setUserData({
+                        ...userDoc.data(),
+                        uid: user.uid // Include UID in the userData state
+                    } as unknown as UserData);
                 }
             } else {
                 setUser(null);
@@ -96,9 +164,10 @@ const UserProfile = () => {
             setLoading(false);
         });
 
-        // Cleanup
+        // Cleanup subscription
         return () => unsubscribe();
     }, []);
+
 
     useEffect(() => {
         if (!loading && !user) {
@@ -111,6 +180,9 @@ const UserProfile = () => {
         }
     }, [loading, user, router]);
 
+    const userId = userData ? userData.uid : null;
+
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -122,18 +194,7 @@ const UserProfile = () => {
     return (
         <>
             <div className="w-full flex gap-2 bg-gray-100">
-                <div className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen">
-                    <div className="pt-4 text-green-500 text-lg md:text-3xl font-bold">
-                        <a href="/Homepage">TL</a>
-                    </div>
-                    <div className="rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12">
-                        <Image src={Profile} alt="Profile Picture" width={64} height={64} />
-                    </div>
-
-                    <button className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gray-300 rounded-full text-3xl text-white">
-                        +
-                    </button>
-                </div>
+                <SidebarProfile userId={userId} />
                 <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
@@ -180,12 +241,13 @@ const UserProfile = () => {
                             )}
                         </div>
                         <div className="ml-auto relative mt-4 mr-8">
-                            <div className="relative">
+                            <div ref={searchRef} className="relative">
                                 <input
                                     type="text"
                                     placeholder="Search for users by name, job title"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setShowResults(true)}
                                     className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100 w-full sm:w-96"
                                 />
                                 <Image
@@ -193,6 +255,20 @@ const UserProfile = () => {
                                     alt="Search Icon"
                                     className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5"
                                 />
+                                {showResults && searchTerm && (
+                                    <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
+                                        {filteredUsers.length > 0 ? (
+                                            filteredUsers.map((user) => (
+                                                <div key={user.email} className="p-2 border-b">
+                                                    <p className="font-semibold">{user.userName}</p>
+                                                    <p className="text-sm text-gray-500">{user.jobRole}</p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 text-gray-500">No result found</div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -269,6 +345,30 @@ const UserProfile = () => {
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Tracking />
+                                    </div>
+                                </div>
+                            ) : activeTab === "Followers" ? (
+                                <div className="flex justify-center">
+                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                        <Followers />
+                                    </div>
+                                </div>
+                            ) : activeTab === "Following" ? (
+                                <div className="flex justify-center">
+                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                        <Following />
+                                    </div>
+                                </div>
+                            ) : activeTab === "Career" ? (
+                                <div className="flex justify-center">
+                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                        <Career />
+                                    </div>
+                                </div>
+                            ) : activeTab === "Requests" ? (
+                                <div className="flex justify-center">
+                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                        <Requests />
                                     </div>
                                 </div>
                             ) : (

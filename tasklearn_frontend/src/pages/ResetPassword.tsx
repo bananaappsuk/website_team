@@ -11,6 +11,8 @@ import { FaInfoCircle } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { confirmPasswordReset } from "firebase/auth";
 import { auth } from "../firebase";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+
 
 interface FormData {
     newPassword: string;
@@ -21,7 +23,8 @@ const ResetPassword: React.FC = () => {
     const router = useRouter();
     const [showInstructions, setShowInstructions] = useState(false);
     const instructionsRef = useRef<HTMLDivElement>(null);
-
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [oobCode, setOobCode] = useState<string | null>(null);
 
     const [formInputs, setFormInputs] = useState<FormData>({
@@ -35,6 +38,14 @@ const ResetPassword: React.FC = () => {
         hasNumber: false,
         hasSymbol: false,
     });
+
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setConfirmPasswordVisible(!confirmPasswordVisible);
+    };
 
     const toggleInstructions = () => {
         setShowInstructions(!showInstructions);
@@ -147,103 +158,151 @@ const ResetPassword: React.FC = () => {
                             Collaborate to Learn, Learn to Collaborate
                         </p>
                         <div
-                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[17%]"
+                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
                             onClick={() => router.push("/signin")}
                         >
                             <Image
                                 src={backArrow}
                                 alt="back"
-                                width={24}
-                                height={24}
+                                width={16}
+                                height={16}
                                 className=" object-contain -[#67A76B]"
                             />
-                            <p className=" text-[14px]">Back to Sign in</p>
+                            <p className="ml-2 text-[14px]">Back to Sign in</p>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4 relative">
-                                <label
-                                    htmlFor="email"
-                                    className="block text-[#646161] mb-7 text-xl sm:text-base"
-                                >
-                                    Enter your new password here
-                                </label>
+                                <div className="flex justify-between">
+                                    <label
+                                        htmlFor="password"
+                                        className="block text-gray-700  mb-3 sm:mb-4 xl:mb-5 text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl"
+                                    >
+                                        Enter your new password here
+                                    </label>
+                                    {
+                                        <div className="relative">
+                                            <FaInfoCircle
+                                                className="mr-[0.9rem] md:mt-1 lg:mt-2 text-gray-700 cursor-pointer"
+                                                onClick={toggleInstructions}
+                                            />
+                                            {showInstructions && (
+                                                <div
+                                                    ref={instructionsRef}
+                                                    className="z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg"
+                                                >
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.minLength
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use 8 or more characters
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasUppercase
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use upper and lower case letters (e.g. Aa)
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasNumber
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use a number (e.g. 1234)
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasSymbol
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use a symbol (e.g. !@#$)
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    }
+                                </div>
                                 <input
-                                    type="password"
+                                    type={passwordVisible ? "text" : "password"}
                                     name="newPassword"
-                                    id="newPassword"
-                                    required
-                                    className="w-full px-4 py-3 mb-9 border-black border text-black rounded-lg "
                                     placeholder="New password"
-                                    onChange={handleChange}
+                                    id="newPassword"
                                     value={formInputs.newPassword}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-2 border border-black text-black rounded-lg"
                                 />
-                                <div className="absolute right-0 top-[4.3rem] flex items-center">
-                                    <div className="relative">
-                                        <FaInfoCircle
-                                            className="mr-3 text-black cursor-pointer"
-                                            onClick={toggleInstructions}
-                                        />
-                                        {showInstructions && (
-                                            <div
-                                                ref={instructionsRef}
-                                                className="z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg"
-                                            >
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.minLength
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use 8 or more characters
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasUppercase
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use upper and lower case letters (e.g. Aa)
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasNumber
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use a number (e.g. 1234)
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasSymbol
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use a symbol (e.g. !@#$)
-                                                </p>
-                                            </div>
+                                <div className="top-[40px] flex items-center">
+                                    <div
+                                        className="absolute right-2 text-gray-700 top-[40px] sm:top-[48px] lg:top-[54px] xl:top-[60px] text-[#666666CC] cursor-pointer"
+                                        onClick={togglePasswordVisibility}
+                                    >
+                                        {passwordVisible ? (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEyeInvisible size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEye size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div className="mb-4">
+                                <div className="relative flex justify-between">
+                                    <div
+                                        className="absolute right-2 text-gray-700 top-[11px] text-[#666666CC] cursor-pointer"
+                                        onClick={toggleConfirmPasswordVisibility}
+                                    >
+                                        {confirmPasswordVisible ? (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEyeInvisible className="" size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEye className="" size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 </div>
                                 <input
-                                    type="password"
+                                    type={confirmPasswordVisible ? "text" : "password"}
                                     name="confirmNewPassword"
                                     id="confirmNewPassword"
-                                    className="w-full px-4 py-3 mb-6 border-black border text-black rounded-lg"
                                     placeholder="Re-enter password"
-                                    onChange={handleChange}
                                     value={formInputs.confirmNewPassword}
+                                    onChange={handleChange}
                                     required={
                                         passwordRequirements.hasNumber &&
                                         passwordRequirements.hasSymbol &&
                                         passwordRequirements.hasUppercase &&
                                         passwordRequirements.minLength
-                                    }
+                                    } className="w-full px-4 py-2 border border-black text-black rounded-lg"
                                 />
                             </div>
-                            <div className=" flex justify-center mt-[2.5rem]">
+                            <div className="flex justify-center mt-[2.5rem]">
                                 <button
                                     type="submit"
-                                    className="w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className="font-semibold w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
                                 >
                                     Confirm
                                 </button>

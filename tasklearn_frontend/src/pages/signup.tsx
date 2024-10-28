@@ -13,6 +13,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import BgImage from "../../public/assets/Rectangle68.png";
 import { doc, setDoc, getDocs, collection, query } from "firebase/firestore";
 import { useTask } from "../components/TaskContext";
+import Link from "next/link";
 
 interface FormData {
     email: string;
@@ -128,7 +129,7 @@ const SignUp: React.FC = () => {
             const usernameExists = await checkUsernameExists(userName);
             if (usernameExists) {
                 setIsUsernameTaken(true);
-                toast.error("Username is already taken.", { autoClose: 2500 });
+                toast.error("Username is already taken.", { autoClose: 1500 });
             } else {
                 setIsUsernameTaken(false);
             }
@@ -243,10 +244,10 @@ const SignUp: React.FC = () => {
                     jobRole: formData.jobRole,
                     profilePicUrl: profilePicData.profilePicUrl,
                 });
-                toast.success("Account created successfully!", { autoClose: 3000 });
+                toast.success("Account created successfully!", { autoClose: 1000 });
                 setTimeout(() => {
                     router.push("/signin");
-                }, 3000);
+                }, 1000);
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -278,11 +279,11 @@ const SignUp: React.FC = () => {
                 style={{ backgroundImage: `url(${BgImage.src})` }}
             >
                 <div className="mt-1 lg:mt-1 flex items-center justify-center px-4">
-                    <div className="bg-white shadow-lg rounded-2xl p-6 sm:p-8 w-full sm:w-[60%] lg:w-[40%] mt-4">
-                        <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">
+                    <div className="bg-white shadow-lg rounded-2xl px-6 py-2 sm:px-8 w-full sm:w-[60%] lg:w-[40%] mt-4">
+                        <h1 className="text-4xl sm:text-4xl font-normal text-center text-[#68A86B] mb-0">
                             T-askLearn
                         </h1>
-                        <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-2 sm:mb-7">
+                        <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-2 sm:mb-2">
                             Collaborate to Learn, Learn to Collaborate
                         </p>
                         <h2 className="text-2xl sm:text-2xl font-Poppins font-medium text-center text-black mb-3">
@@ -332,24 +333,49 @@ const SignUp: React.FC = () => {
                                         Password
                                     </label>
                                     {
-                                        <div
-                                            className="right-3 top-[40px] text-[#666666CC] cursor-pointer"
-                                            onClick={togglePasswordVisibility}
-                                        >
-                                            {passwordVisible ? (
-                                                <>
-                                                    <div className="flex gap-x-1 items-center font-Poppins">
-                                                        <AiFillEyeInvisible size={19} />
-                                                        <span className="text-[15px]">Hide</span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="flex gap-x-1 items-center font-Poppins">
-                                                        <AiFillEye size={19} />
-                                                        <span className="text-[15px]">Show</span>
-                                                    </div>
-                                                </>
+                                        <div className="relative">
+                                            <FaInfoCircle
+                                                className="mr-[0.8rem] text-gray-700 cursor-pointer"
+                                                onClick={toggleInstructions}
+                                            />
+                                            {showInstructions && (
+                                                <div
+                                                    ref={instructionsRef}
+                                                    className="z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg"
+                                                >
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.minLength
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use 8 or more characters
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasUppercase
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use upper and lower case letters (e.g. Aa)
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasNumber
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use a number (e.g. 1234)
+                                                    </p>
+                                                    <p
+                                                        className={`text-start text-xs ${passwordRequirements.hasSymbol
+                                                            ? "text-[#68A86B]"
+                                                            : "text-red-500"
+                                                            }`}
+                                                    >
+                                                        Use a symbol (e.g. !@#$)
+                                                    </p>
+                                                </div>
                                             )}
                                         </div>
                                     }
@@ -363,56 +389,32 @@ const SignUp: React.FC = () => {
                                     required
                                     className="w-full px-4 py-2 border text-black rounded-lg"
                                 />
-                                <div className="absolute right-0 top-[40px] flex items-center">
-                                    <div className="relative">
-                                        <FaInfoCircle
-                                            className="mr-3 text-black cursor-pointer"
-                                            onClick={toggleInstructions}
-                                        />
-                                        {showInstructions && (
-                                            <div
-                                                ref={instructionsRef}
-                                                className="z-40 absolute right-0 top-full bg-white mt-2 w-64 p-2 border border-gray-300 rounded-lg shadow-lg"
-                                            >
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.minLength
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use 8 or more characters
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasUppercase
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use upper and lower case letters (e.g. Aa)
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasNumber
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use a number (e.g. 1234)
-                                                </p>
-                                                <p
-                                                    className={`text-start text-xs ${passwordRequirements.hasSymbol
-                                                        ? "text-[#68A86B]"
-                                                        : "text-red-500"
-                                                        }`}
-                                                >
-                                                    Use a symbol (e.g. !@#$)
-                                                </p>
-                                            </div>
+                                <div className="top-[40px] flex items-center">
+                                    <div
+                                        className="absolute right-2 text-gray-700 top-[40px] text-[#666666CC] cursor-pointer"
+                                        onClick={togglePasswordVisibility}
+                                    >
+                                        {passwordVisible ? (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEyeInvisible size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex gap-x-1 items-center font-Poppins">
+                                                    <AiFillEye size={19} />
+                                                    <span className="text-[15px]"></span>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
+
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <div className="flex justify-between">
+                                <div className="relative flex justify-between">
                                     <label
                                         htmlFor="confirmPassword"
                                         className="block text-gray-700 mb-1 text-sm sm:text-base"
@@ -420,21 +422,21 @@ const SignUp: React.FC = () => {
                                         Confirm Password
                                     </label>
                                     <div
-                                        className="right-3 top-[40px] text-[#666666CC] cursor-pointer"
+                                        className="absolute right-2 text-gray-700 top-[40px] text-[#666666CC] cursor-pointer"
                                         onClick={toggleConfirmPasswordVisibility}
                                     >
                                         {confirmPasswordVisible ? (
                                             <>
                                                 <div className="flex gap-x-1 items-center font-Poppins">
                                                     <AiFillEyeInvisible className="" size={19} />
-                                                    <span className="text-[15px]">Hide</span>
+                                                    <span className="text-[15px]"></span>
                                                 </div>
                                             </>
                                         ) : (
                                             <>
                                                 <div className="flex gap-x-1 items-center font-Poppins">
                                                     <AiFillEye className="" size={19} />
-                                                    <span className="text-[15px]">Show</span>
+                                                    <span className="text-[15px]"></span>
                                                 </div>
                                             </>
                                         )}
@@ -451,7 +453,7 @@ const SignUp: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="mb-4">
+                            <div className="mb-5">
                                 <div className="flex justify-between">
                                     <label
                                         htmlFor="jobRole"
@@ -461,7 +463,7 @@ const SignUp: React.FC = () => {
                                     </label>
                                 </div>
                                 <select
-                                    className="w-full py-2 border text-black rounded-lg  "
+                                    className="w-full py-3 border text-black rounded-lg  "
                                     name="jobRole"
                                     value={formData.jobRole}
                                     onChange={handleChange}
@@ -480,11 +482,11 @@ const SignUp: React.FC = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="mb-4 mt-4">
+                            <div className="mb-5">
                                 <label className="block text-gray-700 mb-1 text-sm sm:text-base">
                                     Upload Profile Picture
                                 </label>
-                                <div className="flex gap-x-2 mt-4  items-center">
+                                <div className="mt-2 flex gap-x-2 text-black items-center">
                                     <label
                                         htmlFor="fileInput"
                                         onClick={() => fileInputRef.current?.click()}
@@ -494,7 +496,7 @@ const SignUp: React.FC = () => {
                                             : "Choose File "}
                                     </label>
                                     <p
-                                        className="border border-[#EAEAEA] bg-[#EAEAEA] p-1 px-3 w-[108px]  h-[30px] flex justify-center items-center cursor-pointer rounded-[5px]"
+                                        className="border border-[#EAEAEA] bg-[#EAEAEA] px-2 w-[108px] flex justify-center items-center cursor-pointer rounded-[5px]"
                                         onClick={() => fileInputRef.current?.click()}
                                     >
                                         Upload
@@ -509,7 +511,7 @@ const SignUp: React.FC = () => {
                                     accept="image/*"
                                 />
                             </div>
-                            <div className="mb-2 mt-4 flex items-center">
+                            <div className="mb-4 flex items-center">
                                 <input
                                     type="checkbox"
                                     name="termsAccepted"
@@ -535,10 +537,17 @@ const SignUp: React.FC = () => {
 
                             <button
                                 type="submit"
-                                className="mt-3 w-full  py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300 font-Poppins"
+                                className="mt-1 w-full py-2 rounded-3xl bg-[#68A86B] border border-[#68A86B] text-white hover:bg-green-100 hover:text-black transition duration-300 font-Poppins"
                             >
                                 Sign Up
                             </button>
+                            <div className="mt-2 text-center">
+                                <Link href="/signin"
+                                    className="text-black"
+                                >
+                                    Already have an account? <span className="underline text-[#68A86B]">Login</span>
+                                </Link>
+                            </div>
                         </form>
                     </div>
                 </div>

@@ -1,16 +1,20 @@
+// models/serverModel.js
 const mongoose = require('mongoose');
 
-const channelSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
-});
-
 const serverSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  createdBy: { type: String, required: true }, // Firebase User ID
-  channels: [channelSchema],
+  channelId: { type: String, required: true },
+  createdDate: { type: Date, default: Date.now },
+  updatedDate: { type: Date, default: Date.now },
+    channelType: {
+        type: String,
+        enum: ['friends', 'community'], // Ensure these match your frontend options
+        required: true,
+    },
+  channelName: { type: String, required: true },
+  channelImage: { type: String, required: true },
+  createdByUserId: { type: String, required: true },
+  memberList: { type: [String], default: [] },
 });
 
 const Server = mongoose.model('Server', serverSchema);
-
 module.exports = Server;

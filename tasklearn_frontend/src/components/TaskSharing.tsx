@@ -6,22 +6,23 @@
 import { useEffect, useRef, useState } from "react";
 import "../../src/app/globals.css";
 import { FiPlus } from "react-icons/fi";
-import Image from "next/image";
-import { HiChevronRight } from "react-icons/hi";
-import Profile from "../../src/assets/home/Ellipse 1.png";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useTask, Task } from "../components/TaskContext";
-import deleteIcon from "../assets/Quiz/Vector.png";
-import { HiChevronDown } from "react-icons/hi";
 import Quizzes from "@/pages/tabs/Quizzes";
 import { useRouter } from "next/router";
 import { getDoc, doc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { User } from "firebase/auth";
-import { useAuth } from '../auth';
+import { useAuth } from "../auth";
+import SidebarProfile from "./SidebarProfile";
+import TaskSection from "./TaskSection";
+import FormContainer from "./FormContainer";
+import { collection, getDocs } from "firebase/firestore";
+import { HiChevronDown, HiChevronRight } from "react-icons/hi";
+
 
 const TaskSharing = () => {
     const [showLogout, setShowLogout] = useState(false);
@@ -34,31 +35,105 @@ const TaskSharing = () => {
     const [showForm, setShowForm] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [filter, setFilter] = useState("All Task");
-    const { task, setTask } = useTask();
+    const { task, setTask, fetchPatientId, updatePatientId } = useTask();
     const taskCategories = [
-        "All Task",
-        "Pending Task",
-        "Completed Task",
-        "Deleted Task",
+        "All Tasks",
+        "Pending Tasks",
+        "Completed Tasks",
+        "Deleted Tasks",
         "Learning",
     ];
     type UserData = {
+        uid: any;
         email: string;
         userName: string;
         jobRole: string;
-        profilePicUrl: string | undefined
+        profilePicUrl: string | undefined;
     };
     const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
         Array(taskCategories.length).fill(false)
     );
     const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
     const [selectedTask, setselectedTask] = useState<any>(false);
-    const router = useRouter();
-
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const router = useRouter();
     const { logout } = useAuth();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
+    const searchRef = useRef<HTMLDivElement>(null);
+    const [showResults, setShowResults] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const ServerDropdownRef = useRef<HTMLDivElement>(null);
+
+    const toggleOpen = () => {
+        setIsOpen(!isOpen);
+    };
+
+    useEffect(() => {
+        const searchUsers = async () => {
+            if (searchTerm.trim() !== "") {
+                const userDocs = await getDocs(collection(db, "users"));
+                const users = userDocs.docs.map((doc) => doc.data() as UserData);
+
+                const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+                // Determine the match type based on the length of the search term
+                const filtered = users.filter((user) => {
+                    const userName = user.userName?.toLowerCase();
+                    const jobRole = user.jobRole?.toLowerCase();
+
+                    // Match one letter or two or more letters
+                    if (lowerCaseSearchTerm.length === 1) {
+                        return (
+                            (userName && userName.includes(lowerCaseSearchTerm))
+                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                        );
+                    } else if (lowerCaseSearchTerm.length >= 2) {
+                        return (
+                            (userName && userName.includes(lowerCaseSearchTerm))
+                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                        );
+                    }
+                    return false; // No match if the search term is empty or less than 1
+                });
+
+                setFilteredUsers(filtered);
+            } else {
+                setFilteredUsers([]);
+            }
+        };
+        searchUsers();
+    }, [searchTerm]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ServerDropdownRef.current && !ServerDropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowResults(false); // Clear search results when clicking outside
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
 
     const handleToggle = () => {
         setShowLogout((prev) => !prev);
@@ -67,18 +142,20 @@ const TaskSharing = () => {
     // Handle click outside the dropdown to close it
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
                 setShowLogout(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [dropdownRef]);
-
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -86,7 +163,10 @@ const TaskSharing = () => {
                 setUser(user);
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
-                    setUserData(userDoc.data() as UserData);
+                    setUserData({
+                        ...userDoc.data(),
+                        uid: user.uid // Include UID in the userData state
+                    } as unknown as UserData);
                 }
             } else {
                 setUser(null);
@@ -94,39 +174,24 @@ const TaskSharing = () => {
             }
             setLoading(false);
         });
+        fetchPatientId();
 
-        // Cleanup 
+        // Cleanup
         return () => unsubscribe();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) {
         return <p className="w-full h-screen bg-white">Loading...</p>;
     }
 
-    const handlesearch = (param: any) => {
-        if (param) {
-            setSearch(param);
-            setFilter("All Task");
-            setShowForm(false);
-            console.log("test", tasksList);
-
-            const filtered = tasksList.filter((task) => {
-                return Object.values(task).some((value) =>
-                    value?.toString().toLowerCase().includes(param.toLowerCase())
-                );
-            });
-            setTasksList(filtered);
-        } else {
-            setSearch("");
-            handleTasksClick("All Task");
-            fetchTasks(filter);
-        }
-    };
 
     const handleResetInputs = () => {
+        fetchPatientId();
         const { _id, ...newTask } = task;
         setTask({
             ...newTask,
+            patientId: task.patientId,
             createdBy: "",
             taggedStaff: "",
             contributingStaff: "",
@@ -186,6 +251,7 @@ const TaskSharing = () => {
                 } else {
                     setShowStar(false);
                 }
+                updatePatientId();
                 toast.success("Task shared successfully");
                 // Check if Learn is selected
                 if (task.Learn) {
@@ -294,7 +360,9 @@ const TaskSharing = () => {
                         Library: false,
                         Learn: false,
                     });
+                    updatePatientId();
                     handleTasksClick("All Task");
+                    fetchPatientId();
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 } else {
                     throw new Error("Failed to save task");
@@ -407,6 +475,9 @@ const TaskSharing = () => {
         }
     };
 
+    const userId = userData ? userData.uid : null;
+
+
     const handleTasksClick = (item: string) => {
         handleResetInputs();
         setselectedTask(false);
@@ -416,102 +487,11 @@ const TaskSharing = () => {
         setShowForm(true);
     };
 
-    const handleDropdown = (index: any) => {
-        setselectedTask(false);
-        const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
-            i === index ? !isVisible : isVisible
-        );
-        setDropdownVisible(newDropdownVisible);
-    };
-
-    const handleDeleteTask = async (id: String, filter: any) => {
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-            if (response.ok) {
-                fetchTasks(filter);
-                fetchTasks("Deleted Task");
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    //delete the task from dB
-
-    const handleDeletedTask = async (taskId: String) => {
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${taskId}`,
-                {
-                    method: "DELETE",
-                }
-            );
-            if (response.ok) {
-                fetchTasks(filter);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    const handleDelete = (newItem: any, filter: any) => {
-        if (!newItem.isDeleted) {
-            handleDeleteTask(newItem._id, filter);
-        }
-        if (newItem.isDeleted) {
-            handleDeletedTask(newItem._id);
-        }
-    };
-
-    const fetchTaskById = async (taskId: string) => {
-        try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
-            );
-
-            if (response) {
-                setTask(response.data);
-
-                if (response.data._id === taskId) {
-                    setselectedTask(true);
-                    setShowForm(true);
-                } else {
-                    setselectedTask(false);
-                }
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    const handleTaskEdit = (taskId: string) => {
-        fetchTaskById(taskId);
-    };
-
     return (
         <>
             <ToastContainer />
             <div className="w-full flex gap-2 bg-gray-100">
-                <div className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen">
-                    <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold">
-                        <a href="/Homepage">TL</a>
-                    </div>
-                    <div className="rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12">
-                        <Image src={Profile} alt="Profile Picture" width={64} height={64} />
-                    </div>
-
-                    <button className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gray-300 rounded-full text-3xl text-white">
-                        +
-                    </button>
-                </div>
+                <SidebarProfile userId={userId} />
                 <div className="w-[25%] flex min-h-screen">
                     <div className="w-full bg-white space-y-1">
                         <div className="px-4 pt-3 pb-4 text-center">
@@ -529,68 +509,66 @@ const TaskSharing = () => {
                         <div className="p-0 lg:p-8 flex justify-center">
                             <a
                                 href="/Homepage"
-                                className="w-[80%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#BFBFBF] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center"
+                                className="w-[80%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center"
                             >
                                 Task <FiPlus className="ml-2" />
                             </a>
                         </div>
 
-                        <div className="p-2 relative">
+
+                        <div ref={searchRef} className="p-2 relative">
+                            <div ref={ServerDropdownRef} className="mb-1 w-full max-w-md mx-auto mt-5">
+                                <div className="flex items-center justify-between p-2 cursor-pointer" onClick={toggleOpen}>
+                                    <span className="text-md font-bold text-black">Server Name</span>
+                                    {isOpen ? (
+                                        <HiChevronDown className="w-4 h-4 text-gray-600" />
+                                    ) : (
+                                        <HiChevronRight className="w-4 h-4 text-gray-600" />
+                                    )}
+                                </div>
+                                {isOpen && (
+                                    <div className="px-2 py-6 text-black bg-[#F4F4F4]">
+                                        Invite Link
+                                    </div>
+                                )}
+                            </div>
                             <input
                                 type="text"
                                 placeholder="Search @ User, Patient ID..."
-                                value={search}
-                                onChange={(e) => handlesearch(e.target.value)}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setShowResults(true)}
                                 className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
                             />
-                        </div>
+                            {showResults && searchTerm && (
+                                <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
+                                    {filteredUsers.length > 0 ? (
+                                        filteredUsers.map((user) => (
+                                            <div key={user.email} className="p-2 border-b">
+                                                <p className="font-semibold">{user.userName}</p>
+                                                <p className="text-sm text-gray-500">{user.jobRole}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-2 text-gray-500">No result found</div>
+                                    )}
+                                </div>
+                            )}
 
-                        <ul className="p-4 space-y-4">
-                            {taskCategories.map((item: any, index: any) => (
-                                <>
-                                    <li
-                                        key={item}
-                                        onClick={() => {
-                                            handleTasksClick(item);
-                                            handleDropdown(index);
-                                        }}
-                                        className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer"
-                                    >
-                                        {item}
-                                        {dropdownVisible[index] ? (
-                                            <HiChevronDown />
-                                        ) : (
-                                            <HiChevronRight />
-                                        )}
-                                    </li>
-                                    {dropdownVisible[index] &&
-                                        filteredTasks[item]?.map((newItem: any, index: any) => {
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className={`text-black justify-between flex `}
-                                                >
-                                                    <p
-                                                        className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
-                                                            ? "text-[#68A86B]"
-                                                            : ""
-                                                            }`}
-                                                        onClick={() => handleTaskEdit(newItem._id)}
-                                                    >
-                                                        {newItem?.taskName}
-                                                    </p>
-                                                    <Image
-                                                        className=" object-contain w-[16px] cursor-pointer"
-                                                        src={deleteIcon}
-                                                        alt="delete"
-                                                        onClick={() => handleDelete(newItem, item)}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                </>
-                            ))}
-                        </ul>
+                        </div>
+                        <TaskSection
+                            selectedTask={selectedTask}
+                            setselectedTask={setselectedTask}
+                            taskCategories={taskCategories}
+                            filteredTasks={filteredTasks}
+                            dropdownVisible={dropdownVisible}
+                            setDropdownVisible={setDropdownVisible}
+                            handleTasksClick={handleTasksClick}
+                            setShowForm={setShowForm}
+                            filter={filter}
+                            setFilter={setFilter}
+                            fetchTasks={fetchTasks}
+                        />
                     </div>
                 </div>
                 {showForm && (
@@ -598,7 +576,10 @@ const TaskSharing = () => {
                         <div className="pt-1">
                             <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
                                 <div ref={dropdownRef} className="flex gap-x-2 items-center">
-                                    <div className="flex items-center cursor-pointer gap-2" onClick={handleToggle}>
+                                    <div
+                                        className="flex items-center cursor-pointer gap-2"
+                                        onClick={handleToggle}
+                                    >
                                         <img
                                             src={userData?.profilePicUrl}
                                             alt="profilePic"
@@ -625,290 +606,16 @@ const TaskSharing = () => {
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
-                                <p className="text-2xl text-black font-bold">Task Sharing</p>
+                                <p className="pt-2 text-2xl text-black text-center font-bold">Task Sharing</p>
                             </div>
                         </div>
-                        <form className="p-4 rounded">
-                            <div className="flex flex-col gap-4">
-                                <div className="relative">
-                                    <div className="flex items-center border border-gray p-1 rounded-md">
-                                        <label className="whitespace-nowrap mr-2 text-black">
-                                            Created by:
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="@ Username"
-                                            className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
-                                                }`}
-                                            value={task.createdBy}
-                                            onChange={(e) =>
-                                                setTask({ ...task, createdBy: e.target.value })
-                                            }
-                                            required
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="relative">
-                                    <div className="flex items-center border border-gray p-1 rounded-md">
-                                        <label className="whitespace-nowrap mr-2 text-gray-700">
-                                            Tagged Staff:
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="@ Username"
-                                            className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
-                                                }`}
-                                            value={task.taggedStaff}
-                                            onChange={(e) =>
-                                                setTask({ ...task, taggedStaff: e.target.value })
-                                            }
-                                            required
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="relative">
-                                    <div className="flex items-center border border-gray p-1 rounded-md">
-                                        <label className="whitespace-nowrap mr-2 text-gray-700">
-                                            Contributing Staff:
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="@ Username"
-                                            className={`flex-1 outline-none  text-black ${selectedTask ? "cursor-default" : ""
-                                                }`}
-                                            value={task.contributingStaff}
-                                            onChange={(e) =>
-                                                setTask({ ...task, contributingStaff: e.target.value })
-                                            }
-                                            required
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block mb-1 text-black">
-                                        Task/Instruction
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.taskName}
-                                        onChange={(e) =>
-                                            setTask({ ...task, taskName: e.target.value })
-                                        }
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-black">History:</label>
-                                    <textarea
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.history}
-                                        onChange={(e) =>
-                                            setTask({ ...task, history: e.target.value })
-                                        }
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="flex gap-4 w-full">
-                                    <div className="flex-1">
-                                        <label className="block mb-1 text-black">
-                                            Examination:
-                                        </label>
-                                        <textarea
-                                            placeholder=""
-                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                                }`}
-                                            value={task.examination}
-                                            onChange={(e) =>
-                                                setTask({ ...task, examination: e.target.value })
-                                            }
-                                            required
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block mb-1 text-black">Diagnosis:</label>
-                                        <textarea
-                                            placeholder=""
-                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                                }`}
-                                            value={task.diagnosis}
-                                            onChange={(e) =>
-                                                setTask({ ...task, diagnosis: e.target.value })
-                                            }
-                                            required
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-black">Plan:</label>
-                                    <textarea
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.plan}
-                                        onChange={(e) => setTask({ ...task, plan: e.target.value })}
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-black">Follow Up:</label>
-                                    <textarea
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.followUp}
-                                        onChange={(e) =>
-                                            setTask({ ...task, followUp: e.target.value })
-                                        }
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-black">
-                                        Post Consultation:
-                                    </label>
-                                    <textarea
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.postConsultation}
-                                        onChange={(e) =>
-                                            setTask({ ...task, postConsultation: e.target.value })
-                                        }
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-black">Feedback:</label>
-                                    <textarea
-                                        placeholder=""
-                                        className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                            }`}
-                                        value={task.feedback}
-                                        onChange={(e) =>
-                                            setTask({ ...task, feedback: e.target.value })
-                                        }
-                                        required
-                                        readOnly={selectedTask}
-                                    />
-                                </div>
-                                <div className="flex gap-4 w-full">
-                                    <div className="flex-1">
-                                        <label className="block mb-1 text-black">
-                                            Key Learning Point:
-                                        </label>
-                                        <textarea
-                                            placeholder=""
-                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                                }`}
-                                            value={task.keyLearningPoint}
-                                            onChange={(e) =>
-                                                setTask({ ...task, keyLearningPoint: e.target.value })
-                                            }
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block mb-1 text-black">Action:</label>
-                                        <textarea
-                                            placeholder=""
-                                            className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                                                }`}
-                                            value={task.action}
-                                            onChange={(e) =>
-                                                setTask({ ...task, action: e.target.value })
-                                            }
-                                            readOnly={selectedTask}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                    ? "justify-center"
-                                    : "justify-between"
-                                    }`}
-                            >
-                                <button
-                                    type="submit"
-                                    onClick={handleShare}
-                                    className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                        ? "hidden"
-                                        : "block"
-                                        }`}
-                                >
-                                    Share
-                                </button>
-                                <label className="block mb-2 text-black font-bold">
-                                    <input
-                                        type="checkbox"
-                                        className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200  relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer"
-                                            }`}
-                                        checked={task.Library}
-                                        onChange={(e) =>
-                                            setTask({ ...task, Library: e.target.checked })
-                                        }
-                                        disabled={selectedTask}
-                                    />
-                                    Library
-                                </label>
-                                <label
-                                    className={`block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                        ? "absolute right-0"
-                                        : ""
-                                        }`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer "
-                                            }`}
-                                        checked={task.Learn}
-                                        onChange={(e) =>
-                                            setTask({ ...task, Learn: e.target.checked })
-                                        }
-                                        disabled={selectedTask}
-                                    />
-                                    Learn
-                                </label>
-                            </div>
-                            <div className="flex mt-2 justify-center">
-                                <p className="text-black">
-                                    Message about task during supervision/collaboration
-                                </p>
-                            </div>
-                            <div className="flex mt-4 justify-center">
-                                <button
-                                    type="button"
-                                    onClick={handleComplete}
-                                    className={`w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
-                                        }`}
-                                >
-                                    Complete
-                                </button>
-                            </div>
-                        </form>
+                        <FormContainer
+                            selectedTask={selectedTask}
+                            handleShare={handleShare}
+                            handleComplete={handleComplete}
+                        />
                     </section>
                 )}
-
                 {/* Quiz Section */}
                 {showQuiz && (
                     <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">

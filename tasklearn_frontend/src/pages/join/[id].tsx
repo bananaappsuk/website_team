@@ -1,0 +1,81 @@
+// pages/join/[id].tsx
+import { FC, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { auth, db } from "../../firebase";
+import { getDoc, doc } from "firebase/firestore";
+import { User } from "firebase/auth";
+
+const JoinServer: FC = () => {
+    type UserData = {
+        uid: string;
+        email: string;
+        userName: string;
+        jobRole: string;
+        profilePicUrl: string | undefined;
+    };
+
+    const router = useRouter();
+    const { id } = router.query;
+    const [user, setUser] = useState<User | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+
+                if (userDoc.exists()) {
+                    setUserData({
+                        ...(userDoc.data() as UserData),
+                        uid: currentUser.uid,
+                    });
+                }
+            } else {
+                setUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        const joinServer = async () => {
+            if (id && userData) { // Ensure id and userData are both available
+                try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/join`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ serverId: id, userId: userData.uid }), // Pass userData.uid as userId
+                    });
+
+                    if (response.ok) {
+                        router.push(`/servers/${id}`);
+                    } else {
+                        const errorData = await response.json();
+                        console.error("Failed to join the server:", errorData.message);
+                    }
+                } catch (error) {
+                    console.error("Error joining server:", error);
+                }
+            }
+        };
+
+        if (id && userData) {
+            joinServer();
+        }
+    }, [id, userData, router]); // Run only when id and userData are set
+
+    if (loading) return <div>Loading...</div>;
+
+    return (
+        <div className="container mx-auto p-6">
+            <p>Joining server...</p>
+        </div>
+    );
+};
+
+export default JoinServer;

@@ -58,23 +58,23 @@ const ForgetPassword: React.FC = () => {
                             Collaborate to Learn, Learn to Collaborate
                         </p>
                         <div
-                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[17%]"
+                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
                             onClick={() => router.push("/signin")}
                         >
                             <Image
                                 src={backArrow}
                                 alt="back"
-                                width={24}
-                                height={24}
+                                width={16}
+                                height={16}
                                 className=" object-contain -[#67A76B]"
                             />
-                            <p className=" text-[14px]">Back to Sign in</p>
+                            <p className="ml-2 text-[14px]">Back to Sign in</p>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label
                                     htmlFor="email"
-                                    className="block text-[#646161] mb-7 text-xl sm:text-base"
+                                    className="block text-[#646161] mb-3 sm:mb-4 xl:mb-5 text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl"
                                 >
                                     Forgot password, Enter your email ID
                                 </label>
@@ -83,7 +83,7 @@ const ForgetPassword: React.FC = () => {
                                     name="email"
                                     id="email"
                                     required
-                                    className="w-full px-4 py-3 border-black border text-black rounded-lg"
+                                    className="w-full px-4 py-2 border-black border text-black rounded-lg"
                                     placeholder="Email"
                                     onChange={(e) => setEmail(e.target.value)}
                                     value={email}
@@ -92,7 +92,7 @@ const ForgetPassword: React.FC = () => {
                             <div className=" flex justify-center mt-[3rem]">
                                 <button
                                     type="submit"
-                                    className="w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className="font-semibold w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
                                 >
                                     Send
                                 </button>
