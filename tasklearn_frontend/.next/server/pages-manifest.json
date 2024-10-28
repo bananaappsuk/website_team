@@ -3,6 +3,5 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/Homepage": "pages/Homepage.js",
-  "/OtherProfile": "pages/OtherProfile.js",
-  "/UserProfile": "pages/UserProfile.js"
+  "/OtherProfile": "pages/OtherProfile.js"
 }

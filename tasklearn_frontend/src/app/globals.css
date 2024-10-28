@@ -120,10 +120,7 @@ margin-right: 53px;
 .mr1{
   margin-right: 53px;
 }
-.P1_1{
-  width: 40%;
-  float: left;  
-}
+
 .P1_2{
   margin-top: -74px;
 }
@@ -135,21 +132,7 @@ margin-right: 53px;
   width: 20%;
   float: left;
 }
-.re_1{
-  background: #67A76B;
-  border-radius: 0.375rem;
-  padding-left: 45px;
-  padding-right: 45px;
-}
-.mb1_1{
-  margin-bottom: 72px;
-}
-.m11_1{
-  margin-left: 40px;
-}
-.min_h1 {
-  min-height: 125vh;
-}
+
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
   .fo_4 {
