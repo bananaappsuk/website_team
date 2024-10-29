@@ -16,7 +16,14 @@ import { useRouter } from "next/router";
 import Libraries from "./tabs/Libraries";
 import Tracking from "./tabs/Tracking";
 import { useAuth } from "../auth";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  where,
+  deleteDoc,
+} from "firebase/firestore";
 import SidebarProfile from "@/components/SidebarProfile";
 import Followers from "./tabs/Followers";
 import Following from "./tabs/Following";
@@ -45,9 +52,10 @@ const UserProfile = () => {
     profilePicUrl: string | undefined;
   };
   type Follow = {
-    followerId?: string;
-    followeeId?: string;
-    status?: string;
+    uid: string;
+    followerId: string;
+    followeeId: string;
+    status: string;
   };
   const [showLogout, setShowLogout] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,7 +65,7 @@ const UserProfile = () => {
   const { task } = useTask();
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [followDoc, setFollowDoc] = useState<Follow | null>(null);
+  const [followDocs, setFollowDocs] = useState<Follow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const [redirecting, setRedirecting] = useState(false);
@@ -65,6 +73,7 @@ const UserProfile = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const [showResults, setShowResults] = useState(false);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -103,6 +112,20 @@ const UserProfile = () => {
       }
     };
     searchUsers();
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const fetchAllFollowRequests = async () => {
+      const allFollowRequestsDoc = await getDocs(
+        collection(db, "followRequests")
+      );
+      const requests = allFollowRequestsDoc.docs.map((doc) => {
+        return { ...doc.data(), uid: doc.id } as Follow;
+      });
+      setFollowDocs(requests);
+    };
+
+    fetchAllFollowRequests();
   }, [searchTerm]);
 
   useEffect(() => {
@@ -203,25 +226,60 @@ const UserProfile = () => {
     return <div>You are not logged in. Redirecting...</div>;
   }
 
-  const fetchFollowRequest=async(followerId:string,followeeId:string)=>{
-    
-
-  }
+  const fetchFollowRequest = async () => {
+    try {
+      const allFollowRequestsDoc = await getDocs(
+        collection(db, "followRequests")
+      );
+      const requests = allFollowRequestsDoc.docs.map((doc) => {
+        return { ...doc.data(), uid: doc.id } as Follow;
+      });
+      setFollowDocs(requests);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   const handleFollowRequest = async (followeeId: string) => {
     try {
-      const sendFollowRequest = await addDoc(collection(db, "followRequests"), {
-        followerId: userData?.uid,
-        followeeId,
-        status: "pending",
-      });
-      if(sendFollowRequest){
-        fetchFollowRequest(userData?.uid,followeeId)
+      const checkReq = followDocs.filter(
+        (req) =>
+          req.followeeId === followeeId &&
+          req.followerId === userData?.uid &&
+          req.status === "pending"
+      );
+      if (checkReq[0]) {
+        const deleteReq = doc(db, "followRequests", checkReq[0].uid);
+        await deleteDoc(deleteReq);
+        setFollowDocs((prevFollowDocs) =>
+          prevFollowDocs.filter((doc) => doc.uid !== checkReq[0].uid)
+        );
+      } else {
+        console.log("send");
+
+        const sendFollowRequest = await addDoc(
+          collection(db, "followRequests"),
+          {
+            followerId: userData?.uid,
+            followeeId,
+            status: "pending",
+          }
+        );
+        if (sendFollowRequest) {
+          fetchFollowRequest();
+        }
       }
     } catch (error: any) {
       toast.error(error.message);
     }
   };
+  const checkFollowRequest = (uid: string) => {
+    return followDocs.some(
+      (request) =>
+        request.followeeId === uid && request.followerId === userData?.uid
+    );
+  };
+
 
   return (
     <>
@@ -296,7 +354,7 @@ const UserProfile = () => {
                 {showResults && searchTerm && (
                   <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
                     {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user) => (
+                      filteredUsers.map((user, index) => (
                         <div className="flex justify-between items-center">
                           <div key={user.email} className="p-2 border-b">
                             <p className="font-semibold">{user.userName}</p>
@@ -306,14 +364,17 @@ const UserProfile = () => {
                           </div>
                           {userData?.userName !== user.userName && (
                             <button
-                              className={` text-white py-2 px-4 rounded-md bg-green-600 ${
-                                followDoc &&
-                                followDoc.status === "pending" &&
-                                "bg-gray-500 text-black"
-                              } transition duration-300`}
+                              className={`py-2 px-4 rounded-md ${
+                                checkFollowRequest(user.uid)
+                                  ? "bg-gray-400 text-white"
+                                  : "bg-green-600 text-white"
+                              }`}
+                              ref={(el: any) =>
+                                (buttonRefs.current[index] = el)
+                              }
                               onClick={() => handleFollowRequest(user.uid)}
                             >
-                              {followDoc && followDoc?.status === "pending"
+                              {checkFollowRequest(user.uid)
                                 ? "Requested"
                                 : "Follow"}
                             </button>
@@ -425,7 +486,7 @@ const UserProfile = () => {
               ) : activeTab === "Requests" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <Requests />
+                    <Requests followDocs={followDocs} userData={userData} />
                   </div>
                 </div>
               ) : (
