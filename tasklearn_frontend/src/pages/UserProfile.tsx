@@ -16,14 +16,7 @@ import { useRouter } from "next/router";
 import Libraries from "./tabs/Libraries";
 import Tracking from "./tabs/Tracking";
 import { useAuth } from "../auth";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  deleteDoc,
-} from "firebase/firestore";
+import { collection, getDocs, addDoc, deleteDoc } from "firebase/firestore";
 import SidebarProfile from "@/components/SidebarProfile";
 import Followers from "./tabs/Followers";
 import Following from "./tabs/Following";
@@ -246,17 +239,22 @@ const UserProfile = () => {
         (req) =>
           req.followeeId === followeeId &&
           req.followerId === userData?.uid &&
-          req.status === "pending"
+          (req.status === "pending" || req.status === "accept")
       );
-      if (checkReq[0]) {
-        const deleteReq = doc(db, "followRequests", checkReq[0].uid);
-        await deleteDoc(deleteReq);
-        setFollowDocs((prevFollowDocs) =>
-          prevFollowDocs.filter((doc) => doc.uid !== checkReq[0].uid)
-        );
-      } else {
-        console.log("send");
 
+      if (checkReq.length > 0) {
+        const deleteId = checkReq
+          .filter((doc) => doc.followeeId === followeeId)
+          .map((doc) => doc.uid);
+        if (deleteId.length > 0) {
+          const deleteReq = doc(db, "followRequests", deleteId[0]);
+          await deleteDoc(deleteReq);
+
+          setFollowDocs((prevFollowDocs) =>
+            prevFollowDocs.filter((doc) => doc.uid !== deleteId[0])
+          );
+        }
+      } else {
         const sendFollowRequest = await addDoc(
           collection(db, "followRequests"),
           {
@@ -273,13 +271,27 @@ const UserProfile = () => {
       toast.error(error.message);
     }
   };
+
   const checkFollowRequest = (uid: string) => {
-    return followDocs.some(
+    return followDocs?.some(
       (request) =>
         request.followeeId === uid && request.followerId === userData?.uid
     );
   };
 
+  const checkAcceptedRequest = (followeeId: string) => {
+    return followDocs?.some(
+      (request) =>
+        request.followeeId === followeeId &&
+        request.followerId === userData?.uid &&
+        request.status === "accept"
+    );
+  };
+
+  const handleProfile = (user: UserData) => {
+    sessionStorage.setItem("user", JSON.stringify(user));
+    router.push("/OtherProfile");
+  };
 
   return (
     <>
@@ -354,33 +366,47 @@ const UserProfile = () => {
                 {showResults && searchTerm && (
                   <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
                     {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user, index) => (
-                        <div className="flex justify-between items-center">
-                          <div key={user.email} className="p-2 border-b">
-                            <p className="font-semibold">{user.userName}</p>
-                            <p className="text-sm text-gray-500">
-                              {user.jobRole}
-                            </p>
-                          </div>
-                          {userData?.userName !== user.userName && (
-                            <button
-                              className={`py-2 px-4 rounded-md ${
-                                checkFollowRequest(user.uid)
-                                  ? "bg-gray-400 text-white"
-                                  : "bg-green-600 text-white"
-                              }`}
-                              ref={(el: any) =>
-                                (buttonRefs.current[index] = el)
-                              }
-                              onClick={() => handleFollowRequest(user.uid)}
+                      filteredUsers.map((user, index) => {
+                        const isPending = checkFollowRequest(user.uid);
+                        const isAccepted = checkAcceptedRequest(user.uid);
+                        const css = {
+                          buttonStyle: isAccepted
+                            ? "bg-[#67A76B] text-white"
+                            : isPending
+                            ? "bg-gray-400 text-white"
+                            : "bg-[#67A76B] text-white",
+                          buttonText: isAccepted
+                            ? "Following"
+                            : isPending
+                            ? "Requested"
+                            : "Follow",
+                        };
+                        return (
+                          <div className="flex justify-between items-center">
+                            <div
+                              key={user.email}
+                              className="p-2 border-b cursor-pointer"
+                              onClick={() => handleProfile(user)}
                             >
-                              {checkFollowRequest(user.uid)
-                                ? "Requested"
-                                : "Follow"}
-                            </button>
-                          )}
-                        </div>
-                      ))
+                              <p className="font-semibold">{user.userName}</p>
+                              <p className="text-sm text-gray-500">
+                                {user.jobRole}
+                              </p>
+                            </div>
+                            {userData?.userName !== user.userName && (
+                              <button
+                                className={`py-2 px-4 rounded-md ${css.buttonStyle}`}
+                                ref={(el: any) =>
+                                  (buttonRefs.current[index] = el)
+                                }
+                                onClick={() => handleFollowRequest(user.uid)}
+                              >
+                                {css.buttonText}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
                     ) : (
                       <div className="p-2 text-gray-500">No result found</div>
                     )}
@@ -468,13 +494,21 @@ const UserProfile = () => {
               ) : activeTab === "Followers" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <Followers />
+                    <Followers
+                      userData={userData}
+                      followDocs={followDocs}
+                      setFollowDocs={setFollowDocs}
+                    />
                   </div>
                 </div>
               ) : activeTab === "Following" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <Following />
+                    <Following
+                      userData={userData}
+                      followDocs={followDocs}
+                      setFollowDocs={setFollowDocs}
+                    />
                   </div>
                 </div>
               ) : activeTab === "Career" ? (
@@ -486,7 +520,11 @@ const UserProfile = () => {
               ) : activeTab === "Requests" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <Requests followDocs={followDocs} userData={userData} />
+                    <Requests
+                      followDocs={followDocs}
+                      userData={userData}
+                      setFollowDocs={setFollowDocs}
+                    />
                   </div>
                 </div>
               ) : (
