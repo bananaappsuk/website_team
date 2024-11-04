@@ -27,6 +27,7 @@ interface FormData {
 const SignUp: React.FC = () => {
     const { jobRoleLists } = useTask();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const router = useRouter();
     const [formData, setFormData] = useState<FormData>({
         email: "",
@@ -45,6 +46,7 @@ const SignUp: React.FC = () => {
     const instructionsRef = useRef<HTMLDivElement>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [isUsernameTaken, setIsUsernameTaken] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
     const [passwordRequirements, setPasswordRequirements] = useState({
         minLength: false,
@@ -245,9 +247,7 @@ const SignUp: React.FC = () => {
                     profilePicUrl: profilePicData.profilePicUrl,
                 });
                 toast.success("Account created successfully!", { autoClose: 1000 });
-                setTimeout(() => {
-                    router.push("/signin");
-                }, 1000);
+                router.push("/Homepage");
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -312,16 +312,23 @@ const SignUp: React.FC = () => {
                                     htmlFor="userName"
                                     className="block text-gray-700 mb-1 text-sm sm:text-base"
                                 >
-                                    User Name
+                                    Username
                                 </label>
                                 <input
                                     type="text"
                                     name="userName"
                                     id="userName"
                                     value={formData.userName}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        const regex = /^[a-zA-Z0-9]*$/;
+                                        if (regex.test(e.target.value)) {
+                                            handleChange(e); // Update form data only if input is alphanumeric
+                                        }
+                                    }}
                                     required
                                     className="w-full px-4 py-2 border text-black rounded-lg"
+                                    minLength={8}
+                                    maxLength={12}
                                 />
                             </div>
                             <div className="mb-4 relative">

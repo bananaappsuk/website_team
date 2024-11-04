@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @next/next/no-img-element */
 import { FC, useEffect, useState } from "react";
 import React from "react";
 import Link from "next/link";
 import CreateServerPopup from "../pages/server/CreateServerPopup";
-import { useRouter } from "next/router";
 
 interface Server {
     _id: string;
@@ -13,13 +14,19 @@ interface Server {
     memberList: string;
 }
 
-const SidebarProfile: FC<{ userId: string }> = ({ userId }) => {
+interface SidebarProfileProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userId: any;
+    onServerSelect?: (server: { serverId: string; serverName: string }) => void;
+}
+
+const SidebarProfile: FC<SidebarProfileProps> = ({ userId, onServerSelect }) => {
     // Make sure to define userId in props
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [servers, setServers] = useState<Server[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
+    const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -41,6 +48,11 @@ const SidebarProfile: FC<{ userId: string }> = ({ userId }) => {
         fetchServers();
     }, [userId]);
 
+    const handleServerClick = (server: Server) => {
+        setSelectedServerId(server._id);
+        onServerSelect && onServerSelect({ serverId: server._id, serverName: server.channelName });
+    };
+
     return (
         <aside className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen border">
             <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold">
@@ -51,8 +63,12 @@ const SidebarProfile: FC<{ userId: string }> = ({ userId }) => {
             </div> */}
             <div className="flex flex-col space-y-4">
                 {servers.map((server) => (
-                    <div key={server._id} className="rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 cursor-pointer"
-                        onClick={() => router.push(`/server/${server._id}`)}>
+                    <div
+                        key={server._id}
+                        onClick={() => handleServerClick(server)}
+                        className={`rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 cursor-pointer ${selectedServerId === server._id ? "border-2 border-[#67A76B]" : ""
+                            }`}
+                    >
                         <img
                             src={server.channelImage}
                             alt="serverPic"

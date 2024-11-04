@@ -20,14 +20,10 @@ import { useAuth } from "../auth";
 import SidebarProfile from "./SidebarProfile";
 import TaskSection from "./TaskSection";
 import FormContainer from "./FormContainer";
-import { collection, getDocs } from "firebase/firestore";
-import { HiChevronDown, HiChevronRight } from "react-icons/hi";
-
 
 const TaskSharing = () => {
     const [showLogout, setShowLogout] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [search, setSearch] = useState("");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showStar, setShowStar] = useState(false);
     const [showQuiz, setShowQuiz] = useState<boolean>(false);
@@ -37,10 +33,10 @@ const TaskSharing = () => {
     const [filter, setFilter] = useState("All Task");
     const { task, setTask, fetchPatientId, updatePatientId } = useTask();
     const taskCategories = [
-        "All Tasks",
-        "Pending Tasks",
-        "Completed Tasks",
-        "Deleted Tasks",
+        "All Task",
+        "Pending Task",
+        "Completed Task",
+        "Deleted Task",
         "Learning",
     ];
     type UserData = {
@@ -60,79 +56,11 @@ const TaskSharing = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const router = useRouter();
     const { logout } = useAuth();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
-    const searchRef = useRef<HTMLDivElement>(null);
-    const [showResults, setShowResults] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
-    const ServerDropdownRef = useRef<HTMLDivElement>(null);
+    const [selectedServer, setSelectedServer] = useState<{ serverId: string; serverName: string } | null>(null);
 
-    const toggleOpen = () => {
-        setIsOpen(!isOpen);
+    const handleServerSelect = (server: { serverId: string; serverName: string }) => {
+        setSelectedServer(server); // Update with selected server's ID and name
     };
-
-    useEffect(() => {
-        const searchUsers = async () => {
-            if (searchTerm.trim() !== "") {
-                const userDocs = await getDocs(collection(db, "users"));
-                const users = userDocs.docs.map((doc) => doc.data() as UserData);
-
-                const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-                // Determine the match type based on the length of the search term
-                const filtered = users.filter((user) => {
-                    const userName = user.userName?.toLowerCase();
-                    const jobRole = user.jobRole?.toLowerCase();
-
-                    // Match one letter or two or more letters
-                    if (lowerCaseSearchTerm.length === 1) {
-                        return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
-                        );
-                    } else if (lowerCaseSearchTerm.length >= 2) {
-                        return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
-                        );
-                    }
-                    return false; // No match if the search term is empty or less than 1
-                });
-
-                setFilteredUsers(filtered);
-            } else {
-                setFilteredUsers([]);
-            }
-        };
-        searchUsers();
-    }, [searchTerm]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ServerDropdownRef.current && !ServerDropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-                setShowResults(false); // Clear search results when clicking outside
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
 
 
     const handleToggle = () => {
@@ -491,7 +419,7 @@ const TaskSharing = () => {
         <>
             <ToastContainer />
             <div className="w-full flex gap-2 bg-gray-100">
-                <SidebarProfile userId={userId} />
+                <SidebarProfile userId={userId} onServerSelect={handleServerSelect} />
                 <div className="w-[25%] flex min-h-screen">
                     <div className="w-full bg-white space-y-1">
                         <div className="px-4 pt-3 pb-4 text-center">
@@ -515,48 +443,8 @@ const TaskSharing = () => {
                             </a>
                         </div>
 
-
-                        <div ref={searchRef} className="p-2 relative">
-                            <div ref={ServerDropdownRef} className="mb-1 w-full max-w-md mx-auto mt-5">
-                                <div className="flex items-center justify-between p-2 cursor-pointer" onClick={toggleOpen}>
-                                    <span className="text-md font-bold text-black">Server Name</span>
-                                    {isOpen ? (
-                                        <HiChevronDown className="w-4 h-4 text-gray-600" />
-                                    ) : (
-                                        <HiChevronRight className="w-4 h-4 text-gray-600" />
-                                    )}
-                                </div>
-                                {isOpen && (
-                                    <div className="px-2 py-6 text-black bg-[#F4F4F4]">
-                                        Invite Link
-                                    </div>
-                                )}
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search @ User, Patient ID..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onFocus={() => setShowResults(true)}
-                                className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
-                            />
-                            {showResults && searchTerm && (
-                                <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-                                    {filteredUsers.length > 0 ? (
-                                        filteredUsers.map((user) => (
-                                            <div key={user.email} className="p-2 border-b">
-                                                <p className="font-semibold">{user.userName}</p>
-                                                <p className="text-sm text-gray-500">{user.jobRole}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="p-2 text-gray-500">No result found</div>
-                                    )}
-                                </div>
-                            )}
-
-                        </div>
                         <TaskSection
+                            server={selectedServer}
                             selectedTask={selectedTask}
                             setselectedTask={setselectedTask}
                             taskCategories={taskCategories}
@@ -567,8 +455,7 @@ const TaskSharing = () => {
                             setShowForm={setShowForm}
                             filter={filter}
                             setFilter={setFilter}
-                            fetchTasks={fetchTasks}
-                        />
+                            fetchTasks={fetchTasks} _id={""} channelName={""} createdByUserId={""} />
                     </div>
                 </div>
                 {showForm && (
@@ -606,7 +493,7 @@ const TaskSharing = () => {
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
-                                <p className="pt-2 text-2xl text-black text-center font-bold">Task Sharing</p>
+                                <p className="text-2xl text-black font-bold">Task Sharing</p>
                             </div>
                         </div>
                         <FormContainer

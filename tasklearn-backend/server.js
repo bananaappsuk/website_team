@@ -30,6 +30,7 @@ const quizRoutes = require('./routes/quizRoutes'); // New quiz routes
 const libraryRoutes = require('./routes/libraryRoutes'); // New library routes
 const profileRoutes = require("./routes/profileRoutes");
 const serverRoutes = require('./routes/serverRoutes');
+const patientRoutes = require('./routes/patientIdRoutes');
 
 
 app.use('/api/tasks', taskRoutes);
@@ -38,11 +39,12 @@ app.use('/api/quizzes', quizRoutes); // Use quiz routes
 app.use('/api/libraries', libraryRoutes); // Use library routes
 app.use("/api/upload", profileRoutes);
 app.use('/api/servers', serverRoutes);
+app.use('/api/patientId', patientRoutes);
 
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the Task</h1>');
+  res.send('<h1>Welcome to the Task!</h1>');
 });
 
 // Error handling middleware

@@ -16,6 +16,7 @@ const JoinServer: FC = () => {
 
     const router = useRouter();
     const { id } = router.query;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -35,11 +36,13 @@ const JoinServer: FC = () => {
             } else {
                 setUser(null);
                 setUserData(null);
+                router.push("/signin");
             }
             setLoading(false);
         });
 
         return () => unsubscribe();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -53,7 +56,7 @@ const JoinServer: FC = () => {
                     });
 
                     if (response.ok) {
-                        router.push(`/servers/${id}`);
+                        router.push(`/Homepage`);
                     } else {
                         const errorData = await response.json();
                         console.error("Failed to join the server:", errorData.message);
