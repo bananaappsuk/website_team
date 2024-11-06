@@ -138,7 +138,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({ onClose, userId, onServerS
     return (
         <>
             <ToastContainer />
-            <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-10 text-black">
+            <div className="fixed inset-[-60px] bg-gray-800 bg-opacity-75 flex justify-center items-center z-10 text-black">
                 <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-xl">
                     <button
                         className="absolute top-2 right-2 text-black hover:text-gray-700 cursor-pointer"
