@@ -293,7 +293,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                 text: inviteLink, // Only the URL, no extra text
             });
         } catch (err) {
-            alert('Error sharing link: ' + err);
+            toast.warning('' + err);
         }
     };
 

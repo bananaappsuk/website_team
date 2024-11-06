@@ -2,19 +2,45 @@ import React, { useEffect, useState } from 'react';
 import "../../src/app/globals.css";
 import TaskSharing from '@/components/TaskSharing';
 import { User } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { useRouter } from 'next/router';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 const HomePage = () => {
     const [user, setUser] = useState<User | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+    const [userData, setUserData] = useState<any>(null);  // Adjust type as needed
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const [redirecting, setRedirecting] = useState(false);
 
     useEffect(() => {
+        const fetchUserData = async (currentUser: User | null) => {
+            try {
+                setLoading(true);
+                if (currentUser) {
+                    setUser(currentUser);
+                    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                    if (userDoc.exists()) {
+                        setUserData({
+                            ...userDoc.data(),
+                            uid: currentUser.uid, // Include UID in the userData state
+                        });
+                    } else {
+                        setUser(null);
+                        setUserData(null);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching user data: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
+            fetchUserData(currentUser);
         });
 
         return () => unsubscribe();

@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from "react";
 import React from "react";
 import Link from "next/link";
 import CreateServerPopup from "../pages/server/CreateServerPopup";
+import router from "next/router";
 
 interface Server {
     _id: string;
@@ -27,6 +28,34 @@ const SidebarProfile: FC<SidebarProfileProps> = ({ userId, onServerSelect }) => 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
     const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
+    const [isOpenServer, setIsOpenServer] = useState<boolean>(false);
+    const { openServer } = router.query;
+
+    useEffect(() => {
+        if (openServer !== undefined) {
+            const shouldOpenServer = openServer === "true";
+            setIsOpenServer(shouldOpenServer);
+            if (shouldOpenServer) {
+                router.replace(
+                    {
+                        pathname: router.pathname,
+                        query: { ...router.query, openServer: "false" },
+                    },
+                    undefined,
+                    { shallow: true }
+                );
+            }
+        }
+    }, [openServer]);
+
+    useEffect(() => {
+        if (isOpenServer) {
+            setTimeout(() => {
+                setIsPopupOpen(true);
+                setIsOpenServer(false);
+            }, 1000);
+        }
+    }, [isOpenServer]);
 
 
     useEffect(() => {

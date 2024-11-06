@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import "../app/globals.css";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import { ToastContainer } from "react-toastify";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { FaInfoCircle } from "react-icons/fa";
 import BgImage from "../../public/assets/Rectangle68.png";
-import { doc, setDoc, getDocs, collection, query } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, query, getDoc } from "firebase/firestore";
 import { useTask } from "../components/TaskContext";
 import Link from "next/link";
 
@@ -45,6 +45,8 @@ const SignUp: React.FC = () => {
     const [showInstructions, setShowInstructions] = useState(false);
     const instructionsRef = useRef<HTMLDivElement>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [openServer, setOpenServer] = useState<boolean>(false);
     const [isUsernameTaken, setIsUsernameTaken] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -71,6 +73,15 @@ const SignUp: React.FC = () => {
             setShowInstructions(false);
         }
     };
+
+    useEffect(() => {
+        // Redirect if already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.replace("/Homepage");  // Prevent going back to sign-in
+            }
+        });
+    }, [router]);
 
     useEffect(() => {
         if (showInstructions) {
@@ -246,8 +257,18 @@ const SignUp: React.FC = () => {
                     jobRole: formData.jobRole,
                     profilePicUrl: profilePicData.profilePicUrl,
                 });
-                toast.success("Account created successfully!", { autoClose: 1000 });
-                router.push("/Homepage");
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    toast.success("Account created successfully!", { autoClose: 1000 });
+                    setOpenServer(true);
+                    setTimeout(() => {
+                        router.push({
+                            pathname: "/Homepage",
+                            query: { openServer: true.toString() },
+                        } as unknown as string);
+                    }, 1000);
+                }
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -320,14 +341,18 @@ const SignUp: React.FC = () => {
                                     id="userName"
                                     value={formData.userName}
                                     onChange={(e) => {
-                                        const regex = /^[a-zA-Z0-9]*$/;
-                                        if (regex.test(e.target.value)) {
-                                            handleChange(e); // Update form data only if input is alphanumeric
+                                        // This regex allows either only letters or a combination of letters and numbers, but not just numbers or special characters
+                                        const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])|^[a-zA-Z]+$/;
+                                        const value = e.target.value;
+
+                                        // Check for allowed characters (letters and numbers only)
+                                        if (/^[a-zA-Z0-9]*$/.test(value) && (regex.test(value) || value === '')) {
+                                            handleChange(e); // Update form data if it meets the criteria
                                         }
                                     }}
                                     required
                                     className="w-full px-4 py-2 border text-black rounded-lg"
-                                    minLength={8}
+                                    minLength={3}
                                     maxLength={12}
                                 />
                             </div>

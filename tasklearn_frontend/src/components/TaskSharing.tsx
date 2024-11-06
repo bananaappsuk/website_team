@@ -86,28 +86,37 @@ const TaskSharing = () => {
     }, [dropdownRef]);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                setUser(user);
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    setUserData({
-                        ...userDoc.data(),
-                        uid: user.uid // Include UID in the userData state
-                    } as unknown as UserData);
+        const fetchUserData = async (user: any) => {
+            try {
+                setLoading(true);
+                if (user) {
+                    setUser(user);
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        setUserData({
+                            ...userDoc.data(),
+                            uid: user.uid, // Include UID in the userData state
+                        } as unknown as UserData);
+                    } else {
+                        setUser(null);
+                        setUserData(null);
+                    }
+                    await fetchPatientId();
                 }
-            } else {
-                setUser(null);
-                setUserData(null);
+            } catch (error) {
+                console.error("Error fetching user data: ", error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
+        };
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            fetchUserData(user);
         });
-        fetchPatientId();
-
-        // Cleanup
         return () => unsubscribe();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+
 
     if (loading) {
         return <p className="w-full h-screen bg-white">Loading...</p>;

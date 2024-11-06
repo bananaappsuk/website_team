@@ -1,8 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js",
-  "/Homepage": "pages/Homepage.js",
-  "/signin": "pages/signin.js",
-  "/signup": "pages/signup.js"
-}
+{"/_app":"pages/_app.js","/ForgetPassword":"pages/ForgetPassword.html","/Homepage":"pages/Homepage.html","/_error":"pages/_error.js","/ResetPassword":"pages/ResetPassword.html","/UserProfile":"pages/UserProfile.html","/api/signup":"pages/api/signup.js","/join/[id]":"pages/join/[id].html","/server/CreateServerPopup":"pages/server/CreateServerPopup.html","/signup":"pages/signup.html","/signin":"pages/signin.html","/tabs/Career":"pages/tabs/Career.html","/tabs/FollowRequests":"pages/tabs/FollowRequests.html","/tabs/Followers":"pages/tabs/Followers.html","/tabs/Following":"pages/tabs/Following.html","/tabs/Libraries":"pages/tabs/Libraries.html","/tabs/Quiz":"pages/tabs/Quiz.html","/tabs/Quizzes":"pages/tabs/Quizzes.html","/tabs/Tracking":"pages/tabs/Tracking.html","/_document":"pages/_document.js","/404":"pages/404.html"}

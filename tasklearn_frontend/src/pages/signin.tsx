@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import "../app/globals.css";
 import { ToastContainer } from "react-toastify";
@@ -19,6 +19,16 @@ const SignIn: React.FC = () => {
     const identifierRef = useRef<HTMLInputElement>(null);
     const [emailError, setEmailError] = useState(false);
     const [userNameExists, setUserNameExists] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        // Redirect if already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.replace("/Homepage");  // Prevent going back to sign-in
+            }
+        });
+    }, [router]);
 
     useEffect(() => {
         if (identifierRef.current) {
@@ -59,7 +69,6 @@ const SignIn: React.FC = () => {
         setPasswordVisible(!passwordVisible);
     };
 
-    const router = useRouter();
 
     const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         // Update the form data

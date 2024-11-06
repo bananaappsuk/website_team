@@ -49,8 +49,8 @@ const ForgetPassword: React.FC = () => {
                 className="min-h-screen flex flex-col w-full bg-center bg-cover"
                 style={{ backgroundImage: `url(${BgImage.src})` }}
             >
-                <div className="mt-[6rem]  flex flex-col items-center px-4 sm:px-8">
-                    <div className="bg-white shadow-lg rounded-lg pt-8 sm:pt-12 px-6 sm:px-12 pb-12 sm:pb-24 w-full sm:w-[60%] mt-4 min-h[500px]">
+                <div className="mt-8 sm:mt-12 flex flex-col items-center px-4 sm:px-8">
+                    <div className="bg-white shadow-lg rounded-lg pt-8 sm:pt-12 px-6 sm:px-12 pb-12 sm:pb-24 w-full sm:w-[60%] mt-4">
                         <h1 className="text-5xl sm:text-5xl font-normal text-center text-[#68A86B] mb-0">
                             T-askLearn
                         </h1>
@@ -58,7 +58,7 @@ const ForgetPassword: React.FC = () => {
                             Collaborate to Learn, Learn to Collaborate
                         </p>
                         <div
-                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
+                            className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
                             onClick={() => router.push("/signin")}
                         >
                             <Image
@@ -71,12 +71,12 @@ const ForgetPassword: React.FC = () => {
                             <p className="ml-2 text-[14px]">Back to Sign in</p>
                         </div>
                         <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
+                            <div className="flex-col items-center sm:flex-row px-4 md:px-4 lg:px-20 xl:px-40 mb-6">
                                 <label
                                     htmlFor="email"
-                                    className="block text-[#646161] mb-3 sm:mb-4 xl:mb-5 text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl"
+                                    className="block text-[#646161] mb-3 sm:mb-4 xl:mb-5 text-sm sm:text-[16.5px]"
                                 >
-                                    Forgot password, Enter your email ID
+                                    Forgot password, enter your email ID
                                 </label>
                                 <input
                                     type="email"
@@ -92,7 +92,7 @@ const ForgetPassword: React.FC = () => {
                             <div className=" flex justify-center mt-[3rem]">
                                 <button
                                     type="submit"
-                                    className="font-semibold w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className="w-[25%] lg:w-[12%] font-semibold bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
                                 >
                                     Send
                                 </button>

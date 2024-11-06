@@ -158,7 +158,7 @@ const ResetPassword: React.FC = () => {
                             Collaborate to Learn, Learn to Collaborate
                         </p>
                         <div
-                            className="flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
+                            className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
                             onClick={() => router.push("/signin")}
                         >
                             <Image
@@ -170,19 +170,19 @@ const ResetPassword: React.FC = () => {
                             />
                             <p className="ml-2 text-[14px]">Back to Sign in</p>
                         </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4 relative">
+                        <form onSubmit={handleSubmit} className="px-4 md:px-4 lg:px-20 xl:px-40">
+                            <div className="flex-col items-center sm:flex-row mb-6 relative">
                                 <div className="flex justify-between">
                                     <label
                                         htmlFor="password"
-                                        className="block text-gray-700  mb-3 sm:mb-4 xl:mb-5 text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl"
+                                        className="block text-[#646161] mb-3 sm:mb-4 xl:mb-5 text-sm sm:text-[16.5px]"
                                     >
                                         Enter your new password here
                                     </label>
                                     {
                                         <div className="relative">
                                             <FaInfoCircle
-                                                className="mr-[0.9rem] md:mt-1 lg:mt-2 text-gray-700 cursor-pointer"
+                                                className="mr-[0.8rem] mt-[0.1rem] md:mt-1 text-gray-700 cursor-pointer"
                                                 onClick={toggleInstructions}
                                             />
                                             {showInstructions && (
@@ -239,7 +239,7 @@ const ResetPassword: React.FC = () => {
                                 />
                                 <div className="top-[40px] flex items-center">
                                     <div
-                                        className="absolute right-2 text-gray-700 top-[40px] sm:top-[48px] lg:top-[54px] xl:top-[60px] text-[#666666CC] cursor-pointer"
+                                        className="absolute right-2 text-gray-700 top-[42px] sm:top-[47px] xl:top-[52px] text-[#666666CC] cursor-pointer"
                                         onClick={togglePasswordVisibility}
                                     >
                                         {passwordVisible ? (
@@ -261,7 +261,7 @@ const ResetPassword: React.FC = () => {
 
                                 </div>
                             </div>
-                            <div className="mb-4">
+                            <div className="flex-col items-center sm:flex-row mb-6">
                                 <div className="relative flex justify-between">
                                     <div
                                         className="absolute right-2 text-gray-700 top-[11px] text-[#666666CC] cursor-pointer"
@@ -302,7 +302,7 @@ const ResetPassword: React.FC = () => {
                             <div className="flex justify-center mt-[2.5rem]">
                                 <button
                                     type="submit"
-                                    className="font-semibold w-[25%] lg:w-[40%] bg-[#68A86B] border border-[#68A86B] text-white py-2 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
+                                    className="w-[35%] lg:w-[25%] font-semibold bg-[#68A86B] border border-[#68A86B] text-white py-1 rounded-lg hover:bg-green-100 hover:text-black transition duration-300"
                                 >
                                     Confirm
                                 </button>
