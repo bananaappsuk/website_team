@@ -292,8 +292,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                 title: 'Invite Link',
                 text: inviteLink, // Only the URL, no extra text
             });
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
-            toast.warning('' + err);
+            toast.warning("Share cancelled");
         }
     };
 
@@ -325,7 +326,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
                             <div className="relative w-full max-w-xl px-8 py-12 bg-white rounded shadow-lg text-black">
                                 <div className="flex">
-                                    <h2 className="text-lg sm:text-xl font-bold mb-4">Invite friends to {server.serverName} Server </h2>
+                                    <h2 className="text-lg sm:text-xl font-bold mb-4">Invite friends to {server.serverName + "'s"} Server </h2>
                                     <HiX className="ml-auto text-black hover:text-gray-800 focus:outline-none cursor-pointer" onClick={closePopup} />
                                 </div>
                                 <p className="text-gray-600 text-sm mb-4">Share this link with others to grant access to your server!</p>

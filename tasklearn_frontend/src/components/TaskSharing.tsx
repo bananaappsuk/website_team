@@ -54,6 +54,7 @@ const TaskSharing = () => {
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [redirecting, setRedirecting] = useState(false);
     const router = useRouter();
     const { logout } = useAuth();
     const [selectedServer, setSelectedServer] = useState<{ serverId: string; serverName: string } | null>(null);
@@ -86,40 +87,46 @@ const TaskSharing = () => {
     }, [dropdownRef]);
 
     useEffect(() => {
-        const fetchUserData = async (user: any) => {
-            try {
-                setLoading(true);
-                if (user) {
-                    setUser(user);
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        setUserData({
-                            ...userDoc.data(),
-                            uid: user.uid, // Include UID in the userData state
-                        } as unknown as UserData);
-                    } else {
-                        setUser(null);
-                        setUserData(null);
-                    }
-                    await fetchPatientId();
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                setUser(user);
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    setUserData({
+                        ...userDoc.data(),
+                        uid: user.uid, // Include UID in the userData state
+                    } as unknown as UserData);
                 }
-            } catch (error) {
-                console.error("Error fetching user data: ", error);
-            } finally {
-                setLoading(false);
+            } else {
+                setUser(null);
+                setUserData(null);
             }
-        };
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            fetchUserData(user);
+            setLoading(false);
         });
+        fetchPatientId();
+
+        // Cleanup
         return () => unsubscribe();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!loading && !user) {
+            setRedirecting(true);
+            const timer = setTimeout(() => {
+                router.push("/signin");
+            }, 1000);
 
+            return () => clearTimeout(timer);
+        }
+    }, [loading, user, router]);
+
+    if (redirecting) {
+        return <div>Loading...</div>;
+    }
 
     if (loading) {
-        return <p className="w-full h-screen bg-white">Loading...</p>;
+        return <p>Loading...</p>;
     }
 
 
