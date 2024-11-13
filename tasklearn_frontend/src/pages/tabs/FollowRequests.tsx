@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { getDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  getDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../firebase";
+import { toast } from "react-toastify";
 
 type Follow = {
   uid: string;
@@ -18,15 +26,33 @@ type UserData = {
 };
 
 type Props = {
-  followDocs: Follow[];
   userData: UserData | null;
-  setFollowDocs: React.Dispatch<React.SetStateAction<Follow[]>>;
 };
 
-const Requests: React.FC<Props> = ({ followDocs, userData, setFollowDocs }) => {
+const Requests: React.FC<Props> = ({ userData }) => {
   const [reqUsers, setReqUsers] = useState<UserData[]>([]);
   const [followerIds, setFollowerIds] = useState<string[]>([]);
   const [isloading, setIsLoading] = useState(true);
+  const [followDocs, setFollowDocs] = useState<Follow[]>([]);
+
+  useEffect(() => {
+    const fetchAllFollowRequests = async () => {
+      setIsLoading(true);
+      try {
+        const allFollowRequestsDoc = await getDocs(
+          collection(db, "followRequests")
+        );
+        const requests = allFollowRequestsDoc.docs.map(
+          (doc) => ({ ...doc.data(), uid: doc.id } as Follow)
+        );
+        setFollowDocs(requests);
+      } catch (error: any) {
+        toast.error(error.message);
+      }
+    };
+
+    fetchAllFollowRequests();
+  }, []);
 
   const fetchUserDetails = async (
     followerIds: string[]
@@ -41,32 +67,38 @@ const Requests: React.FC<Props> = ({ followDocs, userData, setFollowDocs }) => {
         userDetails.push({ uid: id, ...userDoc.data() } as UserData);
       }
     }
-    setIsLoading(false);
-    setReqUsers(userDetails);
     return userDetails;
   };
 
-  useEffect(() => {
-    const fetchFollowerIds = async () => {
+useEffect(() => {
+  const fetchFollowerIds = async () => {
+    if (followDocs.length > 0) {
       const newId = followDocs.filter(
         (req) => req.followeeId === userData?.uid && req.status === "pending"
       );
       const followerIds = newId.map((req) => req.followerId);
-
       setFollowerIds(followerIds);
-      fetchUserDetails(followerIds);
-    };
-
-    fetchFollowerIds();
-  }, [followDocs]);
-
-  useEffect(() => {
-    if (followerIds.length) {
-      fetchUserDetails(followerIds).then(setReqUsers);
-    } else {
-      setReqUsers([]);
+      const details = await fetchUserDetails(followerIds);
+      setReqUsers(details);
     }
-  }, [followerIds]);
+    setIsLoading(false);
+  };
+  fetchFollowerIds();
+}, [followDocs]);
+
+ useEffect(() => {
+   const updateReqUsers = async () => {
+     if (followerIds.length > 0) {
+       const details = await fetchUserDetails(followerIds);
+       setReqUsers(details);
+       setIsLoading(false);
+     } else {
+       setIsLoading(true);
+       setReqUsers([]);
+     }
+   };
+   updateReqUsers();
+ }, [followerIds]);
 
   const handleAccept = async (followerId: string) => {
     try {
@@ -112,23 +144,31 @@ const Requests: React.FC<Props> = ({ followDocs, userData, setFollowDocs }) => {
       if (reqDoc) {
         const deleteReq = doc(db, "followRequests", reqDoc?.uid);
         await deleteDoc(deleteReq);
-        
+
         setFollowDocs((prevFollowDocs) =>
           prevFollowDocs.filter((doc) => doc.uid !== reqDoc.uid)
+        );
+
+        setReqUsers((prevReqUsers) =>
+          prevReqUsers.filter((user) => user.uid !==followerId )
         );
       }
     } catch (error) {
       console.error("Error decline follow request:", error);
     }
   };
-
+  
   return (
     <div className="w-full mx-auto p-4">
       <h2 className="text-center text-lg font-semibold mb-4">
         Follow Requests
       </h2>
       <ul className="space-y-4">
-        {reqUsers.length > 0 ? (
+        {isloading ? (
+          <div className="text-center">Loading...</div>
+        ) : reqUsers.length === 0  ? (
+          <div className="text-center">No Follow Request</div>
+        ) : (
           reqUsers?.map((user, index) => (
             <li
               key={index}
@@ -155,8 +195,6 @@ const Requests: React.FC<Props> = ({ followDocs, userData, setFollowDocs }) => {
               </div>
             </li>
           ))
-        ) : (
-          <div className=" text-center">No request found</div>
         )}
       </ul>
     </div>

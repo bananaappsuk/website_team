@@ -25,24 +25,39 @@ type UserData = {
 };
 
 type Props = {
-  followDocs: Follow[];
   userData: UserData | null;
-  setFollowDocs: React.Dispatch<React.SetStateAction<Follow[]>>;
 };
 
-const Followers: React.FC<Props> = ({
-  userData,
-  followDocs,
-  setFollowDocs,
-}) => {
+const Followers: React.FC<Props> = ({ userData }) => {
   const [reqUsers, setReqUsers] = useState<UserData[]>([]);
   const [followerIds, setFollowerIds] = useState<string[]>([]);
   const [isloading, setIsLoading] = useState(true);
+  const [followDocs, setFollowDocs] = useState<Follow[]>([]);
+
+  useEffect(() => {
+    const fetchAllFollowRequests = async () => {
+      try {
+        const allFollowRequestsDoc = await getDocs(
+          collection(db, "followRequests")
+        );
+        const requests = allFollowRequestsDoc.docs.map(
+          (doc) => ({ ...doc.data(), uid: doc.id } as Follow)
+        );
+        setFollowDocs(requests);
+      } catch (error: any) {
+        toast.error(error.message);
+      }
+    };
+
+    fetchAllFollowRequests();
+  }, []);
 
   const fetchUserDetails = async (
     followerIds: string[]
   ): Promise<UserData[]> => {
+    setIsLoading(true);
     if (followerIds.length === 0) {
+      setIsLoading(false);
       return [];
     }
     const userDetails: UserData[] = [];
@@ -51,41 +66,53 @@ const Followers: React.FC<Props> = ({
       if (userDoc.exists()) {
         userDetails.push({ uid: id, ...userDoc.data() } as UserData);
       }
+      else{
+         setIsLoading(false);
+      }
     }
-    setIsLoading(false);
-    setReqUsers(userDetails);
+    
     return userDetails;
   };
-  
-  useEffect(() => {
-    const fetchFollowerIds = async () => {
-      const newId = followDocs?.filter(
-        (req) => req.followeeId === userData?.uid && req.status === "accept"
-      );
-      const followerIds = newId.map((req) => req.followerId);
 
-      setFollowerIds(followerIds);
-      fetchUserDetails(followerIds);
+  useEffect(() => {
+    if (followDocs.length === 0) {
+      return; 
+    }
+
+    const fetchFollowerIds = async () => {
+    
+
+      try {
+        const newId = followDocs?.filter(
+          (req) => req.followeeId === userData?.uid && req.status === "accept"
+        );
+        const followerIds = newId.map((req) => req.followerId);
+
+        setFollowerIds(followerIds); // Set follower IDs
+
+        const details = await fetchUserDetails(followerIds); // Fetch user details
+        setReqUsers(details);
+        setIsLoading(false)
+      } catch (error) {
+        toast.error("Error fetching follower IDs and user details.");
+      } 
     };
 
-    fetchFollowerIds();
-  }, [followDocs]);
+    fetchFollowerIds(); 
+  }, [followDocs]); 
 
-  
   const fetchFollowRequest = async () => {
-    try {
-      const allFollowRequestsDoc = await getDocs(
-        collection(db, "followRequests")
-      );
-      const requests = allFollowRequestsDoc.docs.map((doc) => {
-        return { ...doc.data(), uid: doc.id } as Follow;
-      });
-      setFollowDocs(requests);
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+
+
+    const allFollowRequestsDoc = await getDocs(
+      collection(db, "followRequests")
+    );
+    const requests = allFollowRequestsDoc.docs.map((doc) => {
+      return { ...doc.data(), uid: doc.id } as Follow;
+    });
+    setFollowDocs(requests);
   };
- 
+
   const handleFollowRequest = async (followeeId: string) => {
     try {
       const checkReq = followDocs.filter(
@@ -124,67 +151,65 @@ const Followers: React.FC<Props> = ({
       toast.error(error.message);
     }
   };
-    const checkFollowRequest = (uid: string) => {
-      return followDocs?.some(
-        (request) =>
-          request.followeeId === uid && request.followerId === userData?.uid
-      );
-    };
-      const checkAcceptedRequest = (followeeId: string) => {
-        return followDocs?.some(
-          (request) =>
-            request.followeeId === followeeId &&
-            request.followerId === userData?.uid &&
-            request.status === "accept"
-        );
-      };
- 
+  const checkFollowRequest = (uid: string) => {
+    return followDocs?.some(
+      (request) =>
+        request.followeeId === uid && request.followerId === userData?.uid
+    );
+  };
+  const checkAcceptedRequest = (followeeId: string) => {
+    return followDocs?.some(
+      (request) =>
+        request.followeeId === followeeId &&
+        request.followerId === userData?.uid &&
+        request.status === "accept"
+    );
+  };
+
   return (
     <div className="w-full mx-auto p-4">
       <h2 className="text-center text-lg font-semibold mb-4">
         List of followers
       </h2>
       <ul className="space-y-4">
-        {reqUsers.length === 0 && (
-          <div className="text-center">No followers found</div>
+        {reqUsers.length === 0 && !isloading && (
+          <div className="text-center">No Followers Found</div>
         )}
-        {reqUsers?.map((user, index) =>{
-             const isPending = checkFollowRequest(user.uid);
-             const isAccepted = checkAcceptedRequest(user.uid);
-             const css = {
-               buttonStyle: isAccepted
-                 ? "bg-[#67A76B] text-white"
-                 : isPending
-                 ? "bg-gray-400 text-white"
-                 : "bg-[#67A76B] text-white",
-               buttonText: isAccepted
-                 ? "Following"
-                 : isPending
-                 ? "Requested"
-                 : "Follow Back",
-             };
-            return (
-              <li
-                key={index}
-                className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
+        {isloading && <div className="text-center">Loading...</div>}
+        {!isloading &&reqUsers?.map((user, index) => {
+          const isPending = checkFollowRequest(user.uid);
+          const isAccepted = checkAcceptedRequest(user.uid);
+          const css = {
+            buttonStyle: isAccepted
+              ? "bg-[#67A76B] text-white"
+              : isPending
+              ? "bg-gray-400 text-white"
+              : "bg-[#67A76B] text-white",
+            buttonText: isAccepted
+              ? "Following"
+              : isPending
+              ? "Requested"
+              : "Follow Back",
+          };
+          return (
+            <li
+              key={index}
+              className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
+            >
+              <div>
+                <p className="text-md font-medium">
+                  {user.userName + "," + user.jobRole}
+                </p>
+              </div>
+              <button
+                className={` py-1 px-4 rounded-md transition duration-300 ${css.buttonStyle} `}
+                onClick={() => handleFollowRequest(user.uid)}
               >
-                <div>
-                  <p className="text-md font-medium">
-                    {user.userName + "," + user.jobRole}
-                  </p>
-                </div>
-                <button
-                  className={` py-1 px-4 rounded-md transition duration-300 ${css.buttonStyle} `}
-                  onClick={() => handleFollowRequest(user.uid)}
-                >
-                  {css.buttonText}
-                </button>
-              </li>
-            );
-        }
-            
-        
-        )}
+                {css.buttonText}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

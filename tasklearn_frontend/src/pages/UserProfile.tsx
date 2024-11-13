@@ -66,16 +66,17 @@ const UserProfile = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const [showResults, setShowResults] = useState(false);
-  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     const searchUsers = async () => {
       if (searchTerm.trim() !== "") {
         const userDocs = await getDocs(collection(db, "users"));
-        const users = userDocs.docs.map((doc) => {
-          const data = doc.data() as UserData;
-          return { ...data, uid: doc.id };
-        });
+        const users = userDocs.docs
+          .map((doc) => {
+            const data = doc.data() as UserData;
+            return { ...data, uid: doc.id };
+          })
+          .filter((user) => user.uid !== userData?.uid);
 
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
@@ -119,7 +120,7 @@ const UserProfile = () => {
     };
 
     fetchAllFollowRequests();
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -219,75 +220,6 @@ const UserProfile = () => {
     return <div>You are not logged in. Redirecting...</div>;
   }
 
-  const fetchFollowRequest = async () => {
-    try {
-      const allFollowRequestsDoc = await getDocs(
-        collection(db, "followRequests")
-      );
-      const requests = allFollowRequestsDoc.docs.map((doc) => {
-        return { ...doc.data(), uid: doc.id } as Follow;
-      });
-      setFollowDocs(requests);
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
-
-  const handleFollowRequest = async (followeeId: string) => {
-    try {
-      const checkReq = followDocs.filter(
-        (req) =>
-          req.followeeId === followeeId &&
-          req.followerId === userData?.uid &&
-          (req.status === "pending" || req.status === "accept")
-      );
-
-      if (checkReq.length > 0) {
-        const deleteId = checkReq
-          .filter((doc) => doc.followeeId === followeeId)
-          .map((doc) => doc.uid);
-        if (deleteId.length > 0) {
-          const deleteReq = doc(db, "followRequests", deleteId[0]);
-          await deleteDoc(deleteReq);
-
-          setFollowDocs((prevFollowDocs) =>
-            prevFollowDocs.filter((doc) => doc.uid !== deleteId[0])
-          );
-        }
-      } else {
-        const sendFollowRequest = await addDoc(
-          collection(db, "followRequests"),
-          {
-            followerId: userData?.uid,
-            followeeId,
-            status: "pending",
-          }
-        );
-        if (sendFollowRequest) {
-          fetchFollowRequest();
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
-
-  const checkFollowRequest = (uid: string) => {
-    return followDocs?.some(
-      (request) =>
-        request.followeeId === uid && request.followerId === userData?.uid
-    );
-  };
-
-  const checkAcceptedRequest = (followeeId: string) => {
-    return followDocs?.some(
-      (request) =>
-        request.followeeId === followeeId &&
-        request.followerId === userData?.uid &&
-        request.status === "accept"
-    );
-  };
-
   const handleProfile = (user: UserData) => {
     sessionStorage.setItem("user", JSON.stringify(user));
     router.push("/OtherProfile");
@@ -367,43 +299,20 @@ const UserProfile = () => {
                   <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user, index) => {
-                        const isPending = checkFollowRequest(user.uid);
-                        const isAccepted = checkAcceptedRequest(user.uid);
-                        const css = {
-                          buttonStyle: isAccepted
-                            ? "bg-[#67A76B] text-white"
-                            : isPending
-                            ? "bg-gray-400 text-white"
-                            : "bg-[#67A76B] text-white",
-                          buttonText: isAccepted
-                            ? "Following"
-                            : isPending
-                            ? "Requested"
-                            : "Follow",
-                        };
                         return (
-                          <div className="flex justify-between items-center">
+                          <div
+                            className="flex justify-between items-center cursor-pointer"
+                            onClick={() => handleProfile(user)}
+                          >
                             <div
                               key={user.email}
-                              className="p-2 border-b cursor-pointer"
-                              onClick={() => handleProfile(user)}
+                              className="p-2 border-b w-full"
                             >
                               <p className="font-semibold">{user.userName}</p>
                               <p className="text-sm text-gray-500">
                                 {user.jobRole}
                               </p>
                             </div>
-                            {userData?.userName !== user.userName && (
-                              <button
-                                className={`py-2 px-4 rounded-md ${css.buttonStyle}`}
-                                ref={(el: any) =>
-                                  (buttonRefs.current[index] = el)
-                                }
-                                onClick={() => handleFollowRequest(user.uid)}
-                              >
-                                {css.buttonText}
-                              </button>
-                            )}
                           </div>
                         );
                       })
@@ -496,8 +405,6 @@ const UserProfile = () => {
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                     <Followers
                       userData={userData}
-                      followDocs={followDocs}
-                      setFollowDocs={setFollowDocs}
                     />
                   </div>
                 </div>
@@ -506,8 +413,7 @@ const UserProfile = () => {
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                     <Following
                       userData={userData}
-                      followDocs={followDocs}
-                      setFollowDocs={setFollowDocs}
+
                     />
                   </div>
                 </div>
@@ -520,11 +426,7 @@ const UserProfile = () => {
               ) : activeTab === "Requests" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <Requests
-                      followDocs={followDocs}
-                      userData={userData}
-                      setFollowDocs={setFollowDocs}
-                    />
+                    <Requests userData={userData} />
                   </div>
                 </div>
               ) : (

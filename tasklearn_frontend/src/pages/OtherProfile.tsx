@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { User } from "firebase/auth";
+import { toast } from "react-toastify";
 
 type UserData = {
   uid: string;
@@ -35,11 +36,19 @@ type Follow = {
 };
 
 const OtherProfile = () => {
-  const [otherUser, setotherUser] = useState<UserData | null>(null);
+  const [otherUser, setOtherUser] = useState<UserData | null>(null);
   const [followDoc, setFollowDoc] = useState<Follow[]>([]);
+  const [followDocs, setFollowDocs] = useState<Follow[]>([]);
+  const [followingDocs, setFollowingDocs] = useState<Follow[]>([]);
+  const [otherFollowDocs, setOtherFollowDocs] = useState<Follow[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [otherfollowingIds, setOtherFollowingIds] = useState<string[]>([]);
+  const [otherFollowerIds, setOtherFollowerIds] = useState<string[]>([]);
+  const [followerUsers, setFollowerUsers] = useState<UserData[]>([]);
+  const [followingUsers, setFollowingUsers] = useState<UserData[]>([]);
+  const [sendFollowRequest, setSendFollowRequest] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -58,49 +67,172 @@ const OtherProfile = () => {
         setUser(null);
         setUserData(null);
       }
-      setLoading(false);
     });
 
     // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
+  const fetchFollowerUserDetails = async (followerIds: string[]) => {
+    try {
+      if (followerIds.length === 0) {
+        return [];
+      }
+      const userDetails: UserData[] = [];
+      for (const id of followerIds) {
+        const userDoc = await getDoc(doc(db, "users", id));
+        if (userDoc.exists()) {
+          userDetails.push({ uid: id, ...userDoc.data() } as UserData);
+        }
+      }
+
+      setFollowerUsers(userDetails);
+      return userDetails;
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const fetchFollowingUserDetais = async (followeeId: string[]) => {
+    try {
+      if (followeeId.length === 0) {
+        return [];
+      }
+      const userDetails: UserData[] = [];
+      for (const id of followeeId) {
+        const userDoc = await getDoc(doc(db, "users", id));
+        if (userDoc.exists()) {
+          userDetails.push({ uid: id, ...userDoc.data() } as UserData);
+        }
+      }
+
+      setFollowingUsers(userDetails);
+      return userDetails;
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   const fetchFollowRequests = async () => {
-    const match = query(
-      collection(db, "followRequests"),
-      where("followerId", "==", userData?.uid),
-      where("followeeId", "==", otherUser?.uid)
-    );
-    const followRequestsDoc = await getDocs(match);
-    const request = followRequestsDoc.docs.map(
-      (doc) =>
-        ({
-          ...doc.data(),
-          uid: doc.id,
-        } as Follow)
-    );
-    setFollowDoc(request);
+    try {
+      const match = query(
+        collection(db, "followRequests"),
+        where("followerId", "==", userData?.uid),
+        where("followeeId", "==", otherUser?.uid)
+      );
+      const followRequestsDoc = await getDocs(match);
+      const request = followRequestsDoc.docs.map(
+        (doc) =>
+          ({
+            ...doc.data(),
+            uid: doc.id,
+          } as Follow)
+      );
+
+      setFollowDoc(request);
+      fetchOtherFollowRequest();
+      fetchOtherFollowingRequest();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const fetchOtherFollowingRequest = async () => {
+    try {
+      const match = query(
+        collection(db, "followRequests"),
+        where("followerId", "==", otherUser?.uid),
+        where("status", "==", "accept")
+      );
+      const otherFollowingReqDoc = await getDocs(match);
+      const request = otherFollowingReqDoc.docs.map(
+        (doc) =>
+          ({
+            ...doc.data(),
+            uid: doc.id,
+          } as Follow)
+      );
+      setFollowingDocs(request);
+      const followingIds = request.map((req) => req.followeeId);
+      setOtherFollowingIds(followingIds);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchOtherFollowRequest = async () => {
+    try {
+      const match = query(
+        collection(db, "followRequests"),
+        where("followeeId", "==", otherUser?.uid),
+        where("status", "==", "accept")
+      );
+      const otherFollowReqDoc = await getDocs(match);
+      const request = otherFollowReqDoc.docs.map(
+        (doc) =>
+          ({
+            ...doc.data(),
+            uid: doc.id,
+          } as Follow)
+      );
+      setFollowDocs(request);
+      const followerIds = request.map((req) => req.followerId);
+      setOtherFollowerIds(followerIds);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    if (userData?.uid && otherUser?.uid  ) {
-      fetchFollowRequests();
+    if (otherFollowerIds.length > 0) {
+      fetchFollowerUserDetails(otherFollowerIds);
     }
-  }, [userData, otherUser]);
+    if (otherfollowingIds.length > 0) {
+      fetchFollowingUserDetais(otherfollowingIds);
+    }
+  }, [otherFollowerIds, otherfollowingIds]);
+
+  const fetchAllFollowRequest = async () => {
+    try {
+      const allFollowRequestsDoc = await getDocs(
+        collection(db, "followRequests")
+      );
+      const requests = allFollowRequestsDoc.docs?.map((doc) => {
+        return { ...doc.data(), uid: doc.id } as Follow;
+      });
+      setOtherFollowDocs(requests);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (userData?.uid && otherUser?.uid) {
+      fetchFollowRequests();
+      fetchAllFollowRequest();
+    }
+  }, [userData, otherUser, sendFollowRequest]);
 
   useEffect(() => {
     const userStr = sessionStorage.getItem("user");
     if (userStr) {
-      setotherUser(JSON.parse(userStr));
+      const user = JSON.parse(userStr);
+      if (user?.uid) {
+        setOtherUser(user);
+      } else {
+        console.error("User ID is undefined");
+      }
     }
   }, []);
 
   const handleFollowRequest = async () => {
     try {
-      if (followDoc[0]) {     
-         const deleteReq = doc(db, "followRequests", followDoc[0].uid);
-         await deleteDoc(deleteReq);
-         setFollowDoc([])
+      if (followDoc.length > 0) {
+        const deleteReq = doc(db, "followRequests", followDoc[0].uid);
+        await deleteDoc(deleteReq);
+        setFollowDoc([]);
       } else {
         const sendFollowRequest = await addDoc(
           collection(db, "followRequests"),
@@ -111,6 +243,7 @@ const OtherProfile = () => {
           }
         );
         if (sendFollowRequest) {
+          setSendFollowRequest(true);
           fetchFollowRequests();
         }
       }
@@ -135,27 +268,81 @@ const OtherProfile = () => {
     );
   };
 
-  const css = {
-    stylePending: checkFollowRequest()
-      ? "bg-gray-400 text-white"
-      : "bg-[#67A76B] text-white",
-    buttonText1: checkFollowRequest() ? "Requested" : "Follow",
-    styleAccept: checkAcceptedRequest()
-      ? "bg-[#67A76B] text-white"
-      : "bg-gray-400 text-white",
-    buttonText2: checkAcceptedRequest()
-      ? "Following"
-      : checkFollowRequest()
-      ? "Requested"
-      : "Follow",
+  const stylePending = checkFollowRequest()
+    ? "bg-gray-400 text-white"
+    : "bg-[#67A76B] text-white";
+  const styleAccept = checkAcceptedRequest()
+    ? "bg-[#67A76B] text-white"
+    : "bg-gray-400 text-white";
+  const buttonText = checkAcceptedRequest()
+    ? "Following"
+    : checkFollowRequest()
+    ? "Requested"
+    : "Follow";
+
+  const checkOtherFollowRequest = (followeeId: string) => {
+    return otherFollowDocs?.some(
+      (request) =>
+        request.followeeId === followeeId &&
+        request.followerId === userData?.uid &&
+        request.status === "pending"
+    );
   };
 
+  const checkOtherAcceptedRequest = (followeeId: string) => {
+    return otherFollowDocs?.some(
+      (request) =>
+        request.followeeId === followeeId &&
+        request.followerId === userData?.uid &&
+        request.status === "accept"
+    );
+  };
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  
+  const handleOtherFollower = async (followeeId: string) => {
+    try {
+      const checkReq = otherFollowDocs?.filter(
+        (req) =>
+          req.followeeId === followeeId &&
+          req.followerId === userData?.uid &&
+          (req.status === "pending" || req.status === "accept")
+      );
+
+      if (checkReq.length > 0) {
+        const deleteId = checkReq
+          .filter((doc) => doc.followeeId === followeeId)
+          .map((doc) => doc.uid);
+        if (deleteId.length > 0) {
+          const deleteReq = doc(db, "followRequests", deleteId[0]);
+          await deleteDoc(deleteReq);
+
+          setOtherFollowDocs((prevFollowDocs) =>
+            prevFollowDocs.filter((doc) => doc.uid !== deleteId[0])
+          );
+        }
+      } else {
+        const sendFollowRequest = await addDoc(
+          collection(db, "followRequests"),
+          {
+            followerId: userData?.uid,
+            followeeId,
+            status: "pending",
+          }
+        );
+        if (sendFollowRequest) {
+          fetchAllFollowRequest();
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  console.log(followingUsers);
+
   return (
     <div className="w-full flex gap-2 bg-gray-100">
       <div className="flex flex-col lg:flex-row w-full">
@@ -206,10 +393,12 @@ const OtherProfile = () => {
             <div className="ml-auto flex items-center">
               {/* Step 3: Add onClick handler to open modal */}
               <button
-                className={`mb-20   rounded-md px-4 py-2 ${css.stylePending}`}
+                className={`mb-20   rounded-md px-4 py-2 ${
+                  checkAcceptedRequest() ? styleAccept : stylePending
+                }`}
                 onClick={handleFollowRequest}
               >
-                {css.buttonText2}
+                {buttonText}
               </button>
             </div>
           </div>
@@ -317,9 +506,43 @@ const OtherProfile = () => {
                   List of Followers
                 </h3>
                 <ul className="space-y-2">
-                  <li className="border-b pb-2">Follower 1</li>
-                  <li className="border-b pb-2">Follower 2</li>
-                  <li className="border-b pb-2">Follower 3</li>
+                  {followerUsers.length === 0 && (
+                    <p>No Followers List Found</p>
+                  )}
+                  {followerUsers?.map((user, index) => {
+                    const isPending = checkOtherFollowRequest(user.uid);
+                    const isAccepted = checkOtherAcceptedRequest(user.uid);
+                    const css = {
+                      buttonStyle: isAccepted
+                        ? "bg-[#67A76B] text-white"
+                        : isPending
+                        ? "bg-gray-400 text-white"
+                        : "bg-[#67A76B] text-white",
+                      buttonText: isAccepted
+                        ? "Following"
+                        : isPending
+                        ? "Requested"
+                        : "Follow",
+                    };
+                    return (
+                      <div
+                        key={index}
+                        className=" flex items-center gap-x-1 border-b py-2"
+                      >
+                        <p className="w-[70%] text-[14px] text-left">
+                          {user.userName + "," + user.jobRole}
+                        </p>
+
+                        <button
+                          className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                          onClick={() => handleOtherFollower(user.uid)}
+                          disabled={user.uid === userData?.uid}
+                        >
+                          {css.buttonText}
+                        </button>
+                      </div>
+                    );
+                  })}
                   {/* Add more followers here */}
                 </ul>
               </div>
@@ -329,9 +552,44 @@ const OtherProfile = () => {
                   Following List
                 </h3>
                 <ul className="space-y-2">
-                  <li className="border-b pb-2">Following 1</li>
-                  <li className="border-b pb-2">Following 2</li>
-                  <li className="border-b pb-2">Following 3</li>
+                  {followingUsers.length === 0 && (
+                    <p>No Following List Found</p>
+                  )}
+                  {followingUsers?.map((user, index) => {
+                    const isPending = checkOtherFollowRequest(user.uid);
+                    const isAccepted = checkOtherAcceptedRequest(user.uid);
+                    const css = {
+                      buttonStyle: isAccepted
+                        ? "bg-[#67A76B] text-white"
+                        : isPending
+                        ? "bg-gray-400 text-white"
+                        : "bg-[#67A76B] text-white",
+                      buttonText: isAccepted
+                        ? "Following"
+                        : isPending
+                        ? "Requested"
+                        : "Follow",
+                    };
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-x-1 border-b py-2"
+                      >
+                        <p className="w-[70%] text-[14px] text-left">
+                          {user.userName + "," + user.jobRole}
+                        </p>
+
+                        <button
+                          className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                          onClick={() => handleOtherFollower(user.uid)}
+                          disabled={user.uid === userData?.uid}
+                        >
+                          {css.buttonText}
+                        </button>
+                      </div>
+                    );
+                  })}
+
                   {/* Add more following here */}
                 </ul>
               </div>
