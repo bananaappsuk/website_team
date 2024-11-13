@@ -509,7 +509,7 @@ const TaskSharing = () => {
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
-                                <p className="text-2xl text-black font-bold">Task Test Sharing</p>
+                                <p className="text-2xl text-black font-bold">Task Sharing</p>
                             </div>
                         </div>
                         <FormContainer
