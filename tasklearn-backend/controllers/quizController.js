@@ -3,14 +3,14 @@ const Quiz = require('../models/quizModel');
 
 // Create a new quiz
 const createQuiz = async (req, res) => {
-  const { keyLearningPoint, action } = req.body;
+  const { keyLearningPoint, action, createdBy, Library } = req.body;
 
   if (!keyLearningPoint || !action) {
     return res.status(400).json({ message: 'Key Learning Point and Action are required' });
   }
 
   try {
-    const quiz = new Quiz({ keyLearningPoint, action });
+    const quiz = new Quiz({ keyLearningPoint, action, createdBy, Library });
     await quiz.save();
     res.status(201).json(quiz);
   } catch (error) {
