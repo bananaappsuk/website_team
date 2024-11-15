@@ -38,6 +38,22 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//get task by serverId
+
+router.get("/server/:serverId", async (req, res) => {
+  const { serverId } = req.params;
+  try {
+    const task = await Task.find({serverId});
+    res.status(200).json(task);
+    if (!task) {
+      return res.status(404).send("Task not found");
+    }
+    
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving task", error });
+  }
+});
+
 // update tasks
 router.patch("/:id", async (req, res) => {
   const { id } = req.params;

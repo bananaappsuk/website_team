@@ -300,136 +300,161 @@ const TaskSection: React.FC<CombinedProps> = ({
 
 
     return (
-        <div>
-            {server ? (
-                <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto mt-5">
-                    <div className="flex items-center justify-between px-4 py-1 cursor-pointer" onClick={toggleOpen}>
-                        <span className="text-md font-bold text-black">{server.serverName}</span>
-                        {isOpen ? (
-                            <HiChevronDown className="w-4 h-4 text-gray-600" />
-                        ) : (
-                            <HiChevronRight className="w-4 h-4 text-gray-600" />
-                        )}
-                    </div>
-                    {isOpen && (
-                        <div onClick={generateInviteLink} className="bg-[#F4F4F4] flex items-center cursor-pointer">
-                            <div className="px-4 py-6 text-black">
-                                Invite Link
-                            </div>
-                            <div className="px-5 py-6 ml-auto">
-                                <Image src={Plus} alt="plus" className="w-3 h-3" />
-                            </div>
-                        </div>
-                    )}
-
-                    {showPopup && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-                            <div className="relative w-full max-w-xl px-8 py-12 bg-white rounded shadow-lg text-black">
-                                <div className="flex">
-                                    <h2 className="text-lg sm:text-xl font-bold mb-4">Invite friends to {server.serverName + "'s"} Server </h2>
-                                    <HiX className="ml-auto text-black hover:text-gray-800 focus:outline-none cursor-pointer" onClick={closePopup} />
-                                </div>
-                                <p className="text-gray-600 text-sm mb-4">Share this link with others to grant access to your server!</p>
-                                <div className="relative flex items-center bg-[#EBEBEB] px-3 py-3">
-                                    <input
-                                        type="text"
-                                        value={inviteLink}
-                                        readOnly
-                                        className="bg-transparent flex-1 outline-none text-gray-700 text-sm" // Extra padding on the right for button space
-                                    />
-                                    <button
-                                        onClick={copyToClipboard}
-                                        className="absolute right-0 mr-2 bg-[#68A86B] border border-[#68A86B] text-white font-semibold rounded-sm px-4 py-1 text-sm hover:bg-green-100 hover:text-black"
-                                    >
-                                        {buttonText}
-                                    </button>
-                                </div>
-                                <div className="mt-12 flex justify-center">
-                                    <button
-                                        onClick={shareLink}
-                                        className="w-[20%] bg-[#68A86B] border border-[#68A86B] text-white px-4 py-2 rounded-lg hover:bg-green-100 hover:text-black"
-                                    >
-                                        Share
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+      <div>
+        {server ? (
+          <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto mt-5">
+            <div
+              className="flex items-center justify-between px-4 py-1 cursor-pointer"
+              onClick={toggleOpen}
+            >
+              <span className="text-md font-bold text-black">
+                {server.serverName}
+              </span>
+              {isOpen ? (
+                <HiChevronDown className="w-4 h-4 text-gray-600" />
+              ) : (
+                <HiChevronRight className="w-4 h-4 text-gray-600" />
+              )}
+            </div>
+            {isOpen && (
+              <div
+                onClick={generateInviteLink}
+                className="bg-[#F4F4F4] flex items-center cursor-pointer"
+              >
+                <div className="px-4 py-6 text-black">Invite Link</div>
+                <div className="px-5 py-6 ml-auto">
+                  <Image src={Plus} alt="plus" className="w-3 h-3" />
                 </div>
-            ) : (
-                <h1 className="flex items-center justify-between px-4 py-1 text-black"></h1>
-            )
-            }
+              </div>
+            )}
 
-            <div ref={searchRef} className="p-2 relative">
-                <input
-                    type="text"
-                    placeholder="Search @ User, Patient ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => setShowResults(true)}
-                    className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
-                />
-                {showResults && searchTerm && (
-                    <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <div key={user.email} className="p-2 border-b">
-                                    <p className="font-semibold">{user.userName}</p>
-                                    <p className="text-sm text-gray-500">{user.jobRole}</p>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="p-2 text-gray-500">No result found</div>
-                        )}
-                    </div>
-                )}
+            {showPopup && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+                <div className="relative w-full max-w-xl px-8 py-12 bg-white rounded shadow-lg text-black">
+                  <div className="flex">
+                    <h2 className="text-lg sm:text-xl font-bold mb-4">
+                      Invite friends to {server.serverName + "'s"} Server{" "}
+                    </h2>
+                    <HiX
+                      className="ml-auto text-black hover:text-gray-800 focus:outline-none cursor-pointer"
+                      onClick={closePopup}
+                    />
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">
+                    Share this link with others to grant access to your server!
+                  </p>
+                  <div className="relative flex items-center bg-[#EBEBEB] px-3 py-3">
+                    <input
+                      type="text"
+                      value={inviteLink}
+                      readOnly
+                      className="bg-transparent flex-1 outline-none text-gray-700 text-sm" // Extra padding on the right for button space
+                    />
+                    <button
+                      onClick={copyToClipboard}
+                      className="absolute right-0 mr-2 bg-[#68A86B] border border-[#68A86B] text-white font-semibold rounded-sm px-4 py-1 text-sm hover:bg-green-100 hover:text-black"
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+                  <div className="mt-12 flex justify-center">
+                    <button
+                      onClick={shareLink}
+                      className="w-[20%] bg-[#68A86B] border border-[#68A86B] text-white px-4 py-2 rounded-lg hover:bg-green-100 hover:text-black"
+                    >
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <h1 className="flex items-center justify-between px-4 py-1 text-black"></h1>
+        )}
+
+        <div ref={searchRef} className="p-2 relative">
+          <input
+            type="text"
+            placeholder="Search @ User, Patient ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setShowResults(true)}
+            className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
+          />
+          {showResults && searchTerm && (
+            <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <div key={user.email} className="p-2 border-b">
+                    <p className="font-semibold">{user.userName}</p>
+                    <p className="text-sm text-gray-500">{user.jobRole}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="p-2 text-gray-500">No result found</div>
+              )}
             </div>
-            <div className="mt-2">
-                <ul className="px-4 space-y-4">
-                    {taskCategories.map((item: any, index: any) => (
-                        <>
-                            <li
-                                key={item}
-                                onClick={() => {
-                                    handleTasksClick(item);
-                                    handleDropdown(index);
-                                }}
-                                className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer"
-                            >
-                                {item}
-                                {dropdownVisible[index] ? <HiChevronDown /> : <HiChevronRight />}
-                            </li>
-                            {dropdownVisible[index] &&
-                                filteredTasks[item]?.map((newItem: any, index: any) => {
-                                    return (
-                                        <div
-                                            key={index}
-                                            className={`text-black justify-between flex `}
-                                        >
-                                            <p
-                                                className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
-                                                    ? "text-[#68A86B]"
-                                                    : ""
-                                                    }`}
-                                                onClick={() => fetchTaskById(newItem._id)}
-                                            >
-                                                {newItem?.patientId}
-                                            </p>
-                                            <Image
-                                                className=" object-contain w-[16px] cursor-pointer"
-                                                src={deleteIcon}
-                                                alt="delete"
-                                                onClick={() => handleDelete(newItem, item)}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                        </>
-                    ))}
-                </ul>
-            </div>
-        </div >
+          )}
+        </div>
+
+        {server ? (
+          <div className="mt-2">
+            <ul className="px-4 space-y-4">
+              {taskCategories.map((item: any, index: any) => (
+                <>
+                  <li
+                    key={item}
+                    onClick={() => {
+                      handleTasksClick(item);
+                      handleDropdown(index);
+                    }}
+                    className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer"
+                  >
+                    {item}
+                    {dropdownVisible[index] ? (
+                      <HiChevronDown />
+                    ) : (
+                      <HiChevronRight />
+                    )}
+                  </li>
+                  {dropdownVisible[index] &&
+                    filteredTasks[item]?.map((newItem: any, index: any) => {
+                      return (
+                        <div
+                          key={index}
+                          className={`text-black justify-between flex `}
+                        >
+                          <p
+                            className={`cursor-pointer hover:text-[#68A86B] ${
+                              selectedTask && newItem._id === task?._id
+                                ? "text-[#68A86B]"
+                                : ""
+                            }`}
+                            onClick={() => fetchTaskById(newItem._id)}
+                          >
+                            {newItem?.patientId}
+                          </p>
+                          <Image
+                            className=" object-contain w-[16px] cursor-pointer"
+                            src={deleteIcon}
+                            alt="delete"
+                            onClick={() => handleDelete(newItem, item)}
+                          />
+                        </div>
+                      );
+                    })}
+                </>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-4 py-1 text-black">
+            {" "}
+            Select a server
+          </div>
+        )}
+      </div>
     );
 };
 

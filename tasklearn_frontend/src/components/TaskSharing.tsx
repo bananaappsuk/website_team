@@ -128,7 +128,8 @@ const TaskSharing = () => {
     if (loading) {
         return <p>Loading...</p>;
     }
-
+    
+    const userId = userData ? userData.uid : null;
 
     const handleResetInputs = () => {
         fetchPatientId();
@@ -138,6 +139,7 @@ const TaskSharing = () => {
             patientId: task.patientId,
             createdBy: "",
             taggedStaff: "",
+            serverId:"",
             contributingStaff: "",
             taskName: "",
             history: "",
@@ -185,57 +187,91 @@ const TaskSharing = () => {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ ...task, isShared: true }),
+                    body: JSON.stringify({ ...task, isShared: true,serverId:selectedServer?.serverId }),
                 }
             );
+                 if (response.ok) {
+                   updatePatientId();
+                   toast.success("Task shared successfully");
+                   if (!task.Learn && !task.Library) {
+                     router.reload();
+                   }
+                   if (task.Library) {
+                     // Create Library
+                     await fetch(
+                       `${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`,
+                       {
+                         method: "POST",
+                         headers: {
+                           "Content-Type": "application/json",
+                         },
+                         body: JSON.stringify({
+                           keyLearningPoint: task.keyLearningPoint,
+                           action: task.action,
+                           createdBy: userId,
+                         }),
+                       }
+                     );
+                   }
+                   setTask({
+                     ...task,
+                     Library: false,
+                     Learn: false,
+                   });
+                   if (task.Library && task.Learn) {
+                     await fetch(
+                       `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
+                       {
+                         method: "POST",
+                         headers: {
+                           "Content-Type": "application/json",
+                         },
+                         body: JSON.stringify({
+                           keyLearningPoint: task.keyLearningPoint,
+                           action: task.action,
+                           Library: true,
+                           createdBy: userId,
+                         }),
+                       }
+                     );
+                     setShowQuiz(true);
+                     setTask({
+                       ...task,
+                       Library: false,
+                       Learn: false,
+                     });
+                     handleResetInputs();
+                   }
 
-            if (response.ok) {
-                if (task.Library && task.Learn) {
-                    setShowStar(true);
-                } else {
-                    setShowStar(false);
-                }
-                updatePatientId();
-                toast.success("Task shared successfully");
-                // Check if Learn is selected
-                if (task.Learn) {
-                    // Create quiz
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            keyLearningPoint: task.keyLearningPoint,
-                            action: task.action,
-                        }),
-                    });
-                    setShowQuiz(true);
-                } else {
-                    router.reload();
-                }
-                if (task.Library) {
-                    // Create Library
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            keyLearningPoint: task.keyLearningPoint,
-                            action: task.action,
-                        }),
-                    });
-                }
-
-                setTask({
-                    ...task,
-                    Library: false,
-                    Learn: false,
-                });
-            } else {
-                throw new Error("Failed to share task");
-            }
+                   // Check if Learn is selected
+                   else if (task.Learn && !task.Library) {
+                     // Create quiz
+                     await fetch(
+                       `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
+                       {
+                         method: "POST",
+                         headers: {
+                           "Content-Type": "application/json",
+                         },
+                         body: JSON.stringify({
+                           keyLearningPoint: task.keyLearningPoint,
+                           action: task.action,
+                           Library: false,
+                           createdBy: userId,
+                         }),
+                       }
+                     );
+                     setTask({
+                       ...task,
+                       Library: false,
+                       Learn: false,
+                     });
+                     handleResetInputs();
+                     setShowQuiz(true);
+                   }
+                 } else {
+                   throw new Error("Failed to share task");
+                 }
         } catch (error) {
             toast.error("Error sharing task: " + (error as Error).message);
         }
@@ -292,7 +328,7 @@ const TaskSharing = () => {
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ ...task, isCompleted: true }),
+                        body: JSON.stringify({ ...task, isCompleted: true,serverId:selectedServer?.serverId }),
                     }
                 );
 
@@ -325,14 +361,20 @@ const TaskSharing = () => {
 
             if (filter === "Pending Task") {
                 setTasksList(
-                    response.data.filter(
-                        (task: { isShared: Boolean; isDeleted: Boolean }) =>
-                            task.isShared && !task.isDeleted
-                    )
+                  response.data.filter(
+                    (task: {
+                      isShared: Boolean;
+                      isDeleted: Boolean;
+                      serverId: string;
+                    }) => task.isShared && !task.isDeleted
+                  )
                 );
                 const pendingTasks = response.data.filter(
-                    (task: { isShared: boolean; isDeleted: boolean }) =>
-                        task?.isShared && !task?.isDeleted
+                  (task: {
+                    isShared: boolean;
+                    isDeleted: boolean;
+                    serverId: string;
+                  }) => task?.isShared && !task?.isDeleted && task.serverId===selectedServer?.serverId
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -343,12 +385,16 @@ const TaskSharing = () => {
             }
             if (filter === "All Task") {
                 setTasksList(
-                    response.data.filter(
-                        (task: { isDeleted: Boolean }) => !task.isDeleted
-                    )
+                  response.data.filter(
+                    (task: { isDeleted: Boolean; serverId: string }) =>
+                      !task.isDeleted &&
+                      task.serverId === selectedServer?.serverId
+                  )
                 );
                 const allTasks = response.data.filter(
-                    (task: { isDeleted: boolean }) => !task?.isDeleted
+                  (task: { isDeleted: boolean; serverId: string }) =>
+                    !task?.isDeleted &&
+                    task.serverId === selectedServer?.serverId
                 );
 
                 setFilteredTasks((prev) => {
@@ -360,15 +406,27 @@ const TaskSharing = () => {
             }
             if (filter === "Completed Task") {
                 setTasksList(
-                    response.data.filter(
-                        (task: { isCompleted: Boolean; isDeleted: Boolean }) =>
-                            task.isCompleted && !task.isDeleted
-                    )
+                  response.data.filter(
+                    (task: {
+                      isCompleted: Boolean;
+                      isDeleted: Boolean;
+                      serverId: string;
+                    }) =>
+                      task.isCompleted &&
+                      !task.isDeleted &&
+                      task.serverId === selectedServer?.serverId
+                  )
                 );
 
                 const completedTasks = response.data.filter(
-                    (task: { isCompleted: boolean; isDeleted: Boolean }) =>
-                        task?.isCompleted && !task?.isDeleted
+                  (task: {
+                    isCompleted: boolean;
+                    isDeleted: Boolean;
+                    serverId: string;
+                  }) =>
+                    task?.isCompleted &&
+                    !task?.isDeleted &&
+                    task.serverId === selectedServer?.serverId
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -379,15 +437,27 @@ const TaskSharing = () => {
             }
             if (filter === "Learning") {
                 setTasksList(
-                    response.data.filter(
-                        (task: { Learn: Boolean; isDeleted: Boolean }) =>
-                            task.Learn && !task.isDeleted
-                    )
+                  response.data.filter(
+                    (task: {
+                      Learn: Boolean;
+                      isDeleted: Boolean;
+                      serverId: string;
+                    }) =>
+                      task.Learn &&
+                      !task.isDeleted &&
+                      task.serverId === selectedServer?.serverId
+                  )
                 );
 
                 const learnTasks = response.data.filter(
-                    (task: { Learn: boolean; isDeleted: Boolean }) =>
-                        task?.Learn && !task?.isDeleted
+                  (task: {
+                    Learn: boolean;
+                    isDeleted: Boolean;
+                    serverId: string;
+                  }) =>
+                    task?.Learn &&
+                    !task?.isDeleted &&
+                    task.serverId === selectedServer?.serverId
                 );
                 setFilteredTasks((prev) => {
                     return {
@@ -398,11 +468,17 @@ const TaskSharing = () => {
             }
             if (filter === "Deleted Task") {
                 setTasksList(
-                    response.data.filter((task: { isDeleted: Boolean }) => task.isDeleted)
+                  response.data.filter(
+                    (task: { isDeleted: Boolean; serverId: string }) =>
+                      task.isDeleted &&
+                      task.serverId === selectedServer?.serverId
+                  )
                 );
 
                 const deletedTasks = response.data.filter(
-                    (task: { isDeleted: Boolean }) => task?.isDeleted
+                  (task: { isDeleted: Boolean; serverId: string }) =>
+                    task?.isDeleted &&
+                    task.serverId === selectedServer?.serverId
                 );
 
                 setFilteredTasks((prev) => {
@@ -419,7 +495,7 @@ const TaskSharing = () => {
         }
     };
 
-    const userId = userData ? userData.uid : null;
+    
 
 
     const handleTasksClick = (item: string) => {
@@ -432,107 +508,121 @@ const TaskSharing = () => {
     };
 
     return (
-        <>
-            <ToastContainer />
-            <div className="w-full flex gap-2 bg-gray-100">
-                <SidebarProfile userId={userId} onServerSelect={handleServerSelect} />
-                <div className="w-[25%] flex min-h-screen">
-                    <div className="w-full bg-white space-y-1">
-                        <div className="px-4 pt-3 pb-4 text-center">
-                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
-                                <a href="/Homepage">T-askLearn</a>
-                            </h1>
-                            <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
-                                <a href="/Homepage">
-                                    Collaborate to Learn, Learn to Collaborate
-                                </a>
-                            </p>
-                        </div>
-                        <div className="h-[1px] w-full bg-gray-300" />
+      <>
+        <ToastContainer />
+        <div className="w-full flex gap-2 bg-gray-100">
+          <SidebarProfile
+            userId={userId}
+            onServerSelect={handleServerSelect}
+            handleTasksClick={handleTasksClick}
+            setselectedTask={setselectedTask}
+            taskCategories={taskCategories}
+            setDropdownVisible={setDropdownVisible}
+          />
+          <div className="w-[25%] flex min-h-screen">
+            <div className="w-full bg-white space-y-1">
+              <div className="px-4 pt-3 pb-4 text-center">
+                <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
+                  <a href="/Homepage">T-askLearn</a>
+                </h1>
+                <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                  <a href="/Homepage">
+                    Collaborate to Learn, Learn to Collaborate
+                  </a>
+                </p>
+              </div>
+              <div className="h-[1px] w-full bg-gray-300" />
 
-                        <div className="p-0 lg:p-8 flex justify-center">
-                            <a
-                                href="/Homepage"
-                                className="w-[80%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center"
-                            >
-                                Task <FiPlus className="ml-2" />
-                            </a>
-                        </div>
+              <div className="p-0 lg:p-8 flex justify-center">
+                <a
+                  href="/Homepage"
+                  className="w-[80%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center"
+                >
+                  Task <FiPlus className="ml-2" />
+                </a>
+              </div>
 
-                        <TaskSection
-                            server={selectedServer}
-                            selectedTask={selectedTask}
-                            setselectedTask={setselectedTask}
-                            taskCategories={taskCategories}
-                            filteredTasks={filteredTasks}
-                            dropdownVisible={dropdownVisible}
-                            setDropdownVisible={setDropdownVisible}
-                            handleTasksClick={handleTasksClick}
-                            setShowForm={setShowForm}
-                            filter={filter}
-                            setFilter={setFilter}
-                            fetchTasks={fetchTasks} _id={""} channelName={""} createdByUserId={""} />
-                    </div>
-                </div>
-                {showForm && (
-                    <section className="w-[70%] bg-white shadow">
-                        <div className="pt-1">
-                            <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
-                                <div ref={dropdownRef} className="flex gap-x-2 items-center">
-                                    <div
-                                        className="flex items-center cursor-pointer gap-2"
-                                        onClick={handleToggle}
-                                    >
-                                        <img
-                                            src={userData?.profilePicUrl}
-                                            alt="profilePic"
-                                            className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
-                                        />
-                                        <p>{userData?.userName},</p>
-                                        <p>{userData?.jobRole}</p>
-                                    </div>
-
-                                    {/* Conditionally render the Logout button */}
-                                    {showLogout && (
-                                        <button
-                                            onClick={logout}
-                                            className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
-                                        >
-                                            Logout
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-                                    <a href="/Homepage">H</a>
-                                    <a href="/UserProfile">P</a>
-                                </div>
-                            </div>
-                            <div className="mt-2 h-[1px] w-full bg-gray-300" />
-                            <div className="p-4">
-                                <p className="text-2xl text-black font-bold">Task Sharing</p>
-                            </div>
-                        </div>
-                        <FormContainer
-                            selectedTask={selectedTask}
-                            handleShare={handleShare}
-                            handleComplete={handleComplete}
-                        />
-                    </section>
-                )}
-                {/* Quiz Section */}
-                {showQuiz && (
-                    <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">
-                        <div className="mt-20">
-                            <div className="h-[1px] w-full bg-gray-300" />
-                        </div>
-                        <p className="font-bold text-2xl text-center px-8 py-4">Learning</p>
-                        <div className="px-8">
-                            <Quizzes />
-                        </div>
-                    </div>
-                )}
+              <TaskSection
+                server={selectedServer}
+                selectedTask={selectedTask}
+                setselectedTask={setselectedTask}
+                taskCategories={taskCategories}
+                filteredTasks={filteredTasks}
+                dropdownVisible={dropdownVisible}
+                setDropdownVisible={setDropdownVisible}
+                handleTasksClick={handleTasksClick}
+                setShowForm={setShowForm}
+                filter={filter}
+                setFilter={setFilter}
+                fetchTasks={fetchTasks}
+                _id={""}
+                channelName={""}
+                createdByUserId={""}
+              />
             </div>
-        </>
+          </div>
+          {showForm && (
+            <section className="w-[70%] bg-white shadow">
+              <div className="pt-1">
+                <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
+                  <div ref={dropdownRef} className="flex gap-x-2 items-center">
+                    <div
+                      className="flex items-center cursor-pointer gap-2"
+                      onClick={handleToggle}
+                    >
+                      <img
+                        src={userData?.profilePicUrl}
+                        alt="profilePic"
+                        className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
+                      />
+                      <p>{userData?.userName},</p>
+                      <p>{userData?.jobRole}</p>
+                    </div>
+
+                    {/* Conditionally render the Logout button */}
+                    {showLogout && (
+                      <button
+                        onClick={logout}
+                        className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                      >
+                        Logout
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <a href="/Homepage">H</a>
+                    <a href="/UserProfile">P</a>
+                  </div>
+                </div>
+                <div className="mt-2 h-[1px] w-full bg-gray-300" />
+                <div className="p-4">
+                  <p className="text-2xl text-black font-bold">Task Sharing</p>
+                </div>
+              </div>
+              <FormContainer
+                selectedTask={selectedTask}
+                handleShare={handleShare}
+                handleComplete={handleComplete}
+                server={selectedServer}
+              />
+            </section>
+          )}
+          {/* Quiz Section */}
+          {showQuiz && (
+            <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">
+              <div className="mt-20">
+                <div className="h-[1px] w-full bg-gray-300" />
+              </div>
+              <p className="font-bold text-2xl text-center px-8 py-4">
+                Learning
+              </p>
+              <div className="px-8">
+                <Quizzes />
+              </div>
+            </div>
+          )}
+        </div>
+      </>
     );
 };
 
