@@ -7,6 +7,7 @@ import deleteIcon from "../../assets/Quiz/Vector.png";
 import searchIcon from "../../assets/Quiz/Group 1.png";
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { Timestamp } from 'firebase/firestore';
+import goldStar from "../../assets/Library/Vector (1).png";
 
 interface Quiz {
     _id: string;
@@ -52,7 +53,7 @@ const Quizzes = () => {
     }, []);
 
     useEffect(() => {
-        const filtered = quizzes.filter((quiz) =>
+        const filtered = quizzes.slice().reverse().filter((quiz) =>
             quiz.keyLearningPoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
             quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -95,7 +96,7 @@ const Quizzes = () => {
     }, [currentQuizIndex, filteredQuizzes]);
 
     const handleAnswerSubmit = () => {
-        if (currentAnswer.trim().toLowerCase() === quizzes[currentQuizIndex]?.action.trim().toLowerCase()) {
+        if (currentAnswer.trim().toLowerCase() === quizzes.slice().reverse()[currentQuizIndex]?.action.trim().toLowerCase()) {
             setScore(1);
         } else {
             setScore(0);
@@ -141,10 +142,8 @@ const Quizzes = () => {
 
     return (
         <div className="w-full min-h-screen bg-white">
-            <div className='my-4 flex justify-between items-center'>
-                <div className="text-center font-semibold flex-1">
-                    Quiz
-                </div>
+            <div className="my-4 flex justify-between items-center">
+                <div className="text-center font-semibold flex-1">Quiz</div>
                 <div className="ml-auto relative">
                     <input
                         type="text"
@@ -174,16 +173,27 @@ const Quizzes = () => {
                         </div>
                     )}
 
-                    <p className='ml-auto'>Question created on: {
-                        filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                            ? filteredQuizzes[currentQuizIndex]?.createdAt.toDate().toLocaleDateString()
-                            : new Date(filteredQuizzes[currentQuizIndex]?.createdAt).toLocaleDateString()
-                    }</p>
+                    <p className="ml-auto">
+                        Question created on:{" "}
+                        {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                            ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                .toDate()
+                                .toLocaleDateString()
+                            : new Date(
+                                filteredQuizzes[currentQuizIndex]?.createdAt
+                            ).toLocaleDateString()}
+                    </p>
+
+                    {filteredQuizzes[currentQuizIndex]?.Library && (
+                        <Image src={goldStar} alt="Star" className="h-6 w-6" />
+                    )}
 
                     <div className="relative group">
                         <button
                             className="p-2"
-                            onClick={() => handleDeleteQuiz(filteredQuizzes[currentQuizIndex]._id)}
+                            onClick={() =>
+                                handleDeleteQuiz(filteredQuizzes[currentQuizIndex]._id)
+                            }
                         >
                             <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
                         </button>
@@ -193,18 +203,21 @@ const Quizzes = () => {
                     </div>
                 </div>
 
-
-                <div className='mt-4 flex'>
-                    <div className='w-full flex-col'>
+                <div className="mt-4 flex">
+                    <div className="w-full flex-col">
                         <div className="bg-white rounded-md">
-                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">Key Learning Points</h3>
+                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                Key Learning Points
+                            </h3>
                             <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
                                 {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
                             </p>
                         </div>
 
                         <div className="bg-white rounded-md mb-4">
-                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">Action</h3>
+                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                Action
+                            </h3>
                             <input
                                 type="text"
                                 placeholder="Enter Answer"
@@ -217,16 +230,28 @@ const Quizzes = () => {
                 </div>
 
                 <div className="flex justify-center mt-4 gap-8">
-                    <button className="text-red-600 flex items-center" onClick={() => setCurrentAnswer('')}>
-                        <span className="mr-1"><Image src={clear} alt="clear" className="h-8 w-8" /></span>
+                    <button
+                        className="text-red-600 flex items-center"
+                        onClick={() => setCurrentAnswer("")}
+                    >
+                        <span className="mr-1">
+                            <Image src={clear} alt="clear" className="h-8 w-8" />
+                        </span>
                     </button>
-                    <button onClick={handleAnswerSubmit} className="text-green-600 flex items-center">
-                        <span className="mr-1"><Image src={submit} alt="submit" className="h-10 w-10" /></span>
+                    <button
+                        onClick={handleAnswerSubmit}
+                        className="text-green-600 flex items-center"
+                    >
+                        <span className="mr-1">
+                            <Image src={submit} alt="submit" className="h-10 w-10" />
+                        </span>
                     </button>
                 </div>
 
                 <div className="bg-white rounded-md my-6">
-                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">Action</h3>
+                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                        Action
+                    </h3>
                     {!showAnswer ? (
                         <button
                             className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
@@ -244,28 +269,40 @@ const Quizzes = () => {
                     <button onClick={handlePrevQuiz} disabled={currentQuizIndex === 0}>
                         <FaArrowLeft size={24} />
                     </button>
-                    <button onClick={handleNextQuiz} disabled={currentQuizIndex === quizzes.length - 1 ||
-                        currentQuizIndex === filteredQuizzes.length - 1
-                    }>
+                    <button
+                        onClick={handleNextQuiz}
+                        disabled={
+                            currentQuizIndex === quizzes.length - 1 ||
+                            currentQuizIndex === filteredQuizzes.length - 1
+                        }
+                    >
                         <FaArrowRight size={24} />
                     </button>
                 </div>
 
                 <div className="mt-12 text-black flex flex-col">
-                    <div className='flex justify-center items-center font-bold ml-4'>
+                    <div className="flex justify-center items-center font-bold ml-4">
                         <span className="w-48 text-right">Score:</span>
-                        <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value={score ?? 0} readOnly /> /
-                        <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value="1" />
+                        <input
+                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            value={score ?? 0}
+                            readOnly
+                        />{" "}
+                        /
+                        <input
+                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            value="1"
+                        />
                     </div>
-                    <div className='mt-4 flex justify-center items-center font-bold'>
+                    <div className="mt-4 flex justify-center items-center font-bold">
                         <span className="w-48 text-right">Total Questions:</span>
-                        <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value={quizzes.length} readOnly />
+                        <input
+                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            value={quizzes.length}
+                            readOnly
+                        />
                     </div>
                 </div>
-
-
-
-
             </main>
         </div>
     );

@@ -1,18 +1,15 @@
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, {
-    createContext,
-    useContext,
-    useState,
-    ReactNode,
-} from "react";
+import axios from "axios";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { toast } from "react-toastify";
 
 export interface Task {
     patientId: any;
     [x: string]: any;
     createdBy: string;
+    serverId: string;
     taggedStaff: string;
     contributingStaff: string;
     taskName: string;
@@ -38,6 +35,8 @@ interface TaskContextType {
     setTask: React.Dispatch<React.SetStateAction<Task>>;
     fetchPatientId: any;
     updatePatientId: any;
+    selectedServerId: string | null;
+    setSelectedServerId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const TaskContext = createContext<TaskContextType | undefined>(
@@ -47,6 +46,7 @@ export const TaskContext = createContext<TaskContextType | undefined>(
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     children,
 }) => {
+    const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
     const fetchPatientId = async () => {
         try {
             const response = await fetch(
@@ -85,11 +85,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
         }
     };
 
+
+    useEffect(() => {
+        const fetchTaskByServerId = async (serverId: string) => {
+            try {
+                const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${serverId}`
+                );
+                if (response) {
+                    setTask(response.data);
+                }
+            } catch (error: any) {
+                toast.error(error.message);
+            }
+        };
+        if (selectedServerId) {
+            fetchTaskByServerId(selectedServerId);
+        }
+    }, [selectedServerId]);
+
+
+
+
     const [task, setTask] = useState<Task>({
         patientId: "",
         createdBy: "",
         taggedStaff: "",
         contributingStaff: "",
+        serverId: "",
         taskName: "",
         history: "",
         examination: "",
@@ -142,6 +165,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                 jobRoleLists,
                 fetchPatientId,
                 updatePatientId,
+                selectedServerId,
+                setSelectedServerId,
             }}
         >
             {children}

@@ -20,6 +20,10 @@ const taskSchema = new mongoose.Schema({
   action: String,
   Library: Boolean,
   Learn: Boolean,
+  serverId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Server",
+  },
   isShared: {
     type: Boolean,
     required: true,
