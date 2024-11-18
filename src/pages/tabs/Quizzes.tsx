@@ -142,7 +142,7 @@ const Quizzes = () => {
     return (
         <div className="w-full min-h-screen bg-white">
             <div className='my-4 flex justify-between items-center'>
-                <div className="text-center font-semibold flex-1">
+                <div className="text-center font-semibold flex-1 pr-[10px]">
                     Quiz
                 </div>
                 <div className="ml-auto relative">
@@ -151,7 +151,7 @@ const Quizzes = () => {
                         placeholder="Search key words"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100 w-[100%] sm:w-[100%]"
                     />
                     <Image
                         src={searchIcon}
@@ -162,7 +162,7 @@ const Quizzes = () => {
             </div>
 
             <main className="">
-                <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
+                <div className="text-sm text-black flex flex-row justify-between items-center gap-4 ">
                     {searchTerm && (
                         <div className="flex justify-start font-bold">
                             <span className="w-48">Total Questions (Filtered):</span>
@@ -174,7 +174,7 @@ const Quizzes = () => {
                         </div>
                     )}
 
-                    <p className='ml-auto'>Question created on: {
+                    <p className='ml-auto '>Question created on: {
                         filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
                             ? filteredQuizzes[currentQuizIndex]?.createdAt.toDate().toLocaleDateString()
                             : new Date(filteredQuizzes[currentQuizIndex]?.createdAt).toLocaleDateString()
@@ -251,14 +251,14 @@ const Quizzes = () => {
                     </button>
                 </div>
 
-                <div className="mt-12 text-black flex flex-col">
+                <div className="mt-12 text-black flex flex-col ">
                     <div className='flex justify-center items-center font-bold ml-4'>
-                        <span className="w-48 text-right">Score:</span>
+                        <span className="w-35 text-center">Score:</span>
                         <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value={score ?? 0} readOnly /> /
                         <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value="1" />
                     </div>
                     <div className='mt-4 flex justify-center items-center font-bold'>
-                        <span className="w-48 text-right">Total Questions:</span>
+                        <span className="w-35 text-center">Total Questions:</span>
                         <input className="w-12 text-center border-2 border-gray-300 rounded-md ml-2" value={quizzes.length} readOnly />
                     </div>
                 </div>

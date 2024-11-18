@@ -53,7 +53,7 @@ const FormContainer: React.FC<Props> = ({
                         </div>
                     </div>
 
-                    <div className="relative">
+                    <div className="">
                         <div className="flex items-center border border-gray p-1 rounded-md">
                             <label className="whitespace-nowrap mr-2 text-[#666666]">
                                 Tag staff for help / Completion :
@@ -61,7 +61,7 @@ const FormContainer: React.FC<Props> = ({
                             <input
                                 type="text"
                                 placeholder="@ Username"
-                                className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
+                                className={`flex-1 sm:w-[20%] outline-none text-black ${selectedTask ? "cursor-default" : ""
                                     }`}
                                 value={task.taggedStaff}
                                 onChange={(e) =>
@@ -121,8 +121,8 @@ const FormContainer: React.FC<Props> = ({
                             readOnly={selectedTask}
                         />
                     </div>
-                    <div className="flex gap-4 w-full">
-                        <div className="flex-1">
+                    <div className="md:flex gap-4 w-full">
+                        <div className="flex-1 w-full">
                             <label className="block mb-1 text-[#666666]">Examination</label>
                             <textarea
                                 placeholder=""
@@ -202,7 +202,7 @@ const FormContainer: React.FC<Props> = ({
                             readOnly={selectedTask}
                         />
                     </div>
-                    <div className="flex gap-4 w-full">
+                    <div className="md:flex gap-4 w-full">
                         <div className="flex-1">
                             <label className="block mb-1 text-[#666666]">
                                 Key Learning Points
@@ -276,7 +276,7 @@ const FormContainer: React.FC<Props> = ({
                         Learn
                     </label>
                 </div>
-                <div className="flex mt-2 justify-center">
+                <div className="flex mt-2 justify-center text-center md:text-left">
                     <p className="text-[#797878]">
                         messages about task during supervision/collaboration
                     </p>
@@ -285,7 +285,7 @@ const FormContainer: React.FC<Props> = ({
                     <button
                         type="button"
                         onClick={handleComplete}
-                        className={`md-[100%] sm:w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+                        className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
                             }`}
                     >
                         Complete

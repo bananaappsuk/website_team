@@ -436,7 +436,7 @@ const TaskSharing = () => {
             <ToastContainer />
             <div className="w-full flex gap-2 bg-gray-100">
                 <SidebarProfile userId={userId} onServerSelect={handleServerSelect} />
-                <div className="md-[25%] flex min-h-screen sm:w-[30%]">
+                <div className="w-[100%] flex min-h-screen sm:w-[30%] text-nowrap">
                     <div className="w-full bg-white space-y-1">
                         <div className="px-4 pt-3 pb-4 text-center">
                             <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
@@ -475,7 +475,7 @@ const TaskSharing = () => {
                     </div>
                 </div>
                 {showForm && (
-                    <section className="sm:w-[100%] md-[70%] bg-white shadow">
+                    <section className="w-[100%] sm:w-[100%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
                                 <div ref={dropdownRef} className="flex gap-x-2 items-center">
@@ -496,7 +496,7 @@ const TaskSharing = () => {
                                     {showLogout && (
                                         <button
                                             onClick={logout}
-                                            className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                                            className="ml-2 mr-[25px] p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
                                         >
                                             Logout
                                         </button>
@@ -521,7 +521,7 @@ const TaskSharing = () => {
                 )}
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">
+                    <div className="text-black w-[100%] sm:w-[40%] shadow-lg border-2 bg-white rounded-lg ">
                         <div className="mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>

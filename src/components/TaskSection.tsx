@@ -395,7 +395,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                     handleTasksClick(item);
                                     handleDropdown(index);
                                 }}
-                                className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer"
+                                className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer sm:text-[16px] text-[15px]"
                             >
                                 {item}
                                 {dropdownVisible[index] ? <HiChevronDown /> : <HiChevronRight />}
