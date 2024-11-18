@@ -71,13 +71,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
       );
       if (response.ok) {
         const data = await response.json();
+
         console.log(data);
-        if(data){
-           setPatientId(data.patientId);
-           let patientId = data.patientId;
-           setTask((prevTask) => ({ ...prevTask, patientId }));
+        
+
+        if (data) {
+          const firstElement = data;
+          
+          setPatientId(firstElement.patientId)
+
+          const patientId = firstElement.patientId;
+          console.log("Patient ID:", patientId);
+          if (patientId) {
+            setTask((prevTask) => ({ ...prevTask, patientId }));
+          }
         }
-       
+
       }
     } catch (error: any) {
       toast.error(error);
@@ -87,13 +96,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    if ( patientId && selectedServerId!==null) {
+    if (selectedServerId) {
       fetchPatientId();
     }
-   
   }, [selectedServerId]);
 
-  console.log(patientId);
+  
 
   const updatePatientId = async () => {
     try {
@@ -117,12 +125,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
               body: JSON.stringify({ updatedPatientId }),
             }
           );
+
+          if(response.ok){
+            fetchPatientId();
+          }
         }
       }
     } catch (error: any) {
       toast.error(error);
     }
   };
+
+  
 
   useEffect(() => {
     const fetchTaskByServerId = async (serverId: string) => {
@@ -142,8 +156,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [selectedServerId]);
 
-  console.log("serverId"+ " "+ selectedServerId);
-  
+  console.log("serverId" + " " + selectedServerId);
+
   const [task, setTask] = useState<Task>({
     patientId: "",
     createdBy: "",

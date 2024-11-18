@@ -53,7 +53,7 @@ const Quizzes = () => {
     }, []);
 
     useEffect(() => {
-        const filtered = quizzes.filter((quiz) =>
+        const filtered = quizzes.slice().reverse().filter((quiz) =>
             quiz.keyLearningPoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
             quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -96,7 +96,7 @@ const Quizzes = () => {
     }, [currentQuizIndex, filteredQuizzes]);
 
     const handleAnswerSubmit = () => {
-        if (currentAnswer.trim().toLowerCase() === quizzes[currentQuizIndex]?.action.trim().toLowerCase()) {
+        if (currentAnswer.trim().toLowerCase() === quizzes.slice().reverse()[currentQuizIndex]?.action.trim().toLowerCase()) {
             setScore(1);
         } else {
             setScore(0);

@@ -103,9 +103,12 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
           serverId: server._id,
           serverName: server.channelName,
         });
-      if (selectedServerId) {
-        fetchPatientId();
+
+      if(onServerSelect){
+         fetchPatientId();
       }
+
+     
     }
   };
 
