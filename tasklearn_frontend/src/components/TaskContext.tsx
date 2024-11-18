@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -73,11 +74,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                 const data = await response.json();
                 console.log(data);
                 if (data) {
-                    setPatientId(data.patientId);
-                    let patientId = data.patientId;
-                    setTask((prevTask) => ({ ...prevTask, patientId }));
+                    const firstElement = data;
+                    setPatientId(firstElement.patientId)
+                    const patientId = firstElement.patientId;
+                    console.log("Patient ID:", patientId);
+                    if (patientId) {
+                        setTask((prevTask) => ({ ...prevTask, patientId }));
+                    }
                 }
-
             }
         } catch (error: any) {
             toast.error(error);
@@ -87,13 +91,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     useEffect(() => {
-        if (patientId && selectedServerId !== null) {
+        if (selectedServerId) {
             fetchPatientId();
         }
-
     }, [selectedServerId]);
 
-    console.log(patientId);
 
     const updatePatientId = async () => {
         try {
@@ -103,9 +105,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                 const incrementedNumber = (parseInt(numberPart, 10) + 1)
                     .toString()
                     .padStart(numberPart.length, "0");
-
                 const updatedPatientId = `${prefix}${incrementedNumber}`;
-
                 if (updatedPatientId && selectedServerId) {
                     const response = await fetch(
                         `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/update/${selectedServerId}`,
@@ -117,6 +117,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                             body: JSON.stringify({ updatedPatientId }),
                         }
                     );
+                    if (response.ok) {
+                        fetchPatientId();
+                    }
                 }
             }
         } catch (error: any) {

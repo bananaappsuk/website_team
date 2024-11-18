@@ -36,19 +36,25 @@ const createPatientId = async (req, res) => {
 const updatePatientId = async (req, res) => {
   const { createdId } = req.params;
   const { updatedPatientId } = req.body;
-
   try {
     if (createdId && updatedPatientId) {
-      const patientid = await PatientId.findOneAndUpdate({
-        createdId,
-        patientId: updatedPatientId,
-      });
-      await patientid.save();
-      res.status(201).json({ patientId: patientid.patientId });
+      const patientid = await PatientId.findOneAndUpdate(
+        { createdId }, // Query to find the document
+        { $set: { patientId: updatedPatientId } }, // Update only the patientId field
+        { new: true } // Return the updated document
+      );
+      if (!patientid) {
+        return res.status(404).json({ message: "Patient ID not found" });
+      }
+      return res.status(200).json({ patientId: patientid.patientId });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Both createdId and updatedPatientId are required" });
     }
   } catch (error) {
     console.error("Error updating patient ID:", error);
-    res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error", error });
   }
 };
 
