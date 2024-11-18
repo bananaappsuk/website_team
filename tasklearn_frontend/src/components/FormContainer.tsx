@@ -18,13 +18,15 @@ const FormContainer: React.FC<combinedProps> = ({
   handleShare,
   handleComplete,
 }) => {
-  const { task, setTask } = useTask();
-  console.log("one", task);
+  const { task, setTask, patientIdLoading } = useTask();
+
+console.log("all task" + " " +task.patientId);
+
 
 
   return (
     <div>
-      {server ? (
+      {server  ? (
         <form className="p-4 rounded">
           <div className="flex flex-col gap-4">
             <div className=" relative">

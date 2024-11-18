@@ -2,7 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { toast } from "react-toastify";
 
 export interface Task {
@@ -37,6 +43,7 @@ interface TaskContextType {
   updatePatientId: any;
   selectedServerId: string | null;
   setSelectedServerId: React.Dispatch<React.SetStateAction<string | null>>;
+  patientIdLoading: boolean;
 }
 
 export const TaskContext = createContext<TaskContextType | undefined>(
@@ -47,10 +54,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [patientIdLoading, setpatientIdLoading] = useState<boolean>(true);
+
   const fetchPatientId = async () => {
+    setpatientIdLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/fetch`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/fetch/${selectedServerId}`,
         {
           method: "GET",
           headers: {
@@ -60,31 +71,58 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
       );
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
+        if(data){
+           setPatientId(data.patientId);
+           let patientId = data.patientId;
+           setTask((prevTask) => ({ ...prevTask, patientId }));
+        }
+       
+      }
+    } catch (error: any) {
+      toast.error(error);
+    } finally {
+      setpatientIdLoading(false);
+    }
+  };
 
-        let patientId = data[0].patientId;
-        setTask((prevTask) => ({ ...prevTask, patientId }));
+  useEffect(() => {
+    if ( patientId && selectedServerId!==null) {
+      fetchPatientId();
+    }
+   
+  }, [selectedServerId]);
+
+  console.log(patientId);
+
+  const updatePatientId = async () => {
+    try {
+      if (patientId) {
+        const prefix = patientId.slice(0, patientId.search(/\d/));
+        const numberPart = patientId.slice(prefix.length);
+        const incrementedNumber = (parseInt(numberPart, 10) + 1)
+          .toString()
+          .padStart(numberPart.length, "0");
+
+        const updatedPatientId = `${prefix}${incrementedNumber}`;
+
+        if (updatedPatientId && selectedServerId) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/update/${selectedServerId}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ updatedPatientId }),
+            }
+          );
+        }
       }
     } catch (error: any) {
       toast.error(error);
     }
   };
-
-  const updatePatientId = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/update`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    } catch (error: any) {
-      toast.error(error);
-    }
-  };
-
 
   useEffect(() => {
     const fetchTaskByServerId = async (serverId: string) => {
@@ -104,9 +142,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [selectedServerId]);
 
-
-
-
+  console.log("serverId"+ " "+ selectedServerId);
+  
   const [task, setTask] = useState<Task>({
     patientId: "",
     createdBy: "",
@@ -167,6 +204,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
         updatePatientId,
         selectedServerId,
         setSelectedServerId,
+        patientIdLoading,
       }}
     >
       {children}
