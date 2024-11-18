@@ -17,7 +17,7 @@ import Libraries from "./tabs/Libraries";
 import Tracking from "./tabs/Tracking";
 import { useAuth } from '../auth';
 import { collection, getDocs } from "firebase/firestore";
-import SidebarProfile from "@/components/SidebarProfile";
+// import SidebarProfile from "@/components/SidebarProfile";
 import Followers from "./tabs/Followers";
 import Following from "./tabs/Following";
 import Career from "./tabs/Career";
@@ -180,6 +180,7 @@ const UserProfile = () => {
         }
     }, [loading, user, router]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const userId = userData ? userData.uid : null;
 
 
@@ -194,7 +195,7 @@ const UserProfile = () => {
     return (
         <>
             <div className="w-full flex gap-2 bg-gray-100">
-                <SidebarProfile userId={userId} />
+                {/* <SidebarProfile userId={userId} /> */}
                 <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
