@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.post("/new", createPatientId);
 
-router.get("/fetch", fetchPatientId);
+router.get("/fetch/:createdId", fetchPatientId);
 
-router.patch("/update", updatePatientId);
+router.patch("/update/:createdId", updatePatientId);
 
 module.exports = router;

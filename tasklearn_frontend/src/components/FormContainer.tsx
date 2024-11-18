@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import { useTask } from "../components/TaskContext";
 
@@ -18,8 +19,10 @@ const FormContainer: React.FC<combinedProps> = ({
     handleShare,
     handleComplete,
 }) => {
-    const { task, setTask } = useTask();
-    console.log("one", task);
+    const { task, setTask, patientIdLoading } = useTask();
+
+    console.log("all task" + " " + task.patientId);
+
 
 
     return (
@@ -247,16 +250,16 @@ const FormContainer: React.FC<combinedProps> = ({
 
                     <div
                         className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                ? "justify-center"
-                                : "justify-between"
+                            ? "justify-center"
+                            : "justify-between"
                             }`}
                     >
                         <button
                             type="submit"
                             onClick={handleShare}
                             className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                    ? "hidden"
-                                    : "block"
+                                ? "hidden"
+                                : "block"
                                 }`}
                         >
                             Share
@@ -276,8 +279,8 @@ const FormContainer: React.FC<combinedProps> = ({
                         </label>
                         <label
                             className={`block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
-                                    ? "absolute right-0"
-                                    : ""
+                                ? "absolute right-0"
+                                : ""
                                 }`}
                         >
                             <input

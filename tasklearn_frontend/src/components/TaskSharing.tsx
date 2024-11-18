@@ -54,15 +54,21 @@ const TaskSharing = () => {
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [taskLoading, setTaskLoading] = useState<boolean>(true);
     const [redirecting, setRedirecting] = useState(false);
     const router = useRouter();
     const { logout } = useAuth();
-    const [selectedServer, setSelectedServer] = useState<{ serverId: string; serverName: string } | null>(null);
+    const [selectedServer, setSelectedServer] = useState<{
+        serverId: string;
+        serverName: string;
+    } | null>(null);
 
-    const handleServerSelect = (server: { serverId: string; serverName: string }) => {
+    const handleServerSelect = (server: {
+        serverId: string;
+        serverName: string;
+    }) => {
         setSelectedServer(server); // Update with selected server's ID and name
     };
-
 
     const handleToggle = () => {
         setShowLogout((prev) => !prev);
@@ -109,6 +115,12 @@ const TaskSharing = () => {
         return () => unsubscribe();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (selectedServer?.serverId) {
+            fetchPatientId();
+        }
+    }, [selectedServer]);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -187,7 +199,11 @@ const TaskSharing = () => {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ ...task, isShared: true, serverId: selectedServer?.serverId }),
+                    body: JSON.stringify({
+                        ...task,
+                        isShared: true,
+                        serverId: selectedServer?.serverId,
+                    }),
                 }
             );
             if (response.ok) {
@@ -198,20 +214,17 @@ const TaskSharing = () => {
                 }
                 if (task.Library) {
                     // Create Library
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                createdBy: userId,
-                            }),
-                        }
-                    );
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            keyLearningPoint: task.keyLearningPoint,
+                            action: task.action,
+                            createdBy: userId,
+                        }),
+                    });
                 }
                 setTask({
                     ...task,
@@ -219,21 +232,18 @@ const TaskSharing = () => {
                     Learn: false,
                 });
                 if (task.Library && task.Learn) {
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: true,
-                                createdBy: userId,
-                            }),
-                        }
-                    );
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            keyLearningPoint: task.keyLearningPoint,
+                            action: task.action,
+                            Library: true,
+                            createdBy: userId,
+                        }),
+                    });
                     setShowQuiz(true);
                     setTask({
                         ...task,
@@ -246,21 +256,18 @@ const TaskSharing = () => {
                 // Check if Learn is selected
                 else if (task.Learn && !task.Library) {
                     // Create quiz
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: false,
-                                createdBy: userId,
-                            }),
-                        }
-                    );
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            keyLearningPoint: task.keyLearningPoint,
+                            action: task.action,
+                            Library: false,
+                            createdBy: userId,
+                        }),
+                    });
                     setTask({
                         ...task,
                         Library: false,
@@ -328,7 +335,11 @@ const TaskSharing = () => {
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ ...task, isCompleted: true, serverId: selectedServer?.serverId }),
+                        body: JSON.stringify({
+                            ...task,
+                            isCompleted: true,
+                            serverId: selectedServer?.serverId,
+                        }),
                     }
                 );
 
@@ -354,157 +365,150 @@ const TaskSharing = () => {
     };
 
     const fetchTasks = async (filter: any) => {
+        setTaskLoading(true);
         try {
             const response = await axios.get(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?filter=${filter}`
             );
 
-            if (filter === "Pending Task") {
-                setTasksList(
-                    response.data.filter(
+            if (response.status === 200) {
+                if (filter === "Pending Task") {
+                    setTasksList(
+                        response.data.filter(
+                            (task: {
+                                isShared: Boolean;
+                                isDeleted: Boolean;
+                                serverId: string;
+                            }) => task.isShared && !task.isDeleted
+                        )
+                    );
+                    const pendingTasks = response.data.filter(
                         (task: {
-                            isShared: Boolean;
-                            isDeleted: Boolean;
+                            isShared: boolean;
+                            isDeleted: boolean;
                             serverId: string;
-                        }) => task.isShared && !task.isDeleted
-                    )
-                );
-                const pendingTasks = response.data.filter(
-                    (task: {
-                        isShared: boolean;
-                        isDeleted: boolean;
-                        serverId: string;
-                    }) => task?.isShared && !task?.isDeleted && task.serverId === selectedServer?.serverId
-                );
-                setFilteredTasks((prev) => {
-                    return {
-                        ...prev,
-                        [filter]: pendingTasks,
-                    };
-                });
-            }
-            if (filter === "All Task") {
-                setTasksList(
-                    response.data.filter(
-                        (task: { isDeleted: Boolean; serverId: string }) =>
-                            !task.isDeleted &&
+                        }) =>
+                            task?.isShared &&
+                            !task?.isDeleted &&
                             task.serverId === selectedServer?.serverId
-                    )
-                );
-                const allTasks = response.data.filter(
-                    (task: { isDeleted: boolean; serverId: string }) =>
-                        !task?.isDeleted &&
-                        task.serverId === selectedServer?.serverId
-                );
+                    );
+                    setFilteredTasks((prev) => {
+                        return {
+                            ...prev,
+                            [filter]: pendingTasks,
+                        };
+                    });
+                } else if (filter === "All Task") {
+                    setTasksList(
+                        response.data.filter(
+                            (task: { isDeleted: Boolean; serverId: string }) =>
+                                !task.isDeleted && task.serverId === selectedServer?.serverId
+                        )
+                    );
+                    const allTasks = response.data.filter(
+                        (task: { isDeleted: boolean; serverId: string }) =>
+                            !task?.isDeleted && task.serverId === selectedServer?.serverId
+                    );
 
-                setFilteredTasks((prev) => {
-                    return {
-                        ...prev,
-                        [filter]: allTasks,
-                    };
-                });
-            }
-            if (filter === "Completed Task") {
-                setTasksList(
-                    response.data.filter(
+                    setFilteredTasks((prev) => {
+                        return {
+                            ...prev,
+                            [filter]: allTasks,
+                        };
+                    });
+                } else if (filter === "Completed Task") {
+                    setTasksList(
+                        response.data.filter(
+                            (task: {
+                                isCompleted: Boolean;
+                                isDeleted: Boolean;
+                                serverId: string;
+                            }) =>
+                                task.isCompleted &&
+                                !task.isDeleted &&
+                                task.serverId === selectedServer?.serverId
+                        )
+                    );
+
+                    const completedTasks = response.data.filter(
                         (task: {
-                            isCompleted: Boolean;
+                            isCompleted: boolean;
                             isDeleted: Boolean;
                             serverId: string;
                         }) =>
-                            task.isCompleted &&
-                            !task.isDeleted &&
+                            task?.isCompleted &&
+                            !task?.isDeleted &&
                             task.serverId === selectedServer?.serverId
-                    )
-                );
+                    );
+                    setFilteredTasks((prev) => {
+                        return {
+                            ...prev,
+                            [filter]: completedTasks,
+                        };
+                    });
+                } else if (filter === "Learning") {
+                    setTasksList(
+                        response.data.filter(
+                            (task: {
+                                Learn: Boolean;
+                                isDeleted: Boolean;
+                                serverId: string;
+                            }) =>
+                                task.Learn &&
+                                !task.isDeleted &&
+                                task.serverId === selectedServer?.serverId
+                        )
+                    );
 
-                const completedTasks = response.data.filter(
-                    (task: {
-                        isCompleted: boolean;
-                        isDeleted: Boolean;
-                        serverId: string;
-                    }) =>
-                        task?.isCompleted &&
-                        !task?.isDeleted &&
-                        task.serverId === selectedServer?.serverId
-                );
-                setFilteredTasks((prev) => {
-                    return {
-                        ...prev,
-                        [filter]: completedTasks,
-                    };
-                });
-            }
-            if (filter === "Learning") {
-                setTasksList(
-                    response.data.filter(
-                        (task: {
-                            Learn: Boolean;
-                            isDeleted: Boolean;
-                            serverId: string;
-                        }) =>
-                            task.Learn &&
-                            !task.isDeleted &&
+                    const learnTasks = response.data.filter(
+                        (task: { Learn: boolean; isDeleted: Boolean; serverId: string }) =>
+                            task?.Learn &&
+                            !task?.isDeleted &&
                             task.serverId === selectedServer?.serverId
-                    )
-                );
+                    );
+                    setFilteredTasks((prev) => {
+                        return {
+                            ...prev,
+                            [filter]: learnTasks,
+                        };
+                    });
+                } else if (filter === "Deleted Task") {
+                    setTasksList(
+                        response.data.filter(
+                            (task: { isDeleted: Boolean; serverId: string }) =>
+                                task.isDeleted && task.serverId === selectedServer?.serverId
+                        )
+                    );
 
-                const learnTasks = response.data.filter(
-                    (task: {
-                        Learn: boolean;
-                        isDeleted: Boolean;
-                        serverId: string;
-                    }) =>
-                        task?.Learn &&
-                        !task?.isDeleted &&
-                        task.serverId === selectedServer?.serverId
-                );
-                setFilteredTasks((prev) => {
-                    return {
-                        ...prev,
-                        [filter]: learnTasks,
-                    };
-                });
-            }
-            if (filter === "Deleted Task") {
-                setTasksList(
-                    response.data.filter(
+                    const deletedTasks = response.data.filter(
                         (task: { isDeleted: Boolean; serverId: string }) =>
-                            task.isDeleted &&
-                            task.serverId === selectedServer?.serverId
-                    )
-                );
+                            task?.isDeleted && task.serverId === selectedServer?.serverId
+                    );
 
-                const deletedTasks = response.data.filter(
-                    (task: { isDeleted: Boolean; serverId: string }) =>
-                        task?.isDeleted &&
-                        task.serverId === selectedServer?.serverId
-                );
-
-                setFilteredTasks((prev) => {
-                    return {
-                        ...prev,
-                        [filter]: deletedTasks,
-                    };
-                });
+                    setFilteredTasks((prev) => {
+                        return {
+                            ...prev,
+                            [filter]: deletedTasks,
+                        };
+                    });
+                }
             }
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             toast.error("Failed to fetch tasks");
+        } finally {
+            setTaskLoading(false);
         }
     };
-
-
-
 
     const handleTasksClick = (item: string) => {
         handleResetInputs();
         setselectedTask(false);
         setShowQuiz(false);
         setFilter(item);
-        fetchTasks(item);
         setShowForm(true);
+        fetchTasks(item);
     };
 
     return (
@@ -558,6 +562,7 @@ const TaskSharing = () => {
                             _id={""}
                             channelName={""}
                             createdByUserId={""}
+                            taskLoading={taskLoading}
                         />
                     </div>
                 </div>
@@ -613,9 +618,7 @@ const TaskSharing = () => {
                         <div className="mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>
-                        <p className="font-bold text-2xl text-center px-8 py-4">
-                            Learning
-                        </p>
+                        <p className="font-bold text-2xl text-center px-8 py-4">Learning</p>
                         <div className="px-8">
                             <Quizzes />
                         </div>

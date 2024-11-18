@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,11 +21,9 @@ interface Server {
     createdByUserId: string;
 }
 
-
 interface ServerDisplayProps {
     server: { serverId: string; serverName: string } | null;
 }
-
 
 type UserData = {
     uid: any;
@@ -46,12 +45,12 @@ type Props = {
     filter: string;
     fetchTasks: (args: string) => void;
     setFilter: React.Dispatch<React.SetStateAction<string>>;
+    taskLoading: boolean;
 };
 
 interface TaskSectionProps {
     server: { serverId: string; serverName: string } | null;
 }
-
 
 type CombinedProps = ServerDisplayProps & Props & Server & TaskSectionProps;
 
@@ -68,9 +67,10 @@ const TaskSection: React.FC<CombinedProps> = ({
     filter,
     setFilter,
     fetchTasks,
+    taskLoading,
 }) => {
-    const { task, setTask } = useTask();
-    const [searchTerm, setSearchTerm] = useState('');
+    const { task, setTask, selectedServerId } = useTask();
+    const [searchTerm, setSearchTerm] = useState("");
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
@@ -82,8 +82,7 @@ const TaskSection: React.FC<CombinedProps> = ({
     const [servers, setServers] = useState<Server | null>(null);
     const [inviteLink, setInviteLink] = useState("");
     const [showPopup, setShowPopup] = useState(false);
-    const [buttonText, setButtonText] = useState('Copy');
-
+    const [buttonText, setButtonText] = useState("Copy");
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
@@ -98,7 +97,10 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (ServerDropdownRef.current && !ServerDropdownRef.current.contains(event.target as Node)) {
+            if (
+                ServerDropdownRef.current &&
+                !ServerDropdownRef.current.contains(event.target as Node)
+            ) {
                 setIsOpen(false);
             }
         };
@@ -111,7 +113,10 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+            if (
+                searchRef.current &&
+                !searchRef.current.contains(event.target as Node)
+            ) {
                 setShowResults(false); // Clear search results when clicking outside
             }
         };
@@ -139,13 +144,13 @@ const TaskSection: React.FC<CombinedProps> = ({
                     // Match one letter or two or more letters
                     if (lowerCaseSearchTerm.length === 1) {
                         return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                            (userName && userName.includes(lowerCaseSearchTerm)) ||
+                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
                         );
                     } else if (lowerCaseSearchTerm.length >= 2) {
                         return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                            (userName && userName.includes(lowerCaseSearchTerm)) ||
+                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
                         );
                     }
                     return false; // No match if the search term is empty or less than 1
@@ -159,10 +164,12 @@ const TaskSection: React.FC<CombinedProps> = ({
         searchUsers();
     }, [searchTerm]);
 
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+            if (
+                searchRef.current &&
+                !searchRef.current.contains(event.target as Node)
+            ) {
                 setShowResults(false); // Clear search results when clicking outside
             }
         };
@@ -257,7 +264,9 @@ const TaskSection: React.FC<CombinedProps> = ({
     useEffect(() => {
         const fetchServer = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/${id}`);
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${id}`
+                );
                 const data = await response.json();
                 setServers(data);
             } catch (error) {
@@ -270,18 +279,19 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     const generateInviteLink = () => {
         const link = `${window.location.origin}/join/${server?.serverId}`;
-        setInviteLink(link.startsWith('http') ? link : `https://${link}`);
+        setInviteLink(link.startsWith("http") ? link : `https://${link}`);
         setShowPopup(true);
     };
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(inviteLink)
+        navigator.clipboard
+            .writeText(inviteLink)
             .then(() => {
-                setButtonText('Copied'); // Change the button text
+                setButtonText("Copied"); // Change the button text
                 // Reset the button text after a delay (optional)
-                setTimeout(() => setButtonText('Copy'), 2000); // Resets to "Copy" after 2 seconds
+                setTimeout(() => setButtonText("Copy"), 2000); // Resets to "Copy" after 2 seconds
             })
-            .catch(err => console.error('Failed to copy: ', err));
+            .catch((err) => console.error("Failed to copy: ", err));
     };
 
     const closePopup = () => setShowPopup(false);
@@ -289,7 +299,7 @@ const TaskSection: React.FC<CombinedProps> = ({
     const shareLink = async () => {
         try {
             await navigator.share({
-                title: 'Invite Link',
+                title: "Invite Link",
                 text: inviteLink, // Only the URL, no extra text
             });
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -297,6 +307,7 @@ const TaskSection: React.FC<CombinedProps> = ({
             toast.warning("Share cancelled");
         }
     };
+
 
 
     return (
@@ -421,26 +432,28 @@ const TaskSection: React.FC<CombinedProps> = ({
                                 {dropdownVisible[index] &&
                                     filteredTasks[item]?.map((newItem: any, index: any) => {
                                         return (
-                                            <div
-                                                key={index}
-                                                className={`text-black justify-between flex `}
-                                            >
-                                                <p
-                                                    className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
+                                            <>
+                                                <div
+                                                    key={index}
+                                                    className={`text-black justify-between flex `}
+                                                >
+                                                    <p
+                                                        className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
                                                             ? "text-[#68A86B]"
                                                             : ""
-                                                        }`}
-                                                    onClick={() => fetchTaskById(newItem._id)}
-                                                >
-                                                    {newItem?.patientId}
-                                                </p>
-                                                <Image
-                                                    className=" object-contain w-[16px] cursor-pointer"
-                                                    src={deleteIcon}
-                                                    alt="delete"
-                                                    onClick={() => handleDelete(newItem, item)}
-                                                />
-                                            </div>
+                                                            }`}
+                                                        onClick={() => fetchTaskById(newItem._id)}
+                                                    >
+                                                        {newItem && newItem?.patientId}
+                                                    </p>
+                                                    <Image
+                                                        className=" object-contain w-[16px] cursor-pointer"
+                                                        src={deleteIcon}
+                                                        alt="delete"
+                                                        onClick={() => handleDelete(newItem, item)}
+                                                    />
+                                                </div>
+                                            </>
                                         );
                                     })}
                             </>

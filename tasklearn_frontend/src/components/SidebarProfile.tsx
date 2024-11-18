@@ -41,7 +41,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     const [loading, setLoading] = useState(true);
     const [isOpenServer, setIsOpenServer] = useState<boolean>(false);
     const { openServer } = router.query;
-    const { selectedServerId, setSelectedServerId } = useTask();
+    const { selectedServerId, setSelectedServerId, fetchPatientId } = useTask();
 
     useEffect(() => {
         if (openServer !== undefined) {
@@ -92,10 +92,21 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
         fetchServers();
     }, [userId]);
 
-    const handleServerClick = (server: Server) => {
-        setSelectedServerId(server._id);
-        onServerSelect &&
-            onServerSelect({ serverId: server._id, serverName: server.channelName });
+    const handleServerClick = async (server: Server) => {
+        if (router.pathname === "/Homepage") {
+            handleTasksClick("All Task");
+            setselectedTask(false);
+            setDropdownVisible(Array(taskCategories.length).fill(false));
+            setSelectedServerId(server._id);
+            onServerSelect &&
+                onServerSelect({
+                    serverId: server._id,
+                    serverName: server.channelName,
+                });
+            if (selectedServerId) {
+                fetchPatientId();
+            }
+        }
     };
 
     return (
@@ -110,14 +121,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
                 {servers.map((server) => (
                     <div
                         key={server._id}
-                        onClick={() => {
-                            handleServerClick(server);
-                            if (router.pathname === "/Homepage") {
-                                handleTasksClick("All Task");
-                                setselectedTask(false);
-                                setDropdownVisible(Array(taskCategories.length).fill(false));
-                            }
-                        }}
+                        onClick={() => handleServerClick(server)}
                         className={`rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 cursor-pointer ${selectedServerId === server._id ? "border-2 border-[#67A76B]" : ""
                             }`}
                     >
