@@ -488,15 +488,15 @@ const TaskSharing = () => {
                                             alt="profilePic"
                                             className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
                                         />
-                                        <p>{userData?.userName},</p>
-                                        <p>{userData?.jobRole}</p>
+                                       <p className="mb-[10px] sm:mb-0">{userData?.userName},</p>
+                                       <p className="mt-[30px] ml-[-53px] md:mt-[0px] md:ml-[0px]">{userData?.jobRole}</p>
                                     </div>
-
+                                    
                                     {/* Conditionally render the Logout button */}
                                     {showLogout && (
                                         <button
                                             onClick={logout}
-                                            className="ml-2 mr-[25px] p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                                            className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
                                         >
                                             Logout
                                         </button>

@@ -174,7 +174,7 @@ const Quizzes = () => {
                         </div>
                     )}
 
-                    <p className='ml-auto '>Question created on: {
+                    <p className='ml-auto text-[10px] sm:text-sm'>Question created on: {
                         filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
                             ? filteredQuizzes[currentQuizIndex]?.createdAt.toDate().toLocaleDateString()
                             : new Date(filteredQuizzes[currentQuizIndex]?.createdAt).toLocaleDateString()
