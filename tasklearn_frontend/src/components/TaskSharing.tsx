@@ -45,6 +45,7 @@ const TaskSharing = () => {
     userName: string;
     jobRole: string;
     profilePicUrl: string | undefined;
+
   };
   const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
     Array(taskCategories.length).fill(false)
@@ -620,7 +621,7 @@ const TaskSharing = () => {
             </div>
             <p className="font-bold text-2xl text-center px-8 py-4">Learning</p>
             <div className="px-8">
-              <Quizzes />
+              <Quizzes userData={userData} showQuiz={showQuiz} />
             </div>
           </div>
         )}

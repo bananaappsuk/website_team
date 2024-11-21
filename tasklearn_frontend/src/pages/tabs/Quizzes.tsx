@@ -1,146 +1,258 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import clear from "../../assets/home/image 2.png";
 import submit from "../../assets/home/image 1.png";
 import deleteIcon from "../../assets/Quiz/Vector.png";
 import searchIcon from "../../assets/Quiz/Group 1.png";
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { Timestamp } from 'firebase/firestore';
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { Timestamp } from "firebase/firestore";
 import goldStar from "../../assets/Library/Vector (1).png";
 
 interface Quiz {
-    _id: string;
-    keyLearningPoint: string;
-    action: string;
-    Library: boolean;
-    Learn: boolean;
-    createdAt: Timestamp;
+  _id: string;
+  keyLearningPoint: string;
+  action: string;
+  Library: boolean;
+  Learn: boolean;
+  createdAt: Timestamp;
+  createdBy: string;
+  visibility: string;
+  isSaved: boolean;
 }
 
-const Quizzes = () => {
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
-    const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
-    const [currentAnswer, setCurrentAnswer] = useState('');
-    const [score, setScore] = useState<number | null>(0);
-    const [showAnswer, setShowAnswer] = useState(false);
-    const [showStar, setShowStar] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState<string>('');
+type UserData = {
+  uid: any;
+  email: string;
+  userName: string;
+  jobRole: string;
+  profilePicUrl: string | undefined;
+  jobsAndDescriptions?: string;
+  careerAspirations?: string;
+};
 
+type Props = {
+  userData: UserData | null;
+  showQuiz?: boolean;
+};
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch quizzes');
-                }
-                const data = await response.json();
-                console.log('Fetched quizzes:', data);
-                setQuizzes(data);
-                setFilteredQuizzes(data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching quizzes:', error);
-                setError((error as Error).message);
-                setLoading(false);
-            }
-        };
-        fetchQuizzes();
-    }, []);
+const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [score, setScore] = useState<number | null>(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showStar, setShowStar] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [visibilityData, setVisibilityData] = useState({
+    visibility: "" ,
+  });
 
-    useEffect(() => {
-        const filtered = quizzes.slice().reverse().filter((quiz) =>
-            quiz.keyLearningPoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${userData?.uid}`
         );
-        setFilteredQuizzes(filtered);
-        setCurrentQuizIndex(0);
-    }, [searchTerm, quizzes]);
-
-    const handleDeleteQuiz = async (quizId: string) => {
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${quizId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to delete quiz');
-            }
-
-            const updatedQuizzes = quizzes.filter((quiz) => quiz._id !== quizId);
-            setQuizzes(updatedQuizzes);
-            setFilteredQuizzes(updatedQuizzes);
-
-            if (currentQuizIndex >= updatedQuizzes.length) {
-                setCurrentQuizIndex(updatedQuizzes.length - 1);
-            }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error('Error deleting quiz:', error);
-            setError(error.message);
+        if (!response.ok) {
+          throw new Error("Failed to fetch quizzes");
         }
-    };
-
-
-    useEffect(() => {
-        if (filteredQuizzes[currentQuizIndex]?.Library) {
-            setShowStar(true);
-        } else {
-            setShowStar(false);
+        const data = await response.json();
+        console.log("Fetched quizzes:", data);
+        setQuizzes(data);
+        setFilteredQuizzes(data);
+        setLoading(false);
+        if (data.slice().reverse()[currentQuizIndex]?.visibility) {
+          setVisibilityData({ visibility: data.slice().reverse()[currentQuizIndex].visibility });
         }
-    }, [currentQuizIndex, filteredQuizzes]);
+      } catch (error) {
+        console.error("Error fetching quizzes:", error);
+        setError((error as Error).message);
+        setLoading(false);
+      }
+    };
+    fetchQuizzes();
+  }, []);
 
-    const handleAnswerSubmit = () => {
-        if (currentAnswer.trim().toLowerCase() === quizzes.slice().reverse()[currentQuizIndex]?.action.trim().toLowerCase()) {
-            setScore(1);
-        } else {
-            setScore(0);
+useEffect(() => {
+  if (filteredQuizzes[currentQuizIndex]?.visibility) {
+    setVisibilityData({
+      visibility: filteredQuizzes[currentQuizIndex].visibility,
+    });
+  }
+}, [filteredQuizzes, currentQuizIndex]);
+
+  useEffect(() => {
+    const filtered = quizzes
+      .slice()
+      .reverse()
+      .filter(
+        (quiz) =>
+          quiz.keyLearningPoint
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    setFilteredQuizzes(filtered);
+    setCurrentQuizIndex(0);
+  }, [searchTerm, quizzes]);
+
+  const handleDeleteQuiz = async (quizId: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${quizId}`,
+        {
+          method: "DELETE",
         }
-        setCurrentAnswer('');
-    };
+      );
 
-    const handleRevealAnswer = () => {
-        setShowAnswer(true);
-    };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete quiz");
+      }
 
-    const handlePrevQuiz = () => {
-        if (currentQuizIndex > 0) {
-            setCurrentQuizIndex(currentQuizIndex - 1);
-            setShowAnswer(false);
-            setScore(null);
-        }
-    };
+      const updatedQuizzes = quizzes.filter((quiz) => quiz._id !== quizId);
+      setQuizzes(updatedQuizzes);
+      setFilteredQuizzes(updatedQuizzes);
 
-
-
-    // Navigate to the next quiz
-    const handleNextQuiz = () => {
-        if (currentQuizIndex < quizzes.length - 1) {
-            setCurrentQuizIndex(currentQuizIndex + 1);
-            setShowAnswer(false);
-            setScore(null);
-        }
-    };
-
-    if (loading) {
-        return <div>Loading quizzes...</div>;
+      if (currentQuizIndex >= updatedQuizzes.length) {
+        setCurrentQuizIndex(updatedQuizzes.length - 1);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Error deleting quiz:", error);
+      setError(error.message);
     }
+  };
 
-    if (error) {
-        return <div>Error: {error}</div>;
+  useEffect(() => {
+    if (filteredQuizzes[currentQuizIndex]?.Library) {
+      setShowStar(true);
+    } else {
+      setShowStar(false);
     }
+  }, [currentQuizIndex, filteredQuizzes]);
 
-    // If there are no quizzes, show a message
-    if (quizzes.length === 0) {
-        return <div>No quizzes available</div>;
+  const handleAnswerSubmit = () => {
+    if (
+      currentAnswer.trim().toLowerCase() ===
+      quizzes.slice().reverse()[currentQuizIndex]?.action.trim().toLowerCase()
+    ) {
+      setScore(1);
+    } else {
+      setScore(0);
     }
+    setCurrentAnswer("");
+  };
 
-    return (
+  const handleRevealAnswer = () => {
+    setShowAnswer(true);
+  };
+
+  const handlePrevQuiz = () => {
+    if (currentQuizIndex > 0) {
+      setCurrentQuizIndex(currentQuizIndex - 1);
+      setShowAnswer(false);
+      setScore(null);
+    }
+  };
+
+  // Navigate to the next quiz
+  const handleNextQuiz = () => {
+    if (currentQuizIndex < quizzes.length - 1) {
+      setCurrentQuizIndex(currentQuizIndex + 1);
+      setShowAnswer(false);
+      setScore(null);
+    }
+  };
+
+  const handleVisibilityChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newVisibility = e.target.value;
+    setVisibilityData({ visibility: newVisibility });
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${filteredQuizzes[currentQuizIndex]?._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ visibility: newVisibility }),
+        }
+      );
+    } catch (error) {}
+  };
+
+  if (loading) {
+    return <div>Loading quizzes...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  // If there are no quizzes, show a message
+  if (quizzes.length === 0) {
+    return <div>No quizzes available</div>;
+  }
+
+console.log(visibilityData.visibility);
+
+  
+  
+
+  return (
+    <>
+      {!showQuiz && (
+        <div className="px-28 pt-8 pb-4 flex justify-between items-center">
+          <div>
+            <input
+              type="radio"
+              id="onlyMe"
+              name="visibility"
+              checked={visibilityData.visibility === "onlyMe"}
+              value="onlyMe"
+              onChange={handleVisibilityChange}
+            />
+            <label htmlFor="onlyMe" className="ml-2">
+              Only Me
+            </label>
+          </div>
+          <div>
+            <input
+              type="radio"
+              id="followers"
+              name="visibility"
+              value="followers"
+              checked={visibilityData.visibility === "followers"}
+              onChange={handleVisibilityChange}
+            />
+            <label htmlFor="followers" className="ml-2">
+              Followers
+            </label>
+          </div>
+          <div>
+            <input
+              type="radio"
+              id="public"
+              name="visibility"
+              checked={visibilityData.visibility === "public"}
+              value="public"
+              onChange={handleVisibilityChange}
+            />
+            <label htmlFor="public" className="ml-2">
+              Public
+            </label>
+          </div>
+        </div>
+      )}
+
       <div className="w-full min-h-screen bg-white">
         <div className="my-4 flex justify-between items-center">
           <div className="text-center font-semibold flex-1">Quiz</div>
@@ -305,7 +417,8 @@ const Quizzes = () => {
           </div>
         </main>
       </div>
-    );
+    </>
+  );
 };
 
 export default Quizzes;

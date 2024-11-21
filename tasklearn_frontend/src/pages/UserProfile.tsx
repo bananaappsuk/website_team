@@ -24,6 +24,7 @@ import Career from "./tabs/Career";
 import Requests from "./tabs/FollowRequests";
 import { toast } from "react-toastify";
 import { encryptData, decryptData } from "../utils/cryptoUtils";
+import Feed from "./tabs/Feed";
 
 const tabs = [
   { name: "My Quiz" },
@@ -67,6 +68,7 @@ const UserProfile = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const [showResults, setShowResults] = useState(false);
+
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -369,32 +371,8 @@ const UserProfile = () => {
               {activeTab === "My Quiz" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                    <div className="px-28 pt-8 pb-4 flex justify-between items-center">
-                      <div>
-                        <input
-                          type="radio"
-                          id="onlyMe"
-                          name="visibility"
-                          defaultChecked
-                        />
-                        <label htmlFor="onlyMe" className="ml-2">
-                          Only Me
-                        </label>
-                      </div>
-                      <div>
-                        <input type="radio" id="followers" name="visibility" />
-                        <label htmlFor="followers" className="ml-2">
-                          Followers
-                        </label>
-                      </div>
-                      <div>
-                        <input type="radio" id="public" name="visibility" />
-                        <label htmlFor="public" className="ml-2">
-                          Public
-                        </label>
-                      </div>
-                    </div>
-                    <Quizzes />
+                   
+                    <Quizzes userData={userData} />
                   </div>
                 </div>
               ) : activeTab === "Library" ? (
@@ -433,7 +411,13 @@ const UserProfile = () => {
                     <Requests userData={userData} />
                   </div>
                 </div>
-              ) : (
+              ) :  activeTab === "Feed" ? (
+                <div className="flex justify-center">
+                  <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                    <Feed userData={userData} />
+                  </div>
+                </div>
+              ): (
                 tabs.map(
                   (tab) =>
                     activeTab === tab.name && (

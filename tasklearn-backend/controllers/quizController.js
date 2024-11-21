@@ -19,8 +19,11 @@ const createQuiz = async (req, res) => {
 };
 
 const getQuizzes = async (req, res) => {
+
+  const {id}=req.params
+
     try {
-      const quizzes = await Quiz.find();
+      const quizzes = await Quiz.find({createdBy:id});
       res.status(200).json(quizzes);
     } catch (error) {
       res.status(500).json({ message: 'Failed to retrieve quizzes', error });
@@ -43,6 +46,27 @@ const getQuizzes = async (req, res) => {
       res.status(500).json({ message: 'Failed to delete quiz', error });
     }
   };
+
+  const updateQuizVisibility = async (req, res) => {
+
+    const {id}=req.params
+
+    const {visibility}=req.body
+
+     if (!id) {
+       return res.status(404).json({ message: "Quiz ID not found" });
+     }
+     try{
+       const quiz = await Quiz.findByIdAndUpdate(id,{
+        visibility
+       });
+     }
+     catch(error){
+      console.error("Error deleting quiz:", error);
+     }
+    
+
+  };
   
 
-module.exports = { createQuiz, getQuizzes, deleteQuiz };
+module.exports = { createQuiz, getQuizzes, deleteQuiz, updateQuizVisibility };
