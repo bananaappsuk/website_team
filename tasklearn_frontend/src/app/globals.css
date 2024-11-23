@@ -3,7 +3,7 @@
 @tailwind utilities;
 @import "react-toastify/dist/ReactToastify.css";
 
-:root {
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -25,4 +25,4 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
+} */
