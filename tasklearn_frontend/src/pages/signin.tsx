@@ -191,7 +191,11 @@ const SignIn: React.FC = () => {
                                     htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
+<<<<<<< HEAD
                                     Username or email address
+=======
+                                    Username or dev email address
+>>>>>>> a1504a78d9f31dea4e1418705310c389b6834af3
                                 </label>
                                 <input
                                     type="text"
