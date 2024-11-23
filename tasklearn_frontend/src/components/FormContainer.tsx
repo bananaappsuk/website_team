@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import { useTask } from "../components/TaskContext";
 
@@ -18,7 +19,8 @@ const FormContainer: React.FC<combinedProps> = ({
     handleShare,
     handleComplete,
 }) => {
-    const { task, setTask } = useTask();
+
+    const { task, setTask, patientIdLoading } = useTask();
 
     console.log("all task" + " " + task.patientId);
 

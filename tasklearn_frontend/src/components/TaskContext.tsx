@@ -96,7 +96,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
         }
     }, [selectedServerId]);
 
-
     const updatePatientId = async () => {
         try {
             if (patientId) {

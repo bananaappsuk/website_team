@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/jsx-key */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @next/next/no-html-link-for-pages */
@@ -15,13 +18,15 @@ import grayStar from "../../src/assets/Library/Vector.png";
 import { useRouter } from "next/router";
 import Libraries from "./tabs/Libraries";
 import Tracking from "./tabs/Tracking";
-import { useAuth } from '../auth';
-import { collection, getDocs } from "firebase/firestore";
-// import SidebarProfile from "@/components/SidebarProfile";
+import { useAuth } from "../auth";
+import { collection, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+import SidebarProfile from "@/components/SidebarProfile";
 import Followers from "./tabs/Followers";
 import Following from "./tabs/Following";
 import Career from "./tabs/Career";
 import Requests from "./tabs/FollowRequests";
+import { toast } from "react-toastify";
+import { encryptData, decryptData } from "../utils/cryptoUtils";
 
 const tabs = [
     { name: "My Quiz" },
@@ -43,6 +48,12 @@ const UserProfile = () => {
         jobRole: string;
         profilePicUrl: string | undefined;
     };
+    type Follow = {
+        uid: string;
+        followerId: string;
+        followeeId: string;
+        status: string;
+    };
     const [showLogout, setShowLogout] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -51,6 +62,7 @@ const UserProfile = () => {
     const { task } = useTask();
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
+    const [followDocs, setFollowDocs] = useState<Follow[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const router = useRouter();
     const [redirecting, setRedirecting] = useState(false);
@@ -64,7 +76,12 @@ const UserProfile = () => {
         const searchUsers = async () => {
             if (searchTerm.trim() !== "") {
                 const userDocs = await getDocs(collection(db, "users"));
-                const users = userDocs.docs.map((doc) => doc.data() as UserData);
+                const users = userDocs.docs
+                    .map((doc) => {
+                        const data = doc.data() as UserData;
+                        return { ...data, uid: doc.id };
+                    })
+                    .filter((user) => user.uid !== userData?.uid);
 
                 const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
@@ -76,13 +93,13 @@ const UserProfile = () => {
                     // Match one letter or two or more letters
                     if (lowerCaseSearchTerm.length === 1) {
                         return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                            (userName && userName.includes(lowerCaseSearchTerm)) ||
+                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
                         );
                     } else if (lowerCaseSearchTerm.length >= 2) {
                         return (
-                            (userName && userName.includes(lowerCaseSearchTerm))
-                            || (jobRole && jobRole.includes(lowerCaseSearchTerm))
+                            (userName && userName.includes(lowerCaseSearchTerm)) ||
+                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
                         );
                     }
                     return false; // No match if the search term is empty or less than 1
@@ -97,8 +114,25 @@ const UserProfile = () => {
     }, [searchTerm]);
 
     useEffect(() => {
+        const fetchAllFollowRequests = async () => {
+            const allFollowRequestsDoc = await getDocs(
+                collection(db, "followRequests")
+            );
+            const requests = allFollowRequestsDoc.docs.map((doc) => {
+                return { ...doc.data(), uid: doc.id } as Follow;
+            });
+            setFollowDocs(requests);
+        };
+
+        fetchAllFollowRequests();
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+            if (
+                searchRef.current &&
+                !searchRef.current.contains(event.target as Node)
+            ) {
                 setFilteredUsers([]); // Clear search results when clicking outside
                 setShowResults(false); // Hide search results
             }
@@ -111,7 +145,6 @@ const UserProfile = () => {
         };
     }, [searchRef]); // Removed the other `handleClickOutsidee` logic
 
-
     const handleToggle = () => {
         setShowLogout((prev) => !prev);
     };
@@ -119,15 +152,18 @@ const UserProfile = () => {
     // Handle click outside the dropdown to close it
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
                 setShowLogout(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [dropdownRef]);
 
@@ -138,6 +174,7 @@ const UserProfile = () => {
         } else {
             setActiveTab("My Quiz");
         }
+
     }, [router.pathname]);
 
     const handleBeforeUnload = () => {
@@ -154,7 +191,7 @@ const UserProfile = () => {
                     // Add UID to the user data
                     setUserData({
                         ...userDoc.data(),
-                        uid: user.uid // Include UID in the userData state
+                        uid: user.uid, // Include UID in the userData state
                     } as unknown as UserData);
                 }
             } else {
@@ -168,7 +205,6 @@ const UserProfile = () => {
         return () => unsubscribe();
     }, []);
 
-
     useEffect(() => {
         if (!loading && !user) {
             setRedirecting(true);
@@ -180,9 +216,7 @@ const UserProfile = () => {
         }
     }, [loading, user, router]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const userId = userData ? userData.uid : null;
-
 
     if (loading) {
         return <div>Loading...</div>;
@@ -192,10 +226,29 @@ const UserProfile = () => {
         return <div>You are not logged in. Redirecting...</div>;
     }
 
+    const handleProfile = (user: UserData) => {
+        const encryptedUser = encryptData(user);
+        if (encryptedUser) {
+            sessionStorage.setItem("user", encryptedUser);
+            router.push("/OtherProfile");
+        } else {
+            console.error("Failed to encrypt user data");
+        }
+    };
+
+
+
+
     return (
         <>
             <div className="w-full flex gap-2 bg-gray-100">
-                {/* <SidebarProfile userId={userId} /> */}
+                <SidebarProfile userId={userId} handleTasksClick={function (arg: string): void {
+                    throw new Error("Function not implemented.");
+                }} setselectedTask={function (value: React.SetStateAction<boolean>): void {
+                    throw new Error("Function not implemented.");
+                }} taskCategories={[]} setDropdownVisible={function (value: React.SetStateAction<boolean[]>): void {
+                    throw new Error("Function not implemented.");
+                }} />
                 <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
@@ -219,8 +272,14 @@ const UserProfile = () => {
 
                     <div className="h-[1px] w-full bg-gray-300" />
                     <div className="flex mb-4 mt-2 ">
-                        <div ref={dropdownRef} className="flex flex-row items-center ml-4 gap-y-1">
-                            <div className="flex flex-col items-center cursor-pointer" onClick={handleToggle}>
+                        <div
+                            ref={dropdownRef}
+                            className="flex flex-row items-center ml-4 gap-y-1"
+                        >
+                            <div
+                                className="flex flex-col items-center cursor-pointer"
+                                onClick={handleToggle}
+                            >
                                 <img
                                     src={userData?.profilePicUrl}
                                     alt="profilePic"
@@ -259,12 +318,24 @@ const UserProfile = () => {
                                 {showResults && searchTerm && (
                                     <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
                                         {filteredUsers.length > 0 ? (
-                                            filteredUsers.map((user) => (
-                                                <div key={user.email} className="p-2 border-b">
-                                                    <p className="font-semibold">{user.userName}</p>
-                                                    <p className="text-sm text-gray-500">{user.jobRole}</p>
-                                                </div>
-                                            ))
+                                            filteredUsers.map((user, index) => {
+                                                return (
+                                                    <div
+                                                        className="flex justify-between items-center cursor-pointer"
+                                                        onClick={() => handleProfile(user)}
+                                                    >
+                                                        <div
+                                                            key={user.email}
+                                                            className="p-2 border-b w-full"
+                                                        >
+                                                            <p className="font-semibold">{user.userName}</p>
+                                                            <p className="text-sm text-gray-500">
+                                                                {user.jobRole}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
                                         ) : (
                                             <div className="p-2 text-gray-500">No result found</div>
                                         )}
@@ -308,31 +379,7 @@ const UserProfile = () => {
                             {activeTab === "My Quiz" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <div className="px-28 pt-8 pb-4 flex justify-between items-center">
-                                            <div>
-                                                <input
-                                                    type="radio"
-                                                    id="onlyMe"
-                                                    name="visibility"
-                                                    defaultChecked
-                                                />
-                                                <label htmlFor="onlyMe" className="ml-2">
-                                                    Only Me
-                                                </label>
-                                            </div>
-                                            <div>
-                                                <input type="radio" id="followers" name="visibility" />
-                                                <label htmlFor="followers" className="ml-2">
-                                                    Followers
-                                                </label>
-                                            </div>
-                                            <div>
-                                                <input type="radio" id="public" name="visibility" />
-                                                <label htmlFor="public" className="ml-2">
-                                                    Public
-                                                </label>
-                                            </div>
-                                        </div>
+
                                         <Quizzes />
                                     </div>
                                 </div>
@@ -351,25 +398,30 @@ const UserProfile = () => {
                             ) : activeTab === "Followers" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Followers />
+                                        <Followers userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Following" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Following />
+                                        <Following userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Career" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Career />
+                                        <Career userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Requests" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Requests />
+                                        <Requests userData={userData} />
+                                    </div>
+                                </div>
+                            ) : activeTab === "Feed" ? (
+                                <div className="flex justify-center">
+                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                                     </div>
                                 </div>
                             ) : (
@@ -391,4 +443,4 @@ const UserProfile = () => {
     );
 };
 
-export default UserProfile
+export default UserProfile;
