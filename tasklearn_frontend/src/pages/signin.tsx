@@ -129,7 +129,14 @@ const SignIn: React.FC = () => {
                     await signInWithEmailAndPassword(auth, userDoc, formData.password);
                     toast.success("Login successful!");
                     setTimeout(() => {
-                        router.push("/Homepage");
+                        // Retrieve the serverId from localStorage
+                        const serverId = localStorage.getItem("serverId");
+
+                        if (serverId) {
+                            router.push(`/join/${serverId}`); // Redirect to the server join page
+                        } else {
+                            router.push("/Homepage"); // Redirect to homepage if no serverId
+                        }
                     }, 500);
                 }
             }
@@ -139,8 +146,16 @@ const SignIn: React.FC = () => {
                     formData.identifier,
                     formData.password
                 );
-                toast.success("Login successful!");
-                router.push("/Homepage");
+                setTimeout(() => {
+                    // Retrieve the serverId from localStorage
+                    const serverId = localStorage.getItem("serverId");
+                    // Redirect to the appropriate page
+                    if (serverId) {
+                        router.push(`/join/${serverId}`); // Redirect to the server join page
+                    } else {
+                        router.push("/Homepage"); // Redirect to homepage if no serverId
+                    }
+                }, 500);
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

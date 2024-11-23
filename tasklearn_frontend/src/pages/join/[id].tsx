@@ -22,6 +22,13 @@ const JoinServer: FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        // Store the serverId in localStorage
+        if (id) {
+            localStorage.setItem("serverId", id as string);
+        }
+    }, [id]);
+
+    useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
@@ -56,6 +63,7 @@ const JoinServer: FC = () => {
                     });
 
                     if (response.ok) {
+                        localStorage.removeItem('serverId');
                         router.push(`/Homepage`);
                     } else {
                         const errorData = await response.json();
