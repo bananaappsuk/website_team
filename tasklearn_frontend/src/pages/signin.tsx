@@ -191,7 +191,7 @@ const SignIn: React.FC = () => {
                                     htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
-                                    Username or --staging-- email address
+                                    Username or email address
                                 </label>
                                 <input
                                     type="text"
