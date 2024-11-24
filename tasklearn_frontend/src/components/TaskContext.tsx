@@ -1,7 +1,9 @@
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { auth, db } from "@/firebase";
 import axios from "axios";
+import { doc, getDoc } from "firebase/firestore";
 import React, {
   createContext,
   useContext,
@@ -10,11 +12,12 @@ import React, {
   useEffect,
 } from "react";
 import { toast } from "react-toastify";
+import { User } from "firebase/auth";
 
 export interface Task {
   patientId: any;
   [x: string]: any;
-  createdBy: string;
+  createdBy: any;
   serverId: string;
   taggedStaff: string;
   contributingStaff: string;
@@ -46,6 +49,14 @@ interface TaskContextType {
   patientIdLoading: boolean;
 }
 
+type UserData = {
+  uid: any;
+  email: string;
+  userName: string;
+  jobRole: string;
+  profilePicUrl: string | undefined;
+};
+
 export const TaskContext = createContext<TaskContextType | undefined>(
   undefined
 );
@@ -56,6 +67,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
   const [patientId, setPatientId] = useState<string | null>(null);
   const [patientIdLoading, setpatientIdLoading] = useState<boolean>(true);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null);
 
   const fetchPatientId = async () => {
     setpatientIdLoading(true);
@@ -72,21 +86,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
       if (response.ok) {
         const data = await response.json();
 
-        console.log(data);
-        
-
         if (data) {
           const firstElement = data;
-          
-          setPatientId(firstElement.patientId)
+
+          setPatientId(firstElement.patientId);
 
           const patientId = firstElement.patientId;
-          console.log("Patient ID:", patientId);
-          if (patientId) {
-            setTask((prevTask) => ({ ...prevTask, patientId }));
+          if (patientId && userData) {
+            setTask((prevTask) => ({ ...prevTask, patientId,createdBy:userData.userName }));
           }
         }
-
       }
     } catch (error: any) {
       toast.error(error);
@@ -97,11 +106,37 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     if (selectedServerId) {
+
       fetchPatientId();
     }
   }, [selectedServerId]);
 
-  
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUser(user);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData({
+            ...userDoc.data(),
+            uid: user.uid, // Include UID in the userData state
+          } as unknown as UserData);
+        }
+      } else {
+        setUser(null);
+        setUserData(null);
+      }
+      setLoading(false);
+    });
+
+    // Cleanup
+    return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
+
 
   const updatePatientId = async () => {
     try {
@@ -126,7 +161,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
             }
           );
 
-          if(response.ok){
+          if (response.ok) {
             fetchPatientId();
           }
         }
@@ -156,7 +191,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [selectedServerId]);
 
-  console.log("serverId" + " " + selectedServerId);
+
+
 
   const [task, setTask] = useState<Task>({
     patientId: "",

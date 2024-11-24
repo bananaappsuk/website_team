@@ -13,13 +13,13 @@ interface Server {
   channelImage: string;
   channelType: string;
   createdByUserId: string;
-  memberList: string;
+  memberList: string[];
 }
 
 interface SidebarProfileProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userId: any;
-  onServerSelect?: (server: { serverId: string; serverName: string }) => void;
+  onServerSelect?: (server: { serverId: string; serverName: string; memberList:string[] }) => void;
   handleTasksClick: (arg: string) => void;
   setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
   taskCategories: string[];
@@ -94,7 +94,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
 
   const handleServerClick = async (server: Server) => {
     if (router.pathname === "/Homepage") {
-      handleTasksClick("All Task");
+      handleTasksClick("All Tasks");
       setselectedTask(false);
       setDropdownVisible(Array(taskCategories.length).fill(false));
       setSelectedServerId(server._id);
@@ -102,24 +102,14 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
         onServerSelect({
           serverId: server._id,
           serverName: server.channelName,
+          memberList:server.memberList
         });
-
-      if(onServerSelect){
-         fetchPatientId();
-      }
-
-     
     }
   };
 
   return (
     <aside className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen border">
-      <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold">
-        <Link href="/Homepage">TL</Link>
-      </div>
-      {/* <div className="rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-12 lg:h-12">
-                <Image src={Profile} alt="Profile Picture" width={64} height={64} />
-            </div> */}
+      <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold"></div>
       <div className="flex flex-col space-y-4">
         {servers.map((server) => (
           <div
@@ -148,6 +138,8 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
         <CreateServerPopup
           onClose={() => setIsPopupOpen(false)}
           userId={userId}
+          setselectedTask={setselectedTask}
+          onServerSelect={onServerSelect}
         /> // Pass userId here
       )}
     </aside>

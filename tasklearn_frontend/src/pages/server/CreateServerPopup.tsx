@@ -7,6 +7,7 @@ import ImageNext from "../../../src/assets/home/Vector1.png";
 import uploadImage from "../../../src/assets/home/Group 4.png";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
+import { useTask } from "@/components/TaskContext";
 
 interface Server {
   _id: string;
@@ -14,18 +15,23 @@ interface Server {
   channelImage: string;
   channelType: string;
   createdByUserId: string;
-  memberList: string;
+  memberList: string[];
 }
 
 interface CreateServerPopupProps {
   onClose: () => void;
   userId: string;
+  setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SidebarProfileProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userId: any;
-  onServerSelect?: (server: { serverId: string; serverName: string }) => void;
+  onServerSelect?: (server: {
+    serverId: string;
+    serverName: string;
+    memberList: string[];
+  }) => void;
 }
 
 type CombinedProps = SidebarProfileProps & CreateServerPopupProps;
@@ -34,6 +40,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
   onClose,
   userId,
   onServerSelect,
+  setselectedTask,
 }) => {
   const [step, setStep] = useState(1);
   const [serverName, setServerName] = useState("");
@@ -49,6 +56,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
     null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { selectedServerId, setSelectedServerId } = useTask();
 
   useEffect(() => {
     const fetchServers = async () => {
@@ -232,6 +240,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                     onServerSelect({
                       serverId: server._id,
                       serverName: server.channelName,
+                      memberList: server.memberList,
                     })
                   }
                 >
@@ -241,6 +250,17 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                         ? "bg-blue-200"
                         : "bg-gray-100"
                     }`}
+                    onClick={() => {
+                      onClose();
+                      setselectedTask(false);
+                      setSelectedServerId(server._id);
+                      onServerSelect &&
+                        onServerSelect({
+                          serverId: server._id,
+                          serverName: server.channelName,
+                          memberList: server.memberList,
+                        });
+                    }}
                   >
                     <Image
                       src={ImageServer}

@@ -1,11 +1,18 @@
 // routes/quizRoutes.js
 const express = require('express');
-const { createQuiz, getQuizzes, deleteQuiz } = require('../controllers/quizController');
+const {
+  createQuiz,
+  deleteQuiz,
+  getQuizzesByServerId,
+  getQuizzesByTaskId,
+  deleteQuizByTaskId,
+} = require("../controllers/quizController");
 
 const router = express.Router();
 
 router.post('/', createQuiz);
-router.get('/', getQuizzes);
 router.delete('/:id', deleteQuiz);
-
+router.delete("/task/:id", deleteQuizByTaskId);
+router.get("/server/:id", getQuizzesByServerId);
+router.get("/taskBy/:id",getQuizzesByTaskId)
 module.exports = router;

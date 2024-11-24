@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTask } from "../components/TaskContext";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase";
 
 type Props = {
-    selectedTask: boolean;
-    handleShare: (e: React.FormEvent) => Promise<void>;
-    handleComplete: (e: React.FormEvent) => Promise<void>;
+  selectedTask: boolean;
+  handleShare: (e: React.FormEvent) => Promise<void>;
+  handleComplete: (e: React.FormEvent) => Promise<void>;
+  
+};
+type UserData = {
+  uid: any;
+  email: string;
+  userName: string;
+  jobRole: string;
+  profilePicUrl?: string | undefined;
 };
 interface TaskSectionProps {
-  server: { serverId: string; serverName: string } | null;
+  server: { serverId: string; serverName: string; memberList: string[] } | null;
+  userData: UserData | null;
 }
 
 type combinedProps = TaskSectionProps & Props;
@@ -17,17 +28,16 @@ const FormContainer: React.FC<combinedProps> = ({
   selectedTask,
   handleShare,
   handleComplete,
+  userData,
 }) => {
   const { task, setTask, patientIdLoading } = useTask();
-
-console.log("all task" + " " +task.patientId);
 
 
 
   return (
     <div>
-      {server  ? (
-        <form className="p-4 rounded">
+      {server ? (
+        <form className="p-4 rounded overflow-y-auto max-h-screen">
           <div className="flex flex-col gap-4">
             <div className=" relative">
               <div className="flex items-center border border-gray p-1 rounded-md">
@@ -37,7 +47,7 @@ console.log("all task" + " " +task.patientId);
                 <input
                   type="text"
                   className={`flex-1 outline-none text-black ${"cursor-default"}`}
-                  value={task.patientId}
+                  value={task?.patientId}
                   required
                   readOnly
                 />
@@ -59,7 +69,7 @@ console.log("all task" + " " +task.patientId);
                     setTask({ ...task, createdBy: e.target.value })
                   }
                   required
-                  readOnly={selectedTask}
+                  readOnly
                 />
               </div>
             </div>
