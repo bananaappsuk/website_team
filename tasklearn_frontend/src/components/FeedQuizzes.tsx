@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -5,12 +6,11 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import clear from "../assets/home/image 2.png";
 import submit from "../assets/home/image 1.png";
+import searchIcon from "../assets/Quiz/Group 1.png";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { Timestamp } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useTask } from "../components/TaskContext";
+import { db } from "../firebase";
 
 interface Quiz {
     _id: string;
@@ -19,28 +19,27 @@ interface Quiz {
     Library: boolean;
     Learn: boolean;
     createdAt: Timestamp;
-    serverId: string;
     createdBy: string;
-    taskId: string;
 }
 
-interface TaskSectionProps {
-    server: { serverId: string; serverName: string; memberList: string[] } | null;
-    selectedQuizTaskId: string;
-    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
-    showQuiz: boolean;
-    setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
+type UserData = {
+    uid: any;
+    email: string;
+    userName: string;
+    jobRole: string;
+    profilePicUrl: string | undefined;
+};
+
+interface Follow {
+    followeeId: string;
+}
+interface Props {
+    fetchId: Follow[];
+    userId: string[];
 }
 
-const ConvertQuiz: React.FC<TaskSectionProps> = ({
-    server,
-    selectedQuizTaskId,
-    setShowQuiz,
-    showQuiz,
-    setSelectedQuizTaskId,
-}) => {
+const FeedQuizzes: React.FC<Props> = ({ fetchId, userId }) => {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const { task, setTask } = useTask();
     const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [currentAnswer, setCurrentAnswer] = useState("");
@@ -49,29 +48,34 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     const [showStar, setShowStar] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [userData, setUserData] = useState<UserData[]>([]);
     const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
     const [scoreError, setScoreError] = useState<boolean>(false);
-    const [question, setQuestion] = useState<number>(0);
-
-    const handleClear = () => {
-        setCurrentAnswer("");
-        setScoreError(true); // Activate the error state
-        setScoreSuccess(false); // Change background color to red
-    };
+    const [question, setQuestion] = useState<number>(1);
+    const [reset, setReset] = useState<boolean>(false);
+    const [saved, setIsSaved] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
+                if (fetchId.length > 0) {
+                    for (let idObj of fetchId) {
+                        const response = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/${idObj.followeeId}`,
+                            { method: "GET" }
+                        );
+                        if (!response.ok) {
+                            throw new Error("Failed to fetch quizzes");
+                        }
+                        const data = await response.json();
+                        setQuizzes(data);
+                        setFilteredQuizzes(data);
+                        setLoading(false);
                     }
-                );
-                const data = await response.json();
-                console.log("Fetched quizzes:", data);
-                setQuizzes(data);
-                setLoading(false);
+                } else {
+                    console.error("No followeeId available.");
+                }
             } catch (error) {
                 console.error("Error fetching quizzes:", error);
                 setError((error as Error).message);
@@ -79,61 +83,81 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             }
         };
 
-        const fetchQuizzes2 = async () => {
+        const fetchPublicQuizzes = async () => {
             try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
+                if (userId.length > 0) {
+                    for (let idObj of userId) {
+                        const response = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/public/${idObj}`,
+                            { method: "GET" }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error("Failed to fetch quizzes");
+                        }
+                        const data = await response.json();
+                        setQuizzes((prev) => [...prev, ...data]);
+
+                        setFilteredQuizzes((prev) => [...prev, ...data]);
+                        setLoading(false);
                     }
-                );
-                const data = await response.json();
-                console.log("Fetched2 quizzes:", data);
-                setQuizzes(data);
-                setFilteredQuizzes(data);
-                setLoading(false);
+                } else {
+                    console.error("No followeeId available.");
+                }
             } catch (error) {
                 console.error("Error fetching quizzes:", error);
                 setError((error as Error).message);
                 setLoading(false);
             }
         };
-        if (selectedQuizTaskId) {
+
+        if (fetchId.length > 0) {
             fetchQuizzes();
-        } else if (selectedQuizTaskId === "") {
-            fetchQuizzes2();
+        }
+
+        if (userId.length > 0) {
+            fetchPublicQuizzes();
         }
     }, []);
 
     useEffect(() => {
-        if (selectedQuizTaskId && showQuiz) {
-            const filtered = quizzes.filter(
-                (quiz) => quiz.taskId === selectedQuizTaskId
-            );
-            setFilteredQuizzes(filtered);
-            if (filtered.length > 0) {
-                const Newfiltered = quizzes.filter(
-                    (quiz) => quiz.taskId !== selectedQuizTaskId
-                );
-                setFilteredQuizzes([...filtered, ...Newfiltered]);
-                setCurrentQuizIndex(0);
-                setShowQuiz(true);
+        const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
+            if (userIds.length === 0) {
+                return [];
             }
+
+            const userDetails: UserData[] = [];
+            for (const id of userIds) {
+                const userDoc = await getDoc(doc(db, "users", id));
+                if (userDoc.exists()) {
+                    userDetails.push({ uid: id, ...userDoc.data() } as UserData);
+                }
+            }
+            setUserData(userDetails);
+
+            return userDetails;
+        };
+
+        if (filteredQuizzes.length > 0) {
+            const userIds = filteredQuizzes.map((quiz) => quiz.createdBy);
+            fetchUserDetails(userIds);
         }
-    }, [selectedQuizTaskId, showQuiz, quizzes]);
+    }, [filteredQuizzes]);
 
     useEffect(() => {
-        if (selectedQuizTaskId === "") {
-            const filtered = quizzes
-                .slice()
-                .reverse()
-                .filter((quiz) => quiz);
-
-            setFilteredQuizzes(filtered);
-            setCurrentQuizIndex(0);
-        }
-    }, [quizzes]);
-
+        const filtered = quizzes
+            .slice()
+            .reverse()
+            .filter(
+                (quiz) =>
+                    quiz.keyLearningPoint
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                    quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        setFilteredQuizzes(filtered);
+        setCurrentQuizIndex(0);
+    }, [searchTerm, quizzes]);
 
     useEffect(() => {
         if (filteredQuizzes[currentQuizIndex]?.Library) {
@@ -157,56 +181,26 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setScoreSuccess(false);
             setQuestion((prevQuestion) => prevQuestion + 1);
         }
-        setTimeout(() => {
-            setScoreSuccess(false);
-            setScoreError(false);
-        }, 2000);
-        // setCurrentAnswer("");
+        setCurrentAnswer("");
     };
 
     const handleRevealAnswer = () => {
         setShowAnswer(true);
     };
 
-    const fetchTaskById = async (taskId: string) => {
-        try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
-            );
-
-            if (response) {
-                setTask(response.data);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    useEffect(() => {
-        if (filteredQuizzes[currentQuizIndex]) {
-            fetchTaskById(filteredQuizzes[currentQuizIndex].taskId);
-        }
-    }, [currentQuizIndex]);
-
     const handlePrevQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex > 0) {
             setCurrentQuizIndex(currentQuizIndex - 1);
             setShowAnswer(false);
         }
-        setCurrentAnswer("");
-
     };
 
     // Navigate to the next quiz
     const handleNextQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex < quizzes.length - 1) {
             setCurrentQuizIndex(currentQuizIndex + 1);
             setShowAnswer(false);
         }
-        setCurrentAnswer("");
-
     };
 
     if (loading) {
@@ -221,28 +215,68 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     if (quizzes.length === 0) {
         return <div>No quizzes available</div>;
     }
-    console.log(currentQuizIndex);
 
     return (
-        <div className="w-full bg-white relative overflow-y-auto max-h-screen">
+        <div className="w-full min-h-screen bg-white">
             <div className="my-4 flex justify-between items-center">
-                <div className=" font-semibold flex-1">Quiz</div>
-                <p className="">
-                    {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                        ? filteredQuizzes[currentQuizIndex]?.createdAt
-                            .toDate()
-                            .toLocaleDateString()
-                        : new Date(
-                            filteredQuizzes[currentQuizIndex]?.createdAt
-                        ).toLocaleDateString()}
-                </p>
+                <div className=" font-semibold">
+                    <div>
+                        Question created by :{" "}
+                        <span>{userData && userData[currentQuizIndex]?.userName}</span>,{" "}
+                        <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
+                        <span className="ml-auto">
+                            {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                                ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                    .toDate()
+                                    .toLocaleDateString()
+                                : new Date(
+                                    filteredQuizzes[currentQuizIndex]?.createdAt
+                                ).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+                <div className="ml-auto relative">
+                    <input
+                        type="text"
+                        placeholder="Search key words"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                    />
+                    <Image
+                        src={searchIcon}
+                        alt="Search Icon"
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                    />
+                </div>
             </div>
-            <div className=" flex justify-end mr-7">
-                {filteredQuizzes[currentQuizIndex]?.Library && (
-                    <Image src={goldStar} alt="Star" className="h-6 w-6" />
-                )}
-            </div>
+
             <main className="">
+                <div className="text-sm text-black flex flex-row justify-end items-center gap-4 ">
+                    {searchTerm && (
+                        <div className="flex justify-start font-bold">
+                            <span className="w-48">Total Questions (Filtered):</span>
+                            <input
+                                className="w-12 border-2 text-center border-gray-300 rounded-md"
+                                value={filteredQuizzes.length}
+                                readOnly
+                            />
+                        </div>
+                    )}
+
+                    {filteredQuizzes[currentQuizIndex]?.Library && (
+                        <Image src={goldStar} alt="Star" className="h-6 w-6 " />
+                    )}
+                </div>
+                <div className="relative group flex justify-end mt-7">
+                    <button
+                        className="p-2 px-7 rounded-md bg-[#68A86B] text-white"
+                        onClick={() => setIsSaved(!saved)}
+                    >
+                        {saved ? "saved" : "save"}
+                    </button>
+                </div>
+
                 <div className="mt-4 flex">
                     <div className="w-full flex-col">
                         <div className="bg-white rounded-md">
@@ -274,7 +308,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                 <div className="flex justify-center mt-4 gap-8">
                     <button
                         className="text-red-600 flex items-center"
-                        onClick={handleClear}
+                        onClick={() => setCurrentAnswer("")}
                     >
                         <span className="mr-1">
                             <Image src={clear} alt="clear" className="h-8 w-8" />
@@ -303,8 +337,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </button>
                     ) : (
                         <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                            Answer:
-                            {filteredQuizzes[currentQuizIndex]?.action}
+                            Answer: {filteredQuizzes[currentQuizIndex]?.action}
                         </p>
                     )}
                 </div>
@@ -314,7 +347,10 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     </button>
                     <button
                         onClick={handleNextQuiz}
-                        disabled={currentQuizIndex === filteredQuizzes.length - 1}
+                        disabled={
+                            currentQuizIndex === quizzes.length - 1 ||
+                            currentQuizIndex === filteredQuizzes.length - 1
+                        }
                     >
                         <FaArrowRight size={24} />
                     </button>
@@ -348,4 +384,4 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     );
 };
 
-export default ConvertQuiz;
+export default FeedQuizzes;
