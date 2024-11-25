@@ -41,7 +41,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
   const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [score, setScore] = useState<number | null>(0);
+  const [score, setScore] = useState<number>(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showStar, setShowStar] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,10 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
   const [visibilityData, setVisibilityData] = useState({
     visibility: "" ,
   });
+   const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
+   const [scoreError, setScoreError] = useState<boolean>(false);
+   const [question, setQuestion] = useState<number>(1);
+   const [reset, setReset] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -141,9 +145,14 @@ useEffect(() => {
       currentAnswer.trim().toLowerCase() ===
       quizzes.slice().reverse()[currentQuizIndex]?.action.trim().toLowerCase()
     ) {
-      setScore(1);
+      setScore((prevScore) => prevScore + 1);
+      setScoreSuccess(true);
+      setScoreError(false);
+      setQuestion((prevQuestion) => prevQuestion + 1);
     } else {
-      setScore(0);
+      setScoreError(true);
+      setScoreSuccess(false);
+      setQuestion((prevQuestion) => prevQuestion + 1);
     }
     setCurrentAnswer("");
   };
@@ -156,7 +165,6 @@ useEffect(() => {
     if (currentQuizIndex > 0) {
       setCurrentQuizIndex(currentQuizIndex - 1);
       setShowAnswer(false);
-      setScore(null);
     }
   };
 
@@ -165,7 +173,6 @@ useEffect(() => {
     if (currentQuizIndex < quizzes.length - 1) {
       setCurrentQuizIndex(currentQuizIndex + 1);
       setShowAnswer(false);
-      setScore(null);
     }
   };
 
@@ -202,7 +209,6 @@ useEffect(() => {
     return <div>No quizzes available</div>;
   }
 
-console.log(visibilityData.visibility);
 
   
   
@@ -335,7 +341,11 @@ console.log(visibilityData.visibility);
                   placeholder="Enter Answer"
                   value={currentAnswer}
                   onChange={(e) => setCurrentAnswer(e.target.value)}
-                  className="w-full px-10 py-6 placeholder:text-[#67A76B] text-center border shadow-sm text-black"
+                  className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${
+                    scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
+                  } text-center border shadow-sm text-black ${
+                    scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
+                  }`}
                 />
               </div>
             </div>
@@ -403,7 +413,7 @@ console.log(visibilityData.visibility);
               /
               <input
                 className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                value="1"
+                value={`${question}`}
               />
             </div>
             <div className="mt-4 flex justify-center items-center font-bold">

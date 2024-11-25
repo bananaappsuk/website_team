@@ -18,7 +18,7 @@ type Follow = {
 };
 
 type UserData = {
-  uid: any;
+  uid: string;
   email: string;
   userName: string;
   jobRole: string;
@@ -31,8 +31,31 @@ type Props = {
 
 const Feed: React.FC<Props> = ({ userData }) => {
   const [followeeId, setFolloweeId] = useState<Follow[]>([]);
+    const [userId, setUserId] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const allUserId = async () => {
+    try {
+      const userDocs = await getDocs(collection(db, "users"));
+      const users = userDocs.docs.map((doc) => {
+        const data = doc.data() as UserData;
+        return {
+          ...data,
+          uid: doc.id,
+        };
+      });
+
+      const userFilter = users?.filter((user) => user.uid !== userData?.uid);
+      if(userFilter){
+        setUserId(userFilter.map((ids)=>ids.uid))
+      }
+
+    } catch (error) {
+      console.error("Error getting user data:", error);
+    }
+  };
+
+  
   useEffect(() => {
     const fetchAllFollowRequests = async () => {
       try {
@@ -48,6 +71,7 @@ const Feed: React.FC<Props> = ({ userData }) => {
         }));
 
         setFolloweeId(followeeIds);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Error fetching follow requests:", error);
         toast.error(error.message);
@@ -56,14 +80,19 @@ const Feed: React.FC<Props> = ({ userData }) => {
 
     if (userData?.uid) {
       fetchAllFollowRequests();
+      allUserId();
     }
   }, [userData?.uid]);
 
-  console.log(followeeId);
-
   return (
     <div>
-      <FeedQuizzes />
+      {(followeeId.length > 0 && userId.length>0) ||(followeeId.length===0 && userId.length>0) ? (
+        <FeedQuizzes fetchId={followeeId} userId={userId} />
+      ):(
+        <div>
+          No Quizzes available
+        </div>
+      )}
     </div>
   );
 };
