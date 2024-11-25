@@ -96,8 +96,6 @@ const updateQuizVisibility = async (req, res) => {
   const { id } = req.params;
 
   const { visibility } = req.body;
-  console.log("oe",visibility);
-  console.log("toe",id);
 
   if (!id) {
     return res.status(404).json({ message: "Quiz ID not found" });
