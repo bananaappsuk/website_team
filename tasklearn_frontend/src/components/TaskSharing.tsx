@@ -154,7 +154,7 @@ const TaskSharing = () => {
                 setLoading(false);
             }
         };
-        if (selectedQuizTaskId) {
+        if (selectedQuizTaskId.length > 0) {
             fetchQuizzes();
         }
         if (selectedQuizTaskId === "") {
