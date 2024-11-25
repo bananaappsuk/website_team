@@ -386,7 +386,7 @@ const UserProfile = () => {
                             ) : activeTab === "Library" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Libraries />
+                                        <Libraries userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Tracking" ? (
