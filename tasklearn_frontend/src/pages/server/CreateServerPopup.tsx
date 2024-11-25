@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -7,6 +8,7 @@ import ImageNext from "../../../src/assets/home/Vector1.png";
 import uploadImage from "../../../src/assets/home/Group 4.png";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
+import { useTask } from "@/components/TaskContext";
 
 interface Server {
     _id: string;
@@ -14,18 +16,23 @@ interface Server {
     channelImage: string;
     channelType: string;
     createdByUserId: string;
-    memberList: string;
+    memberList: string[];
 }
 
 interface CreateServerPopupProps {
     onClose: () => void;
     userId: string;
+    setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SidebarProfileProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userId: any;
-    onServerSelect?: (server: { serverId: string; serverName: string }) => void;
+    onServerSelect?: (server: {
+        serverId: string;
+        serverName: string;
+        memberList: string[];
+    }) => void;
 }
 
 type CombinedProps = SidebarProfileProps & CreateServerPopupProps;
@@ -34,6 +41,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
     onClose,
     userId,
     onServerSelect,
+    setselectedTask,
 }) => {
     const [step, setStep] = useState(1);
     const [serverName, setServerName] = useState("");
@@ -49,6 +57,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
         null
     );
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { selectedServerId, setSelectedServerId } = useTask();
 
     useEffect(() => {
         const fetchServers = async () => {
@@ -232,14 +241,26 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                         onServerSelect({
                                             serverId: server._id,
                                             serverName: server.channelName,
+                                            memberList: server.memberList,
                                         })
                                     }
                                 >
                                     <div
                                         className={`w-full rounded-md py-4 items-center mb-4 flex ${server.channelName === "SpecialChannel"
-                                                ? "bg-blue-200"
-                                                : "bg-gray-100"
+                                            ? "bg-blue-200"
+                                            : "bg-gray-100"
                                             }`}
+                                        onClick={() => {
+                                            onClose();
+                                            setselectedTask(false);
+                                            setSelectedServerId(server._id);
+                                            onServerSelect &&
+                                                onServerSelect({
+                                                    serverId: server._id,
+                                                    serverName: server.channelName,
+                                                    memberList: server.memberList,
+                                                });
+                                        }}
                                     >
                                         <Image
                                             src={ImageServer}
@@ -249,8 +270,8 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                         <div className="font-bold ml-5">
                                             <h2
                                                 className={`text-xl font-semibold ${server.channelName === "SpecialChannel"
-                                                        ? "text-blue-700"
-                                                        : "text-black"
+                                                    ? "text-blue-700"
+                                                    : "text-black"
                                                     }`}
                                             >
                                                 {server.channelName}

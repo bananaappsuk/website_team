@@ -129,7 +129,14 @@ const SignIn: React.FC = () => {
                     await signInWithEmailAndPassword(auth, userDoc, formData.password);
                     toast.success("Login successful!");
                     setTimeout(() => {
-                        router.push("/Homepage");
+                        // Retrieve the serverId from localStorage
+                        const serverId = localStorage.getItem("serverId");
+
+                        if (serverId) {
+                            router.push(`/join/${serverId}`); // Redirect to the server join page
+                        } else {
+                            router.push("/Homepage"); // Redirect to homepage if no serverId
+                        }
                     }, 500);
                 }
             }
@@ -139,8 +146,16 @@ const SignIn: React.FC = () => {
                     formData.identifier,
                     formData.password
                 );
-                toast.success("Login successful!");
-                router.push("/Homepage");
+                setTimeout(() => {
+                    // Retrieve the serverId from localStorage
+                    const serverId = localStorage.getItem("serverId");
+                    // Redirect to the appropriate page
+                    if (serverId) {
+                        router.push(`/join/${serverId}`); // Redirect to the server join page
+                    } else {
+                        router.push("/Homepage"); // Redirect to homepage if no serverId
+                    }
+                }, 500);
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -191,7 +206,7 @@ const SignIn: React.FC = () => {
                                     htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
-                                    Username or staging email address
+                                    Username or email address
                                 </label>
                                 <input
                                     type="text"
@@ -245,7 +260,7 @@ const SignIn: React.FC = () => {
                             </div>
                             <div
                                 className="px-4 md:px-4 lg:px-20 xl:px-40 cursor-pointer"
-                                onClick={() => router.push("/ForgetPassword")}
+                                onClick={() => router.push("/ForgotPassword")}
                             >
                                 <p className="text-[#A0A0A0]">Forgot Password?</p>
                             </div>

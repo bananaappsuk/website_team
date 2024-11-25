@@ -27,12 +27,14 @@ const createServer = async (req, res) => {
 
     try {
         const data = await s3.upload(uploadParams).promise();
+       const memberList =[createdByUserId];
         const newServer = new Server({
-            channelId: data.Key,
-            channelName,
-            channelType,
-            createdByUserId,
-            channelImage: data.Location, // S3 image URL
+          channelId: data.Key,
+          channelName,
+          channelType,
+          createdByUserId,
+          channelImage: data.Location, // S3 image URL
+          memberList: memberList
         });
 
         await newServer.save();

@@ -18,9 +18,17 @@ const librarySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  serverId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Server",
+    required: true,
+  },
+  taskId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Task",
+    required: true,
+  },
 });
 
 const Library = mongoose.model("Library", librarySchema);
-
 module.exports = Library;
-

@@ -12,7 +12,7 @@ import { FirebaseError } from "firebase/app";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { ToastContainer } from "react-toastify";
 
-const ForgetPassword: React.FC = () => {
+const ForgotPassword: React.FC = () => {
     const router = useRouter();
 
     const [email, setEmail] = useState("");
@@ -105,4 +105,4 @@ const ForgetPassword: React.FC = () => {
     );
 };
 
-export default ForgetPassword;
+export default ForgotPassword;
