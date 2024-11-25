@@ -421,7 +421,7 @@ const OtherProfile = () => {
                     </div>
                     {/* Main Quiz Section */}
                     <div className="p-4 lg:w-[40%] float-left">
-                        <Quizzes />
+                        <Quizzes userData={userData} />
                     </div>
                     <div className="p-4 border-2 rounded-lg ">
                         {/* Tabs: Followers, Following, Career */}
