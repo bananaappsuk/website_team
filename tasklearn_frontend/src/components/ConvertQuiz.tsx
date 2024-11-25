@@ -161,7 +161,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setScoreSuccess(false);
             setScoreError(false);
         }, 2000);
-        setCurrentAnswer("");
+        // setCurrentAnswer("");
     };
 
     const handleRevealAnswer = () => {
@@ -194,6 +194,8 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setCurrentQuizIndex(currentQuizIndex - 1);
             setShowAnswer(false);
         }
+        setCurrentAnswer("");
+
     };
 
     // Navigate to the next quiz
@@ -203,6 +205,8 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setCurrentQuizIndex(currentQuizIndex + 1);
             setShowAnswer(false);
         }
+        setCurrentAnswer("");
+
     };
 
     if (loading) {
