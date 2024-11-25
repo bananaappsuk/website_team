@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const patientIdSchema = new mongoose.Schema({
   patientId: {
     type: String,
+    unique: true,
+    required: true,
   },
   createdId: {
     type: mongoose.Types.ObjectId,

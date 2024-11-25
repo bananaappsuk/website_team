@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
@@ -11,7 +12,6 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useTask, Task } from "../components/TaskContext";
-import Quizzes from "@/pages/tabs/Quizzes";
 import { useRouter } from "next/router";
 import { getDoc, doc } from "firebase/firestore";
 import { db, auth } from "../firebase";
@@ -20,6 +20,8 @@ import { useAuth } from "../auth";
 import SidebarProfile from "./SidebarProfile";
 import TaskSection from "./TaskSection";
 import FormContainer from "./FormContainer";
+import ConvertQuiz from "../components/ConvertQuiz";
+import { Timestamp } from "firebase/firestore/lite";
 
 const TaskSharing = () => {
     const [showLogout, setShowLogout] = useState(false);
@@ -29,14 +31,15 @@ const TaskSharing = () => {
     const [showQuiz, setShowQuiz] = useState<boolean>(false);
     const [tasksList, setTasksList] = useState<Task[]>([]);
     const [showForm, setShowForm] = useState(true);
+    const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [filter, setFilter] = useState("All Task");
+    const [filter, setFilter] = useState("All Tasks");
     const { task, setTask, fetchPatientId, updatePatientId } = useTask();
     const taskCategories = [
-        "All Task",
-        "Pending Task",
-        "Completed Task",
-        "Deleted Task",
+        "All Tasks",
+        "Pending Tasks",
+        "Completed Tasks",
+        "Deleted Tasks",
         "Learning",
     ];
     type UserData = {
@@ -46,6 +49,18 @@ const TaskSharing = () => {
         jobRole: string;
         profilePicUrl: string | undefined;
     };
+    interface Quiz {
+        _id: string;
+        keyLearningPoint: string;
+        action: string;
+        Library: boolean;
+        Learn: boolean;
+        createdAt: Timestamp;
+        serverId: string;
+        createdBy: string;
+        taskId: string;
+    }
+
     const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
         Array(taskCategories.length).fill(false)
     );
@@ -56,16 +71,20 @@ const TaskSharing = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [taskLoading, setTaskLoading] = useState<boolean>(true);
     const [redirecting, setRedirecting] = useState(false);
+    const [selectedQuizTaskId, setSelectedQuizTaskId] = useState<string>("");
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const router = useRouter();
     const { logout } = useAuth();
     const [selectedServer, setSelectedServer] = useState<{
         serverId: string;
         serverName: string;
+        memberList: string[];
     } | null>(null);
 
     const handleServerSelect = (server: {
         serverId: string;
         serverName: string;
+        memberList: string[];
     }) => {
         setSelectedServer(server); // Update with selected server's ID and name
     };
@@ -117,6 +136,56 @@ const TaskSharing = () => {
     }, []);
 
     useEffect(() => {
+        const fetchQuizzes = async () => {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${selectedServer?.serverId}`,
+                    { method: "GET" }
+                );
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setQuizzes(data);
+                } else {
+                    console.error("Fetched data is not an array:", data);
+                }
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching quizzes:", error);
+                setLoading(false);
+            }
+        };
+        if (selectedQuizTaskId) {
+            fetchQuizzes();
+        }
+        if (selectedQuizTaskId === "") {
+            setQuizzes([]);
+        }
+    }, [selectedQuizTaskId]);
+
+    useEffect(() => {
+        if (selectedQuizTaskId) {
+            const filtered = quizzes.filter(
+                (quiz) => quiz.taskId === selectedQuizTaskId
+            );
+            setFilteredQuizzes(filtered);
+            if (filtered.length > 0) {
+                const Newfiltered = quizzes.filter(
+                    (quiz) => quiz.taskId !== selectedQuizTaskId
+                );
+                setFilteredQuizzes([...filtered, ...Newfiltered]);
+            }
+        }
+    }, [selectedQuizTaskId, quizzes]);
+
+    useEffect(() => {
+        if (filteredQuizzes.length === 0) {
+            setShowQuiz(false);
+        } else {
+            setShowQuiz(true);
+        }
+    }, [filteredQuizzes]);
+
+    useEffect(() => {
         if (selectedServer?.serverId) {
             fetchPatientId();
         }
@@ -149,7 +218,7 @@ const TaskSharing = () => {
         setTask({
             ...newTask,
             patientId: task.patientId,
-            createdBy: "",
+            createdBy: userData?.userName,
             taggedStaff: "",
             serverId: "",
             contributingStaff: "",
@@ -207,6 +276,9 @@ const TaskSharing = () => {
                 }
             );
             if (response.ok) {
+                const data = await response.json();
+
+                setSelectedQuizTaskId("");
                 updatePatientId();
                 toast.success("Task shared successfully");
                 if (!task.Learn && !task.Library) {
@@ -223,6 +295,8 @@ const TaskSharing = () => {
                             keyLearningPoint: task.keyLearningPoint,
                             action: task.action,
                             createdBy: userId,
+                            serverId: selectedServer?.serverId,
+                            taskId: data?.task?._id,
                         }),
                     });
                 }
@@ -242,6 +316,8 @@ const TaskSharing = () => {
                             action: task.action,
                             Library: true,
                             createdBy: userId,
+                            serverId: selectedServer?.serverId,
+                            taskId: data?.task?._id,
                         }),
                     });
                     setShowQuiz(true);
@@ -266,6 +342,8 @@ const TaskSharing = () => {
                             action: task.action,
                             Library: false,
                             createdBy: userId,
+                            serverId: selectedServer?.serverId,
+                            taskId: data?.task?._id,
                         }),
                     });
                     setTask({
@@ -319,7 +397,7 @@ const TaskSharing = () => {
                 if (response.ok) {
                     toast.success("Task Completed Successfully");
                     setShowQuiz(false);
-                    handleTasksClick("All Task");
+                    handleTasksClick("All Tasks");
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 }
             } catch (error: any) {
@@ -352,7 +430,7 @@ const TaskSharing = () => {
                         Learn: false,
                     });
                     updatePatientId();
-                    handleTasksClick("All Task");
+                    handleTasksClick("All Tasks");
                     fetchPatientId();
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 } else {
@@ -372,14 +450,14 @@ const TaskSharing = () => {
             );
 
             if (response.status === 200) {
-                if (filter === "Pending Task") {
+                if (filter === "Pending Tasks") {
                     setTasksList(
                         response.data.filter(
                             (task: {
                                 isShared: Boolean;
                                 isDeleted: Boolean;
                                 serverId: string;
-                            }) => task.isShared && !task.isDeleted
+                            }) => task.isShared && !task.isDeleted && selectedServer?.serverId
                         )
                     );
                     const pendingTasks = response.data.filter(
@@ -398,7 +476,7 @@ const TaskSharing = () => {
                             [filter]: pendingTasks,
                         };
                     });
-                } else if (filter === "All Task") {
+                } else if (filter === "All Tasks") {
                     setTasksList(
                         response.data.filter(
                             (task: { isDeleted: Boolean; serverId: string }) =>
@@ -416,7 +494,7 @@ const TaskSharing = () => {
                             [filter]: allTasks,
                         };
                     });
-                } else if (filter === "Completed Task") {
+                } else if (filter === "Completed Tasks") {
                     setTasksList(
                         response.data.filter(
                             (task: {
@@ -472,7 +550,7 @@ const TaskSharing = () => {
                             [filter]: learnTasks,
                         };
                     });
-                } else if (filter === "Deleted Task") {
+                } else if (filter === "Deleted Tasks") {
                     setTasksList(
                         response.data.filter(
                             (task: { isDeleted: Boolean; serverId: string }) =>
@@ -503,6 +581,7 @@ const TaskSharing = () => {
     };
 
     const handleTasksClick = (item: string) => {
+        setSelectedQuizTaskId("");
         handleResetInputs();
         setselectedTask(false);
         setShowQuiz(false);
@@ -536,34 +615,43 @@ const TaskSharing = () => {
                             </p>
                         </div>
                         <div className="h-[1px] w-full bg-gray-300" />
-
-                        <div className="p-0 lg:p-8 flex justify-center">
-                            <a
-                                href="/Homepage"
-                                className="w-[80%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center"
+                        <div className="overflow-y-auto max-h-screen">
+                            <div
+                                className="p-0 lg:p-8 flex justify-center cursor-pointer"
+                                onClick={() => {
+                                    setDropdownVisible(Array(taskCategories.length).fill(false));
+                                    handleResetInputs();
+                                    setShowQuiz(false);
+                                    setselectedTask(false);
+                                }}
                             >
-                                Task <FiPlus className="ml-2" />
-                            </a>
-                        </div>
+                                <div className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center">
+                                    Task <FiPlus className="ml-2" />
+                                </div>
+                            </div>
 
-                        <TaskSection
-                            server={selectedServer}
-                            selectedTask={selectedTask}
-                            setselectedTask={setselectedTask}
-                            taskCategories={taskCategories}
-                            filteredTasks={filteredTasks}
-                            dropdownVisible={dropdownVisible}
-                            setDropdownVisible={setDropdownVisible}
-                            handleTasksClick={handleTasksClick}
-                            setShowForm={setShowForm}
-                            filter={filter}
-                            setFilter={setFilter}
-                            fetchTasks={fetchTasks}
-                            _id={""}
-                            channelName={""}
-                            createdByUserId={""}
-                            taskLoading={taskLoading}
-                        />
+                            <TaskSection
+                                server={selectedServer}
+                                selectedTask={selectedTask}
+                                setselectedTask={setselectedTask}
+                                taskCategories={taskCategories}
+                                filteredTasks={filteredTasks}
+                                dropdownVisible={dropdownVisible}
+                                setDropdownVisible={setDropdownVisible}
+                                handleTasksClick={handleTasksClick}
+                                setShowForm={setShowForm}
+                                filter={filter}
+                                setFilter={setFilter}
+                                fetchTasks={fetchTasks}
+                                _id={""}
+                                channelName={""}
+                                createdByUserId={""}
+                                taskLoading={taskLoading}
+                                showQuiz={showQuiz}
+                                setShowQuiz={setShowQuiz}
+                                setSelectedQuizTaskId={setSelectedQuizTaskId}
+                            />
+                        </div>
                     </div>
                 </div>
                 {showForm && (
@@ -601,7 +689,9 @@ const TaskSharing = () => {
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
-                                <p className="text-2xl text-black font-bold">Task Sharing</p>
+                                <p className="text-2xl text-black font-bold text-center">
+                                    Task Sharing
+                                </p>
                             </div>
                         </div>
                         <FormContainer
@@ -609,6 +699,7 @@ const TaskSharing = () => {
                             handleShare={handleShare}
                             handleComplete={handleComplete}
                             server={selectedServer}
+                            userData={userData}
                         />
                     </section>
                 )}
@@ -620,7 +711,13 @@ const TaskSharing = () => {
                         </div>
                         <p className="font-bold text-2xl text-center px-8 py-4">Learning</p>
                         <div className="px-8">
-                            <Quizzes />
+                            <ConvertQuiz
+                                server={selectedServer}
+                                selectedQuizTaskId={selectedQuizTaskId}
+                                setShowQuiz={setShowQuiz}
+                                showQuiz={showQuiz}
+                                setSelectedQuizTaskId={setSelectedQuizTaskId}
+                            />
                         </div>
                     </div>
                 )}

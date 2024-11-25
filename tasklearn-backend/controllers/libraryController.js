@@ -3,14 +3,20 @@ const Library = require('../models/libraryModel');
 
 // Create a new library
 const createLibrary = async (req, res) => {
-  const { keyLearningPoint, action, createdBy } = req.body;
+  const { keyLearningPoint, action, createdBy, serverId, taskId } = req.body;
 
   if (!keyLearningPoint || !action) {
     return res.status(400).json({ message: 'Key Learning Point and Action are required' });
   }
 
   try {
-    const library = new Library({ keyLearningPoint, action,createdBy });
+    const library = new Library({
+      keyLearningPoint,
+      action,
+      createdBy,
+      serverId,
+      taskId,
+    });
     await library.save();
     res.status(201).json(library);
   } catch (error) {
