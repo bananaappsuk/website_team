@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import deleteIcon from "../../assets/Quiz/Vector.png";
@@ -13,28 +14,45 @@ interface Library {
     createdAt: Timestamp;
 }
 
-const Libraries = () => {
+type UserData = {
+    uid: any;
+    email: string;
+    userName: string;
+    jobRole: string;
+    profilePicUrl: string | undefined;
+};
+
+type Props = {
+    userData: UserData | null;
+};
+
+
+
+const Libraries: React.FC<Props> = ({ userData }) => {
     const [libraries, setLibraries] = useState<Library[]>([]);
     const [filteredLibraries, setFilteredLibraries] = useState<Library[]>([]);
     const [currentLibraryIndex, setCurrentLibraryIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [searchTerm, setSearchTerm] = useState<string>("");
 
     useEffect(() => {
         const fetchLibraries = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/libraries`);
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries`
+                );
                 if (!response.ok) {
-                    throw new Error('Failed to fetch Libraries');
+                    throw new Error("Failed to fetch Libraries");
                 }
                 const data = await response.json();
-                console.log('Fetched Libraries:', data);
-                setLibraries(data);
-                setFilteredLibraries(data);
+                setLibraries(data.filter((item: any) => item.createdBy === userData?.uid));
+                setFilteredLibraries(
+                    data.filter((item: any) => item.createdBy === userData?.uid)
+                );
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching Libraries:', error);
+                console.error("Error fetching Libraries:", error);
                 setError((error as Error).message);
                 setLoading(false);
             }
@@ -43,9 +61,12 @@ const Libraries = () => {
     }, []);
 
     useEffect(() => {
-        const filtered = libraries.filter((library) =>
-            library.keyLearningPoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            library.action.toLowerCase().includes(searchTerm.toLowerCase())
+        const filtered = libraries.filter(
+            (library) =>
+                library.keyLearningPoint
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                library.action.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredLibraries(filtered);
         setCurrentLibraryIndex(0);
@@ -53,16 +74,21 @@ const Libraries = () => {
 
     const handleDeleteLibrary = async (libraryId: string) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${libraryId}`, {
-                method: 'DELETE',
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${libraryId}`,
+                {
+                    method: "DELETE",
+                }
+            );
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to delete Library');
+                throw new Error(errorData.message || "Failed to delete Library");
             }
 
-            const updatedLibraries = libraries.filter((library) => library._id !== libraryId);
+            const updatedLibraries = libraries.filter(
+                (library) => library._id !== libraryId
+            );
             setLibraries(updatedLibraries);
             setFilteredLibraries(updatedLibraries);
 
@@ -71,7 +97,7 @@ const Libraries = () => {
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            console.error('Error deleting Library:', error);
+            console.error("Error deleting Library:", error);
             setError(error.message);
         }
     };
@@ -130,13 +156,11 @@ const Libraries = () => {
                             </div>
 
                             <div className="flex flex-col items-center justify-center ml-4 p-4">
-                                <p className='ml-auto'>
+                                <p className="ml-auto">
                                     [
-                                    {
-                                        library?.createdAt instanceof Timestamp
-                                            ? library?.createdAt.toDate().toLocaleDateString()
-                                            : new Date(library?.createdAt).toLocaleDateString()
-                                    }
+                                    {library?.createdAt instanceof Timestamp
+                                        ? library?.createdAt.toDate().toLocaleDateString()
+                                        : new Date(library?.createdAt).toLocaleDateString()}
                                     ]
                                 </p>
                                 <div className="relative group">
@@ -156,9 +180,6 @@ const Libraries = () => {
                     </div>
                 ))}
             </main>
-
-
-
         </div>
     );
 };

@@ -46,6 +46,9 @@ type Props = {
     fetchTasks: (args: string) => void;
     setFilter: React.Dispatch<React.SetStateAction<string>>;
     taskLoading: boolean;
+    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
+    showQuiz: boolean;
+    setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 interface TaskSectionProps {
@@ -68,6 +71,9 @@ const TaskSection: React.FC<CombinedProps> = ({
     setFilter,
     fetchTasks,
     taskLoading,
+    showQuiz,
+    setShowQuiz,
+    setSelectedQuizTaskId,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -83,6 +89,8 @@ const TaskSection: React.FC<CombinedProps> = ({
     const [inviteLink, setInviteLink] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [buttonText, setButtonText] = useState("Copy");
+    const [filteredSearchTask, setFilteredSearchTask] = useState([]);
+    const [filteredPatientId, setFilteredPatientId] = useState<any[]>([]);
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
@@ -111,6 +119,7 @@ const TaskSection: React.FC<CombinedProps> = ({
         };
     }, []);
 
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -129,40 +138,65 @@ const TaskSection: React.FC<CombinedProps> = ({
     }, []);
 
     useEffect(() => {
-        const searchUsers = async () => {
+        const fetchAndSearchData = async () => {
             if (searchTerm.trim() !== "") {
-                const userDocs = await getDocs(collection(db, "users"));
-                const users = userDocs.docs.map((doc) => doc.data() as UserData);
+                try {
+                    // Fetch tasks by server ID
+                    const taskResponse = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${server?.serverId}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    );
 
-                const lowerCaseSearchTerm = searchTerm.toLowerCase();
+                    if (!taskResponse.ok) throw new Error("Failed to fetch tasks");
+                    const tasks = await taskResponse.json();
 
-                // Determine the match type based on the length of the search term
-                const filtered = users.filter((user) => {
-                    const userName = user.userName?.toLowerCase();
-                    const jobRole = user.jobRole?.toLowerCase();
+                    // Fetch user data
+                    const userDocs = await getDocs(collection(db, "users"));
+                    const users = userDocs.docs.map((doc) => doc.data() as UserData);
 
-                    // Match one letter or two or more letters
-                    if (lowerCaseSearchTerm.length === 1) {
+                    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+                    // Filter users based on search term
+                    const filteredUsers = users.filter((user) => {
+                        const userName = user.userName?.toLowerCase();
+                        const jobRole = user.jobRole?.toLowerCase();
                         return (
                             (userName && userName.includes(lowerCaseSearchTerm)) ||
                             (jobRole && jobRole.includes(lowerCaseSearchTerm))
                         );
-                    } else if (lowerCaseSearchTerm.length >= 2) {
-                        return (
-                            (userName && userName.includes(lowerCaseSearchTerm)) ||
-                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
-                        );
-                    }
-                    return false; // No match if the search term is empty or less than 1
-                });
+                    });
 
-                setFilteredUsers(filtered);
+                    // Filter patient IDs based on search term
+                    const filteredPatients = tasks.filter((task: any) => {
+                        const patientId = task.patientId?.toLowerCase();
+                        return patientId && patientId.includes(lowerCaseSearchTerm);
+                    });
+
+                    setFilteredUsers(filteredUsers);
+                    setFilteredPatientId(filteredPatients);
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                    setFilteredUsers([]);
+                    setFilteredPatientId([]);
+                }
             } else {
                 setFilteredUsers([]);
+                setFilteredPatientId([]);
             }
         };
-        searchUsers();
-    }, [searchTerm]);
+
+        fetchAndSearchData();
+    }, [searchTerm, server?.serverId]);
+
+    console.log(filteredUsers);
+
+
+    console.log(filteredSearchTask);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -189,18 +223,21 @@ const TaskSection: React.FC<CombinedProps> = ({
 
             if (response) {
                 setTask(response.data);
-
                 if (response.data._id === taskId) {
+                    setSelectedQuizTaskId(response.data._id);
                     setselectedTask(true);
                     setShowForm(true);
                 } else {
                     setselectedTask(false);
+                    setSelectedQuizTaskId("");
                 }
             }
         } catch (error: any) {
             toast.error(error.message);
         }
     };
+
+    console.log(filteredPatientId);
 
     const handleDeleteTask = async (id: String, filter: any) => {
         try {
@@ -215,27 +252,44 @@ const TaskSection: React.FC<CombinedProps> = ({
             );
             if (response.ok) {
                 setFilter((prevFilter) => {
-                    if (prevFilter === "Pending Task") {
-                        return "Pending Task";
-                    } else if (prevFilter === "Completed Task") {
-                        return "Completed Task";
+                    if (prevFilter === "Pending Tasks") {
+                        return "Pending Tasks";
+                    } else if (prevFilter === "Completed Tasks") {
+                        return "Completed Tasks";
                     } else if (prevFilter === "Learning") {
                         return "Learning";
                     } else {
-                        return "All Task";
+                        return "All Tasks";
                     }
                 });
                 fetchTasks(filter);
-                fetchTasks("Deleted Task");
+                fetchTasks("Deleted Tasks");
+                fetchTasks("All Tasks");
+                fetchTasks("Learning");
+                fetchTasks("Pending Tasks");
+                fetchTasks("Completed Tasks");
             }
         } catch (error: any) {
             toast.error(error.message);
         }
     };
 
+    const handleDeleteQuiz = async (taskId: string) => {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/task/${taskId}`,
+            {
+                method: "DELETE",
+            }
+        );
+
+        if (response.ok) {
+            handleTasksClick("Deleted Tasks");
+        }
+    };
+
     //delete the task from dB
 
-    const handleDeletedTask = async (taskId: String) => {
+    const handleDeletedTask = async (taskId: string) => {
         try {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${taskId}`,
@@ -244,8 +298,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                 }
             );
             if (response.ok) {
+                handleDeleteQuiz(taskId);
                 fetchTasks(filter);
-                fetchTasks("Deleted Task");
+                fetchTasks("Deleted Tasks");
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -307,8 +362,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             toast.warning("Share cancelled");
         }
     };
-
-
 
     return (
         <div>
@@ -395,13 +448,28 @@ const TaskSection: React.FC<CombinedProps> = ({
                 />
                 {showResults && searchTerm && (
                     <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <div key={user.email} className="p-2 border-b">
-                                    <p className="font-semibold">{user.userName}</p>
-                                    <p className="text-sm text-gray-500">{user.jobRole}</p>
-                                </div>
-                            ))
+                        {filteredUsers.length > 0 || filteredPatientId.length > 0 ? (
+                            filteredUsers.map((user, index) => {
+                                const patients = filteredPatientId.filter(
+                                    (item) =>
+                                        item.createdBy.trim().toLowerCase() ===
+                                        user.userName.trim().toLowerCase()
+                                );
+
+                                return (
+                                    <div key={index} className="p-2 border-b">
+                                        <p className="font-semibold">{user.userName}</p>
+                                        <p className="text-sm text-gray-500">{user.jobRole}</p>
+                                        <div className="font-semibold">
+                                            {patients.length > 0
+                                                ? patients.map((patient, index) => (
+                                                    <p key={index}>{patient.patientId}</p>
+                                                ))
+                                                : "No patientId"}
+                                        </div>
+                                    </div>
+                                );
+                            })
                         ) : (
                             <div className="p-2 text-gray-500">No result found</div>
                         )}
@@ -411,7 +479,7 @@ const TaskSection: React.FC<CombinedProps> = ({
 
             {server ? (
                 <div className="mt-2">
-                    <ul className="px-4 space-y-4">
+                    <ul className="px-4 space-y-4 ">
                         {taskCategories.map((item: any, index: any) => (
                             <>
                                 <li
@@ -420,7 +488,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                         handleTasksClick(item);
                                         handleDropdown(index);
                                     }}
-                                    className="flex justify-between items-center text-gray-600 hover:text-black hover:font-semibold cursor-pointer"
+                                    className="flex justify-between items-center text-black font-bold cursor-pointer"
                                 >
                                     {item}
                                     {dropdownVisible[index] ? (

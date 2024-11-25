@@ -260,7 +260,7 @@ const SignIn: React.FC = () => {
                             </div>
                             <div
                                 className="px-4 md:px-4 lg:px-20 xl:px-40 cursor-pointer"
-                                onClick={() => router.push("/ForgetPassword")}
+                                onClick={() => router.push("/ForgotPassword")}
                             >
                                 <p className="text-[#A0A0A0]">Forgot Password?</p>
                             </div>
