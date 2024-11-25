@@ -28,14 +28,16 @@ const createQuiz = async (req, res) => {
   }
 };
 
-// const getQuizzes = async (req, res) => {
-//     try {
-//       const quizzes = await Quiz.find();
-//       res.status(200).json(quizzes);
-//     } catch (error) {
-//       res.status(500).json({ message: 'Failed to retrieve quizzes', error });
-//     }
-//   };
+const getQuizzes = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const quizzes = await Quiz.find({ createdBy: id });
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+};
 
 const getQuizzesByServerId = async (req, res) => {
   const { id } = req.params;
@@ -90,10 +92,69 @@ const deleteQuizByTaskId = async (req, res) => {
   }
 };
 
+const updateQuizVisibility = async (req, res) => {
+  const { id } = req.params;
+
+  const { visibility } = req.body;
+  console.log("oe",visibility);
+  console.log("toe",id);
+
+  if (!id) {
+    return res.status(404).json({ message: "Quiz ID not found" });
+  }
+  try {
+    const quiz = await Quiz.findByIdAndUpdate(id, {
+      visibility,
+    });
+  } catch (error) {
+    console.error("Error deleting quiz:", error);
+  }
+};
+
+const getFollowerQuizzes = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const quiz = await Quiz.find({
+      createdBy: id,
+      visibility: "followers",
+      isSaved: false,
+    });
+
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+};
+
+const getPublicQuizzes=async(req,res)=>{
+
+  const {id}=req.params
+
+  try {
+    const quiz = await Quiz.find({
+      createdBy: id,
+      visibility: "public",
+      isSaved: false,
+    });
+    
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+  
+
+};
+
+
 module.exports = {
   createQuiz,
   deleteQuiz,
   getQuizzesByServerId,
   getQuizzesByTaskId,
   deleteQuizByTaskId,
+  getQuizzes,
+  getPublicQuizzes,
+  getFollowerQuizzes,
+  updateQuizVisibility,
 };
