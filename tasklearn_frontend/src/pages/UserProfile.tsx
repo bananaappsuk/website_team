@@ -25,6 +25,7 @@ import Requests from "./tabs/FollowRequests";
 import { toast } from "react-toastify";
 import { encryptData, decryptData } from "../utils/cryptoUtils";
 import Feed from "./tabs/Feed";
+import Saved from "./tabs/Saved";
 
 const tabs = [
   { name: "My Quiz" },
@@ -371,7 +372,6 @@ const UserProfile = () => {
               {activeTab === "My Quiz" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                   
                     <Quizzes userData={userData} />
                   </div>
                 </div>
@@ -399,6 +399,12 @@ const UserProfile = () => {
                     <Following userData={userData} />
                   </div>
                 </div>
+              ) : activeTab === "Saved" ? (
+                <div className="flex justify-center">
+                  <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                    <Saved userData={userData} />
+                  </div>
+                </div>
               ) : activeTab === "Career" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
@@ -411,13 +417,13 @@ const UserProfile = () => {
                     <Requests userData={userData} />
                   </div>
                 </div>
-              ) :  activeTab === "Feed" ? (
+              ) : activeTab === "Feed" ? (
                 <div className="flex justify-center">
                   <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                     <Feed userData={userData} />
                   </div>
                 </div>
-              ): (
+              ) : (
                 tabs.map(
                   (tab) =>
                     activeTab === tab.name && (

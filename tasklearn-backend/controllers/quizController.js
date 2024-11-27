@@ -22,7 +22,6 @@ const createQuiz = async (req, res) => {
 
 const getQuizzes = async (req, res) => {
   const { id } = req.params;
-
   try {
     const quizzes = await Quiz.find({ createdBy: id });
     res.status(200).json(quizzes);
@@ -72,7 +71,6 @@ const getFollowerQuizzes = async (req, res) => {
     const quiz = await Quiz.find({
       createdBy: id,
       visibility: "followers",
-      isSaved: false,
     });
 
     res.status(200).json(quiz);
@@ -81,24 +79,84 @@ const getFollowerQuizzes = async (req, res) => {
   }
 };
 
-const getPublicQuizzes=async(req,res)=>{
-
-  const {id}=req.params
+const getPublicQuizzes = async (req, res) => {
+  const { id } = req.params;
 
   try {
     const quiz = await Quiz.find({
       createdBy: id,
       visibility: "public",
-      isSaved: false,
     });
-    
+
     res.status(200).json(quiz);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve quizzes", error });
   }
-  
+};
 
-}
+const saveQuizzes = async (req, res) => {
+  const { id } = req.params;
+  const { savedBy } = req.body;
+
+  try {
+    const quiz = await Quiz.findById(id);
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found." });
+    }
+
+    // Check if user has already saved this quiz by index
+    const index = quiz.savedBy.indexOf(savedBy);
+    if (index > -1) {
+      // Remove user ID from the array
+      quiz.savedBy.splice(index, 1);
+    } else {
+      // Add user ID to the array
+      quiz.savedBy.push(savedBy);
+    }
+
+    await quiz.save();
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to save quiz", error });
+  }
+};
+
+const getSavedQuizzes = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const quizzes = await Quiz.find({
+      visibility: { $in: ["followers", "public"] },
+      savedBy: { $in: [id] }, // Check if userId is in the savedBy array
+    });
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to saved quiz", error });
+  }
+};
+
+const deleteSavedQuizzes = async (req, res) => {
+  const { id } = req.params;
+
+  const { savedBy } = req.body;
+  try {
+    const quiz = await Quiz.findById(id);
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found." });
+    }
+    // Check if user has already saved this quiz by index
+    const index = quiz.savedBy.indexOf(savedBy);
+    if (index > -1) {
+      // Remove user ID from the array
+      quiz.savedBy.splice(index, 1);
+    }
+    await quiz.save();
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete saved quiz", error });
+  }
+};
 
 module.exports = {
   createQuiz,
@@ -107,4 +165,7 @@ module.exports = {
   updateQuizVisibility,
   getFollowerQuizzes,
   getPublicQuizzes,
+  saveQuizzes,
+  getSavedQuizzes,
+  deleteSavedQuizzes,
 };

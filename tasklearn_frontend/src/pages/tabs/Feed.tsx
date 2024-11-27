@@ -1,11 +1,7 @@
 import FeedQuizzes from "@/components/FeedQuizzes";
 import React, { useEffect, useState } from "react";
 import {
-  getDoc,
-  doc,
   collection,
-  addDoc,
-  deleteDoc,
   getDocs,
   query,
   where,
@@ -87,7 +83,7 @@ const Feed: React.FC<Props> = ({ userData }) => {
   return (
     <div>
       {(followeeId.length > 0 && userId.length>0) ||(followeeId.length===0 && userId.length>0) ? (
-        <FeedQuizzes fetchId={followeeId} userId={userId} />
+        <FeedQuizzes fetchId={followeeId} userId={userId} currentUserData={userData} />
       ):(
         <div>
           No Quizzes available

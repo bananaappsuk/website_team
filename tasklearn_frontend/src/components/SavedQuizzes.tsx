@@ -8,6 +8,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
 import { db } from "../firebase";
+import deleteIcon from "../assets/Quiz/Vector.png";
 
 interface Quiz {
   _id: string;
@@ -32,12 +33,10 @@ interface Follow {
   followeeId: string;
 }
 interface Props {
-  fetchId: Follow[];
-  userId: string[];
   currentUserData: UserData | null;
 }
 
-const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
+const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
@@ -52,86 +51,6 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
   const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
   const [scoreError, setScoreError] = useState<boolean>(false);
   const [question, setQuestion] = useState<number>(1);
-  const [reset, setReset] = useState<boolean>(false);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        if (fetchId.length > 0) {
-          for (let idObj of fetchId) {
-            const response = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/${idObj.followeeId}`,
-              { method: "GET" }
-            );
-            if (!response.ok) {
-              throw new Error("Failed to fetch quizzes");
-            }
-            const data = await response.json();
-            setQuizzes(data);
-            setFilteredQuizzes(data);
-            setLoading(false);
-          }
-        } else {
-          console.error("No followeeId available.");
-        }
-      } catch (error) {
-        console.error("Error fetching quizzes:", error);
-        setError((error as Error).message);
-        setLoading(false);
-      }
-    };
-
-    const fetchPublicQuizzes = async () => {
-      try {
-        if (userId.length > 0) {
-          for (let idObj of userId) {
-            const response = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/public/${idObj}`,
-              { method: "GET" }
-            );
-
-            if (!response.ok) {
-              throw new Error("Failed to fetch quizzes");
-            }
-            const data = await response.json();
-            setQuizzes((prev) => [...prev, ...data]);
-
-            setFilteredQuizzes((prev) => [...prev, ...data]);
-            setLoading(false);
-          }
-        } else {
-          console.error("No followeeId available.");
-        }
-      } catch (error) {
-        console.error("Error fetching quizzes:", error);
-        setError((error as Error).message);
-        setLoading(false);
-      }
-    };
-
-    if (fetchId.length > 0) {
-      fetchQuizzes();
-    }
-
-    if (userId.length > 0) {
-      fetchPublicQuizzes();
-    }
-  }, []);
-
-
-  //useEffect to check Quiz is saved or not
-
-  useEffect(() => {
-    const currentQuiz = filteredQuizzes[currentQuizIndex];
-    if (currentQuiz) {
-      if (currentQuiz.savedBy.includes(currentUserData?.uid)) {
-        setIsSaved(true);
-      } else {
-        setIsSaved(false);
-      }
-    }
-  }, [filteredQuizzes, currentQuizIndex, currentUserData]);
 
   useEffect(() => {
     const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
@@ -157,7 +76,34 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     }
   }, [filteredQuizzes]);
 
-  console.log(isSaved);
+
+  const fetchSavedQuizzes = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/all/${currentUserData?.uid}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch quizzes");
+    }
+    if (response.ok) {
+      const data = await response.json();
+      console.log("savedQuiz", data);
+
+      setQuizzes(data);
+      setFilteredQuizzes(data);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedQuizzes();
+  }, []);
 
   useEffect(() => {
     const filtered = Array.isArray(quizzes)
@@ -220,30 +166,32 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     }
   };
 
-  const updateSaveQuiz = async (quizId: string) => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/save/${filteredQuizzes[currentQuizIndex]._id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({ savedBy: currentUserData?.uid }),
-      }
-    );
-
-    if (response.ok) {
-      const updatedQuiz = await response.json(); // Update the state with the updated quiz data
-      setQuizzes((prev) =>
-        prev.map((quiz) => (quiz._id === updatedQuiz._id ? updatedQuiz : quiz))
-      );
-    }
-  };
-
-  const handleSave = (quizId: string) => {
+  const handleRemoveSave = async (quizId: string) => {
     if (quizId) {
-      updateSaveQuiz(quizId);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/delete/${filteredQuizzes[currentQuizIndex]._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({ savedBy: currentUserData?.uid }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedQuiz = await response.json(); // Update the state with the updated quiz data
+        setQuizzes((prev) =>
+          prev.map((quiz) =>
+            quiz._id === updatedQuiz._id ? updatedQuiz : quiz
+          )
+        );
+         fetchSavedQuizzes();
+      }
+      if (!response.ok) {
+        throw new Error("Failed to Remove quiz");
+      }
     }
   };
 
@@ -312,12 +260,14 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
             <Image src={goldStar} alt="Star" className="h-6 w-6 " />
           )}
         </div>
-        <div className="relative group flex justify-end mt-7">
-          <button
-            className="p-2 px-7 rounded-md bg-[#68A86B] text-white"
-            onClick={() => handleSave(filteredQuizzes[currentQuizIndex]._id)}
-          >
-            {isSaved ? "Saved" : "Save"}
+        <div
+          className="relative group flex justify-end mt-7"
+          onClick={() =>
+            handleRemoveSave(filteredQuizzes[currentQuizIndex]._id)
+          }
+        >
+          <button>
+            <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
           </button>
         </div>
 
@@ -430,4 +380,4 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
   );
 };
 
-export default FeedQuizzes;
+export default SavedQuizzes;
