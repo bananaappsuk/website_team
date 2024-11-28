@@ -178,8 +178,6 @@ const SignIn: React.FC = () => {
             return "Incorrect Username or Password. Please try again.";
         } else if (errorCode === "auth/too-many-requests") {
             return "Too many login attempts. Please try again later.";
-        } else if (errorCode === "auth/network-request-failed") {
-            return "Network error. Please check your connection.";
         } else {
             return "Login failed. Please try again.";
         }

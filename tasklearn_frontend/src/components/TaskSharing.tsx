@@ -582,9 +582,9 @@ const TaskSharing = () => {
 
     const handleTasksClick = (item: string) => {
         setSelectedQuizTaskId("");
-        handleResetInputs();
+        // handleResetInputs();
         setselectedTask(false);
-        setShowQuiz(false);
+        setShowQuiz(true);
         setFilter(item);
         setShowForm(true);
         fetchTasks(item);

@@ -5,12 +5,12 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import clear from "../assets/home/image 2.png";
 import submit from "../assets/home/image 1.png";
+import searchIcon from "../assets/Quiz/Group 1.png";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { Timestamp } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useTask } from "../components/TaskContext";
+import { db } from "../firebase";
+import deleteIcon from "../assets/Quiz/Vector.png";
 
 interface Quiz {
     _id: string;
@@ -19,28 +19,27 @@ interface Quiz {
     Library: boolean;
     Learn: boolean;
     createdAt: Timestamp;
-    serverId: string;
     createdBy: string;
-    taskId: string;
+    savedBy: [string];
 }
 
-interface TaskSectionProps {
-    server: { serverId: string; serverName: string; memberList: string[] } | null;
-    selectedQuizTaskId: string;
-    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
-    showQuiz: boolean;
-    setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
+type UserData = {
+    uid: any;
+    email: string;
+    userName: string;
+    jobRole: string;
+    profilePicUrl: string | undefined;
+};
+
+interface Follow {
+    followeeId: string;
+}
+interface Props {
+    currentUserData: UserData | null;
 }
 
-const ConvertQuiz: React.FC<TaskSectionProps> = ({
-    server,
-    selectedQuizTaskId,
-    setShowQuiz,
-    showQuiz,
-    setSelectedQuizTaskId,
-}) => {
+const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const { task, setTask } = useTask();
     const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [currentAnswer, setCurrentAnswer] = useState("");
@@ -49,6 +48,8 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     const [showStar, setShowStar] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [userData, setUserData] = useState<UserData[]>([]);
     const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
     const [scoreError, setScoreError] = useState<boolean>(false);
     const [question, setQuestion] = useState<number>(0);
@@ -67,80 +68,74 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     };
 
     useEffect(() => {
-        const fetchQuizzes = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
-                    }
-                );
-                const data = await response.json();
-                console.log("Fetched quizzes:", data);
-                setQuizzes(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching quizzes:", error);
-                setError((error as Error).message);
-                setLoading(false);
+        const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
+            if (userIds.length === 0) {
+                return [];
             }
+
+            const userDetails: UserData[] = [];
+            for (const id of userIds) {
+                const userDoc = await getDoc(doc(db, "users", id));
+                if (userDoc.exists()) {
+                    userDetails.push({ uid: id, ...userDoc.data() } as UserData);
+                }
+            }
+            setUserData(userDetails);
+
+            return userDetails;
         };
 
-        const fetchQuizzes2 = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
-                    }
-                );
-                const data = await response.json();
-                console.log("Fetched2 quizzes:", data);
-                setQuizzes(data);
-                setFilteredQuizzes(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching quizzes:", error);
-                setError((error as Error).message);
-                setLoading(false);
-            }
-        };
-        if (selectedQuizTaskId) {
-            fetchQuizzes();
-        } else if (selectedQuizTaskId === "") {
-            fetchQuizzes2();
+        if (filteredQuizzes.length > 0) {
+            const userIds = filteredQuizzes.map((quiz) => quiz.createdBy);
+            fetchUserDetails(userIds);
         }
+    }, [filteredQuizzes]);
+
+
+    const fetchSavedQuizzes = async () => {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/all/${currentUserData?.uid}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch quizzes");
+        }
+        if (response.ok) {
+            const data = await response.json();
+            console.log("savedQuiz", data);
+
+            setQuizzes(data);
+            setFilteredQuizzes(data);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSavedQuizzes();
     }, []);
 
     useEffect(() => {
-        if (selectedQuizTaskId && showQuiz) {
-            const filtered = quizzes.filter(
-                (quiz) => quiz.taskId === selectedQuizTaskId
-            );
-            setFilteredQuizzes(filtered);
-            if (filtered.length > 0) {
-                const Newfiltered = quizzes.filter(
-                    (quiz) => quiz.taskId !== selectedQuizTaskId
-                );
-                setFilteredQuizzes([...filtered, ...Newfiltered]);
-                setCurrentQuizIndex(0);
-                setShowQuiz(true);
-            }
-        }
-    }, [selectedQuizTaskId, showQuiz, quizzes]);
-
-    useEffect(() => {
-        if (selectedQuizTaskId === "") {
-            const filtered = quizzes
+        const filtered = Array.isArray(quizzes)
+            ? quizzes
                 .slice()
                 .reverse()
-                .filter((quiz) => quiz);
-
-            setFilteredQuizzes(filtered);
-            setCurrentQuizIndex(0);
-        }
-    }, [quizzes]);
-
+                .filter(
+                    (quiz) =>
+                        quiz.keyLearningPoint
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                        quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            : [];
+        setFilteredQuizzes(filtered);
+        setCurrentQuizIndex(0);
+    }, [searchTerm, quizzes]);
 
     useEffect(() => {
         if (filteredQuizzes[currentQuizIndex]?.Library) {
@@ -151,11 +146,9 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     }, [currentQuizIndex, filteredQuizzes]);
 
     const handleAnswerSubmit = () => {
-
         if (!currentAnswer.trim()) {
             return; // Exit the function early
         }
-
         if (
             currentAnswer.trim().toLowerCase() ===
             filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase()
@@ -181,81 +174,132 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
         setShowAnswer(true);
     };
 
-    const fetchTaskById = async (taskId: string) => {
-        try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
-            );
-
-            if (response) {
-                setTask(response.data);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    useEffect(() => {
-        if (filteredQuizzes[currentQuizIndex]) {
-            fetchTaskById(filteredQuizzes[currentQuizIndex].taskId);
-        }
-    }, [currentQuizIndex]);
-
     const handlePrevQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex > 0) {
             setCurrentQuizIndex(currentQuizIndex - 1);
             setShowAnswer(false);
         }
         setCurrentAnswer("");
-
     };
 
     // Navigate to the next quiz
     const handleNextQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex < quizzes.length - 1) {
             setCurrentQuizIndex(currentQuizIndex + 1);
             setShowAnswer(false);
         }
         setCurrentAnswer("");
+    };
 
+    const handleRemoveSave = async (quizId: string) => {
+        if (quizId) {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/delete/${filteredQuizzes[currentQuizIndex]._id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+
+                    body: JSON.stringify({ savedBy: currentUserData?.uid }),
+                }
+            );
+
+            if (response.ok) {
+                const updatedQuiz = await response.json(); // Update the state with the updated quiz data
+                setQuizzes((prev) =>
+                    prev.map((quiz) =>
+                        quiz._id === updatedQuiz._id ? updatedQuiz : quiz
+                    )
+                );
+                fetchSavedQuizzes();
+            }
+            if (!response.ok) {
+                throw new Error("Failed to Remove quiz");
+            }
+        }
     };
 
     if (loading) {
-        return <div>Loading quizzes...</div>;
+        return <div >Loading saved quizzes...</div>; // Show loading while fetching data
     }
 
-    if (error) {
-        return <div>Error: {error}</div>;
+    if (filteredQuizzes.length === 0) {
+        return (
+            <div className="text-[20px] text-center font-bold items-center text-black mt-12">
+                No saved quizzes available
+            </div>
+        ); // Show "No feed quizzes available" after loading if no quizzes are found
     }
-
-    // If there are no quizzes, show a message
-    if (quizzes.length === 0) {
-        return <div>No quizzes available</div>;
-    }
-    console.log(currentQuizIndex);
 
     return (
-        <div className="w-full bg-white relative overflow-y-auto max-h-screen">
+        <div className="w-full min-h-screen bg-white">
             <div className="my-4 flex justify-between items-center">
-                <div className=" font-semibold flex-1">Quiz</div>
-                <p className="">
-                    {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                        ? filteredQuizzes[currentQuizIndex]?.createdAt
-                            .toDate()
-                            .toLocaleDateString()
-                        : new Date(
-                            filteredQuizzes[currentQuizIndex]?.createdAt
-                        ).toLocaleDateString()}
-                </p>
+
+                <div className="ml-auto relative">
+                    <input
+                        type="text"
+                        placeholder="Search key words"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                    />
+                    <Image
+                        src={searchIcon}
+                        alt="Search Icon"
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                    />
+                </div>
             </div>
-            <div className=" flex justify-end mr-7">
-                {filteredQuizzes[currentQuizIndex]?.Library && (
-                    <Image src={goldStar} alt="Star" className="h-6 w-6" />
-                )}
-            </div>
+
             <main className="">
+                <div className="text-black flex flex-row items-center gap-4 ">
+                    <div className="font-bold">
+                        <div className="text-[20px] text-start">
+                            <span>{userData && userData[currentQuizIndex]?.userName}</span>,{" "}
+                            <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
+                            <span className="ml-auto">
+                                [{filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                                    ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                        .toDate()
+                                        .toLocaleDateString()
+                                    : new Date(
+                                        filteredQuizzes[currentQuizIndex]?.createdAt
+                                    ).toLocaleDateString()}]
+                            </span>
+                        </div>
+                    </div>
+
+                    {filteredQuizzes[currentQuizIndex]?.Library && (
+                        <div className="ml-auto">
+                            <Image src={goldStar} alt="Star" className="h-6 w-6 " />
+                        </div>
+                    )}
+                </div>
+
+                <div
+                    className="relative group flex justify-end mt-7"
+                    onClick={() =>
+                        handleRemoveSave(filteredQuizzes[currentQuizIndex]._id)
+                    }
+                >
+                    {searchTerm && (
+                        <div className="font-bold">
+                            <span className="w-48">Total Questions (Filtered):</span>
+                            <input
+                                className="w-12 border-2 text-center border-gray-300 rounded-md"
+                                value={filteredQuizzes.length}
+                                readOnly
+                            />
+                        </div>
+                    )}
+                    <div className="justify-end flex ml-auto">
+                        <button>
+                            <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
+                        </button>
+                    </div>
+                </div>
+
                 <div className="mt-4 flex">
                     <div className="w-full flex-col">
                         <div className="bg-white rounded-md">
@@ -320,8 +364,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </button>
                     ) : (
                         <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                            Answer:
-                            {filteredQuizzes[currentQuizIndex]?.action}
+                            Answer: {filteredQuizzes[currentQuizIndex]?.action}
                         </p>
                     )}
                 </div>
@@ -337,7 +380,10 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                             handleNextQuiz();
                             setIsAnswerSubmitted(false); // Re-enable submit for the next question
                         }}
-                        disabled={currentQuizIndex === filteredQuizzes.length - 1}
+                        disabled={
+                            currentQuizIndex === quizzes.length - 1 ||
+                            currentQuizIndex === filteredQuizzes.length - 1
+                        }
                     >
                         <FaArrowRight size={24} />
                     </button>
@@ -366,9 +412,10 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         />
                     </div>
                 </div>
+
             </main>
         </div>
     );
 };
 
-export default ConvertQuiz;
+export default SavedQuizzes;

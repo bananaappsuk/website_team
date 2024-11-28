@@ -22,6 +22,7 @@ const Career: React.FC<Props> = ({ userData }) => {
 
     const [user, setUser] = useState<UserData | null>(null);
     const [buttonText, setButtonText] = useState("Save");
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const fetchUserDocumentById = async (uid: string) => {
         try {
             const userDocRef = doc(db, "users", uid);
@@ -63,6 +64,7 @@ const Career: React.FC<Props> = ({ userData }) => {
                 jobs_Descriptions: user.jobsAndDescriptions || "",
             }));
             setButtonText("Save");
+            setIsButtonDisabled(true);
         }
     }, [user])
 
@@ -77,6 +79,7 @@ const Career: React.FC<Props> = ({ userData }) => {
             });
             toast.success("Updated successfully");
             setButtonText("Saved");
+            setIsButtonDisabled(true);
         } catch (error) {
             console.error("Error updating user profile: ", error);
         }
@@ -85,16 +88,29 @@ const Career: React.FC<Props> = ({ userData }) => {
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const { name, value } = e.target;
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-        if (buttonText !== "Save Changes") {
-            setButtonText("Save Changes");
-        }
-    };
+        setFormData((prev) => {
+            const updatedFormData = {
+                ...prev,
+                [name]: value,
+            };
+            const hasChanges =
+                updatedFormData.careerAspirations !== user?.careerAspirations ||
+                updatedFormData.jobs_Descriptions !== user?.jobsAndDescriptions;
+            const isEmpty =
+                updatedFormData.careerAspirations.trim() === "" &&
+                updatedFormData.jobs_Descriptions.trim() === "";
 
-    console.log(user);
+            setIsButtonDisabled(isEmpty || !hasChanges);
+
+            if (isEmpty) {
+                setButtonText("Save"); // Reset to "Save" if both fields are empty
+            } else if (hasChanges) {
+                setButtonText("Save Changes"); // Update to "Save Changes" if there's a modification
+            }
+
+            return updatedFormData;
+        });
+    };
 
     return (
         <>
@@ -112,7 +128,7 @@ const Career: React.FC<Props> = ({ userData }) => {
                                     name="jobs_Descriptions"
                                     value={formData.jobs_Descriptions}
                                     onChange={handleChange}
-                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-gray-100"
+                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white"
                                 ></textarea>
                             </p>
                         </div>
@@ -127,14 +143,15 @@ const Career: React.FC<Props> = ({ userData }) => {
                                     name="careerAspirations"
                                     value={formData.careerAspirations}
                                     onChange={handleChange}
-                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-gray-100"
+                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white"
                                 ></textarea>
                             </p>
                         </div>
                     </div>
                     <button
-                        className=" absolute right-4 bg-[#67A76B] text-white hover:bg-green-600 rounded-md p-1 px-6"
+                        className={`absolute right-4 text-white rounded-md p-1 px-6  ${isButtonDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-[#67A76B] hover:bg-green-600"}`}
                         onClick={handleSave}
+                        disabled={isButtonDisabled}
                     >
                         {buttonText}
                     </button>

@@ -37,10 +37,7 @@ const quizSchema = new mongoose.Schema({
     enum: ["onlyMe", "followers", "public"],
     default: "onlyMe",
   },
-  isSaved: {
-    type: Boolean,
-    default: false,
-  },
+  savedBy: { type: [String], default: [] },
 });
 
 const Quiz = mongoose.model('Quiz', quizSchema);
