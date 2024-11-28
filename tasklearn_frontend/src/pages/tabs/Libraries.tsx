@@ -12,6 +12,7 @@ interface Library {
     Library: boolean;
     Learn: boolean;
     createdAt: Timestamp;
+    taskId:string
 }
 
 type UserData = {
@@ -72,10 +73,10 @@ const Libraries: React.FC<Props> = ({ userData }) => {
         setCurrentLibraryIndex(0);
     }, [searchTerm, libraries]);
 
-    const handleDeleteLibrary = async (libraryId: string) => {
+    const handleDeleteLibrary = async (taskId: string) => {
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${libraryId}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${taskId}`,
                 {
                     method: "DELETE",
                 }
@@ -87,7 +88,7 @@ const Libraries: React.FC<Props> = ({ userData }) => {
             }
 
             const updatedLibraries = libraries.filter(
-                (library) => library._id !== libraryId
+                (library) => library.taskId !== taskId
             );
             setLibraries(updatedLibraries);
             setFilteredLibraries(updatedLibraries);
@@ -166,7 +167,7 @@ const Libraries: React.FC<Props> = ({ userData }) => {
                                 <div className="relative group">
                                     <button
                                         className="p-2"
-                                        onClick={() => handleDeleteLibrary(library._id)}
+                                        onClick={() => handleDeleteLibrary(library.taskId)}
                                     >
                                         <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
                                     </button>
