@@ -195,24 +195,24 @@ const TaskSharing = () => {
         }
     }, [selectedServer]);
 
-    // useEffect(() => {
-    //     if (!loading && !user) {
-    //         setRedirecting(true);
-    //         const timer = setTimeout(() => {
-    //             router.push("/signin");
-    //         }, 1000);
+    useEffect(() => {
+        if (!loading && !user) {
+            setRedirecting(true);
+            const timer = setTimeout(() => {
+                router.push("/signin");
+            }, 1000);
 
-    //         return () => clearTimeout(timer);
-    //     }
-    // }, [loading, user, router]);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, user, router]);
 
-    // if (redirecting) {
-    //     return <div>Loading...</div>;
-    // }
+    if (redirecting) {
+        return <div>Loading...</div>;
+    }
 
-    // if (loading) {
-    //     return <p>Loading...</p>;
-    // }
+    if (loading) {
+        return <p>Loading...</p>;
+    }
 
     console.log(btnDisable);
 
