@@ -132,10 +132,7 @@ const TaskSharing = () => {
             }
             setLoading(false);
         });
-        if (selectedServer?.serverId) {
-            fetchPatientId(selectedServer?.serverId);
-        }
-
+        fetchPatientId();
 
         // Cleanup
         return () => unsubscribe();
