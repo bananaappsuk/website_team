@@ -25,6 +25,7 @@ interface SidebarProfileProps {
     setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
     taskCategories: string[];
     setDropdownVisible: React.Dispatch<React.SetStateAction<boolean[]>>;
+    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SidebarProfile: FC<SidebarProfileProps> = ({
@@ -34,6 +35,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     setselectedTask,
     taskCategories,
     setDropdownVisible,
+    setShowQuiz,
 }) => {
     // Make sure to define userId in props
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -96,6 +98,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     const handleServerClick = async (server: Server) => {
         if (router.pathname === "/Homepage") {
             handleTasksClick("All Tasks");
+            setShowQuiz(false);
             setselectedTask(false);
             setDropdownVisible(Array(taskCategories.length).fill(false));
             setSelectedServerId(server._id);
@@ -110,7 +113,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
 
     return (
         <aside className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen border">
-            <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold"></div>
+            <div className="text-green-500 text-lg md:text-3xl font-bold"></div>
             <div className="flex flex-col space-y-4">
                 {servers.map((server) => (
                     <div

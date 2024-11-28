@@ -21,6 +21,7 @@ interface Quiz {
     createdBy: string;
     visibility: string;
     isSaved: boolean;
+    taskId: string;
 }
 
 type UserData = {
@@ -71,30 +72,30 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
         }, 4000);
     };
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            console.log("one", userData?.uid);
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${userData?.uid}`
-                );
-                if (!response.ok) {
-                    throw new Error("Failed to fetch quizzes");
-                }
-                const data = await response.json();
-                console.log("Fetched quizzes:", data);
-                setQuizzes(data);
-                setFilteredQuizzes(data);
-                setLoading(false);
-                if (data.slice().reverse()[currentQuizIndex]?.visibility) {
-                    setVisibilityData({ visibility: data.slice().reverse()[currentQuizIndex].visibility });
-                }
-            } catch (error) {
-                console.error("Error fetching quizzes:", error);
-                setError((error as Error).message);
-                setLoading(false);
+    const fetchQuizzes = async () => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${userData?.uid}`
+            );
+            if (!response.ok) {
+                throw new Error("Failed to fetch quizzes");
             }
-        };
+            const data = await response.json();
+            console.log("Fetched quizzes:", data);
+            setQuizzes(data);
+            setFilteredQuizzes(data);
+            setLoading(false);
+            if (data.slice().reverse()[currentQuizIndex]?.visibility) {
+                setVisibilityData({ visibility: data.slice().reverse()[currentQuizIndex].visibility });
+            }
+        } catch (error) {
+            console.error("Error fetching quizzes:", error);
+            setError((error as Error).message);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchQuizzes();
     }, []);
 
@@ -220,6 +221,13 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                     body: JSON.stringify({ visibility: newVisibility }),
                 }
             );
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data) {
+                    fetchQuizzes();
+                }
+            }
         } catch (error) { }
     };
 
@@ -439,18 +447,19 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                 </div>
 
                                 <div className="mt-12 text-black flex flex-col">
-                                    <div className="flex justify-center items-center font-bold">
+                                    <div className="flex justify-center items-center font-bold mr-[140px]">
                                         <span className="w-48 text-right">Score:</span>
                                         <input
                                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                             value={score ?? 0}
                                             readOnly />{" "}
-                                        /
+                                        <p className="ml-2">/</p>
                                         <input
                                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                                            value={`${question}`} />
+                                            value={`${question}`}
+                                            readOnly />
                                     </div>
-                                    <div className="mt-4 flex justify-center items-center font-bold">
+                                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
                                         <span className="w-48 text-right">Total Questions:</span>
                                         <input
                                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"

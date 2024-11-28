@@ -138,11 +138,13 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                 if (data) {
                     console.log("Server created successfully:", data);
                     const sequenceNumber = 1;
+                    const randomNumber =
+                        Math.floor(Math.random() * 900) + 100;
                     const formattedSequenceNumber = sequenceNumber
                         .toString()
                         .padStart(4, "0");
                     const capitalizedUsername = serverName.slice(0, 3).toUpperCase();
-                    const patientId = `TL${capitalizedUsername}${formattedSequenceNumber}`;
+                    const patientId = `TL${capitalizedUsername}${randomNumber}${formattedSequenceNumber}`;
 
                     const response2 = await fetch(
                         `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/new`,
@@ -269,7 +271,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                         />
                                         <div className="font-bold ml-5">
                                             <h2
-                                                className={`text-xl font-semibold ${server.channelName === "SpecialChannel"
+                                                className={`text-lg font-bold ${server.channelName === "SpecialChannel"
                                                     ? "text-blue-700"
                                                     : "text-black"
                                                     }`}

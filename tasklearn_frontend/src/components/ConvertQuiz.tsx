@@ -344,20 +344,21 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                 </div>
 
                 <div className="mt-12 text-black flex flex-col">
-                    <div className="flex justify-center items-center font-bold ml-4">
+                    <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
                         <span className="w-48 text-right">Score:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={score ?? 0}
                             readOnly
                         />{" "}
-                        /
+                        <p className="ml-2">/</p>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={`${question}`}
+                            readOnly
                         />
                     </div>
-                    <div className="mt-4 flex justify-center items-center font-bold">
+                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
                         <span className="w-48 text-right">Total Questions:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"

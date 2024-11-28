@@ -250,6 +250,8 @@ const UserProfile = () => {
                     throw new Error("Function not implemented.");
                 }} taskCategories={[]} setDropdownVisible={function (value: React.SetStateAction<boolean[]>): void {
                     throw new Error("Function not implemented.");
+                }} setShowQuiz={function (value: React.SetStateAction<boolean>): void {
+                    throw new Error("Function not implemented.");
                 }} />
                 <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
@@ -263,12 +265,19 @@ const UserProfile = () => {
                                 </a>
                             </p>
                         </div>
-
-                        <div className="px-4 text-black font-bold items-center flex justify-end gap-2">
-                            <a href="/Homepage" onClick={handleBeforeUnload}>
-                                H
-                            </a>
-                            <a href="/UserProfile">P</a>
+                        <div className="flex gap-4 items-center">
+                            <div className="px-4 text-black font-bold flex justify-end gap-2">
+                                <a href="/Homepage" onClick={handleBeforeUnload}>
+                                    H
+                                </a>
+                                <a href="/UserProfile">P</a>
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="mt-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                            >
+                                Logout
+                            </button>
                         </div>
                     </div>
 
@@ -292,15 +301,6 @@ const UserProfile = () => {
                                 </p>
                             </div>
 
-                            {/* Conditionally render the Logout button */}
-                            {showLogout && (
-                                <button
-                                    onClick={logout}
-                                    className="mt-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
-                                >
-                                    Logout
-                                </button>
-                            )}
                         </div>
                         <div className="ml-auto relative mt-4 mr-8">
                             <div ref={searchRef} className="relative">
