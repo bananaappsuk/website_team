@@ -26,6 +26,8 @@ import { toast } from "react-toastify";
 import { decryptData } from "../utils/cryptoUtils";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import Quizzes from "./tabs/Quizzes";
+import OtherProfileQuizzes from "@/components/OtherProfileSection";
+import OtherProfileSection from "@/components/OtherProfileSection";
 
 type UserData = {
     uid: string;
@@ -361,10 +363,10 @@ const OtherProfile = () => {
     console.log(followingUsers);
 
     return (
-        <div className="w-full flex gap-2 bg-gray-100">
-            <div className="flex flex-col lg:flex-row w-full">
-                {/* Sidebar */}
-                {/* <div className="w-full lg:w-[7%] flex lg:flex-col items-center bg-white p-4">
+      <div className="w-full flex gap-2 bg-gray-100">
+        <div className="flex flex-col lg:flex-row w-full">
+          {/* Sidebar */}
+          {/* <div className="w-full lg:w-[7%] flex lg:flex-col items-center bg-white p-4">
           <div className="pt-4 text-green-500 text-lg md:text-3xl font-bold">
             <Link href="/Homepage">TL</Link>
           </div>
@@ -375,189 +377,192 @@ const OtherProfile = () => {
             +
           </button>
         </div> */}
-                {/* <img src="assets/Ellipse_1.png" alt="Profile" /> */}
-                {/* Main Content Area */}
-                <div className="w-full lg:w-[100%] bg-white shadow-md p-4">
-                    {/* Header */}
-                    <div className="p-4 flex justify-between">
-                        <div className="text-start">
-                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
-                                <Link href="/Homepage">T-askLearn</Link>
-                            </h1>
-                            <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
-                                <Link href="/Homepage">
-                                    Collaborate to Learn, Learn to Collaborate
-                                </Link>
-                            </p>
-                        </div>
-                        <div className="px-4 text-black font-bold items-center flex justify-end gap-2">
-                            <Link href="/Homepage">H</Link>
-                            <Link href="/UserProfile">P</Link>
-                        </div>
-                    </div>
-                    <div className="h-[1px] w-full bg-gray-300"></div>
-                    {/* User Info */}
-                    <div className="flex flex-col lg:flex-row mt-4">
-                        <div className="w-full lg:w-auto items-center p-4  flex-col">
-                            <img
-                                src={otherUser?.profilePicUrl}
-                                alt="profilePic"
-                                className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
-                            />
-                            <p className="text-lg font-bold">
-                                {otherUser?.userName + "," + otherUser?.jobRole}
-                            </p>
-                        </div>
-                        <div className="ml-auto flex items-center">
-                            {/* Step 3: Add onClick handler to open modal */}
-                            <button
-                                className={`mb-20   rounded-md px-4 py-2 ${checkAcceptedRequest() ? styleAccept : stylePending
-                                    }`}
-                                onClick={handleFollowRequest}
-                            >
-                                {buttonText}
-                            </button>
-                        </div>
-                    </div>
-                    {/* Main Quiz Section */}
-                    <div className="p-4 lg:w-[40%] float-left">
-                        <Quizzes userData={userData} />
-                    </div>
-                    <div className="p-4 border-2 rounded-lg ">
-                        {/* Tabs: Followers, Following, Career */}
-                        <div className="flex justify-around border-b mb-4 P1_2 fo_22">
-                            <button className="text-center flex-1 py-2 border-gray-400">
-                                Followers
-                            </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
-                                Following
-                            </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
-                                Career
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center">
-                            {/* Followers Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
-                                    List of Followers
-                                </h3>
-                                <ul className="space-y-2">
-                                    {followerUsers.length === 0 && <p>No Followers List Found</p>}
-                                    {followerUsers?.map((user, index) => {
-                                        const isPending = checkOtherFollowRequest(user.uid);
-                                        const isAccepted = checkOtherAcceptedRequest(user.uid);
-                                        const isDisabled = user.uid === userData?.uid;
-                                        const css = {
-                                            buttonStyle: isAccepted
-                                                ? "bg-[#67A76B] text-white hover:bg-green-600"
-                                                : isPending
-                                                    ? "bg-gray-400 text-white hover:bg-gray-600"
-                                                    : "bg-[#67A76B] text-white hover:bg-green-600",
-                                            buttonText: isDisabled
-                                                ? "Follower"
-                                                : isAccepted
-                                                    ? "Following"
-                                                    : isPending
-                                                        ? "Requested"
-                                                        : "Follow",
-                                        };
-                                        return (
-                                            <div
-                                                key={index}
-                                                className=" flex items-center gap-x-1 border-b py-2"
-                                            >
-                                                <p className="w-[70%] text-[14px] text-left">
-                                                    {user.userName + "," + user.jobRole}
-                                                </p>
-
-                                                <button
-                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
-                                                    onClick={() => handleOtherFollower(user.uid)}
-                                                    disabled={user.uid === userData?.uid}
-                                                >
-                                                    {css.buttonText}
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                    {/* Add more followers here */}
-                                </ul>
-                            </div>
-                            {/* Following Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
-                                    Following List
-                                </h3>
-                                <ul className="space-y-2">
-                                    {followingUsers.length === 0 && (
-                                        <p>No Following List Found</p>
-                                    )}
-                                    {followingUsers?.map((user, index) => {
-                                        const isPending = checkOtherFollowRequest(user.uid);
-                                        const isAccepted = checkOtherAcceptedRequest(user.uid);
-                                        const isDisabled = user.uid === userData?.uid;
-                                        const css = {
-                                            buttonStyle: isAccepted
-                                                ? "bg-[#67A76B] text-white hover:bg-green-600"
-                                                : isPending
-                                                    ? "bg-gray-400 text-white hover:bg-gray-600"
-                                                    : "bg-[#67A76B] text-white hover:bg-green-600",
-                                            buttonText: isDisabled
-                                                ? "Following"
-                                                : isAccepted
-                                                    ? "Following"
-                                                    : isPending
-                                                        ? "Requested"
-                                                        : "Follow",
-                                        };
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-x-1 border-b py-2"
-                                            >
-                                                <p className="w-[70%] text-[14px] text-left">
-                                                    {user.userName + "," + user.jobRole}
-                                                </p>
-
-                                                <button
-                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
-                                                    onClick={() => handleOtherFollower(user.uid)}
-                                                    disabled={user.uid === userData?.uid}
-                                                >
-                                                    {css.buttonText}
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-
-                                    {/* Add more following here */}
-                                </ul>
-                            </div>
-                            {/* Career Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
-                                    Job role and description
-                                </h3>
-                                <textarea
-                                    disabled
-                                    value={otherUser?.jobsAndDescriptions || ""}
-                                    className="border mb-4 p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
-                                ></textarea>
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
-                                    Career Aspirations
-                                </h3>
-                                <textarea
-                                    disabled
-                                    value={otherUser?.careerAspirations || ""}
-                                    className="border p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
-                                ></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+          {/* <img src="assets/Ellipse_1.png" alt="Profile" /> */}
+          {/* Main Content Area */}
+          <div className="w-full lg:w-[100%] bg-white shadow-md p-4">
+            {/* Header */}
+            <div className="p-4 flex justify-between">
+              <div className="text-start">
+                <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
+                  <Link href="/Homepage">T-askLearn</Link>
+                </h1>
+                <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                  <Link href="/Homepage">
+                    Collaborate to Learn, Learn to Collaborate
+                  </Link>
+                </p>
+              </div>
+              <div className="px-4 text-black font-bold items-center flex justify-end gap-2">
+                <Link href="/Homepage">H</Link>
+                <Link href="/UserProfile">P</Link>
+              </div>
             </div>
+            <div className="h-[1px] w-full bg-gray-300"></div>
+            {/* User Info */}
+            <div className="flex flex-col lg:flex-row mt-4">
+              <div className="w-full lg:w-auto items-center p-4  flex-col">
+                <img
+                  src={otherUser?.profilePicUrl}
+                  alt="profilePic"
+                  className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
+                />
+                <p className="text-lg font-bold">
+                  {otherUser?.userName + "," + otherUser?.jobRole}
+                </p>
+              </div>
+              <div className="ml-auto flex items-center">
+                {/* Step 3: Add onClick handler to open modal */}
+                <button
+                  className={`mb-20   rounded-md px-4 py-2 ${
+                    checkAcceptedRequest() ? styleAccept : stylePending
+                  }`}
+                  onClick={handleFollowRequest}
+                >
+                  {buttonText}
+                </button>
+              </div>
+            </div>
+            {/* Main Quiz Section */}
+            <div className="p-4 lg:w-[40%] float-left">
+              <OtherProfileSection otherUser={otherUser} userData={userData} />
+            </div>
+            <div className="p-4 border-2 rounded-lg ">
+              {/* Tabs: Followers, Following, Career */}
+              <div className="flex justify-around border-b mb-4 P1_2 fo_22">
+                <button className="text-center flex-1 py-2 border-gray-400">
+                  Followers
+                </button>
+                <button className="text-center flex-1 py-2 border-gray-400">
+                  Following
+                </button>
+                <button className="text-center flex-1 py-2 border-gray-400">
+                  Career
+                </button>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center">
+                {/* Followers Section */}
+                <div className="bg-white p-4 shadow-md rounded-md">
+                  <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                    List of Followers
+                  </h3>
+                  <ul className="space-y-2">
+                    {followerUsers.length === 0 && (
+                      <p>No Followers List Found</p>
+                    )}
+                    {followerUsers?.map((user, index) => {
+                      const isPending = checkOtherFollowRequest(user.uid);
+                      const isAccepted = checkOtherAcceptedRequest(user.uid);
+                      const isDisabled = user.uid === userData?.uid;
+                      const css = {
+                        buttonStyle: isAccepted
+                          ? "bg-[#67A76B] text-white hover:bg-green-600"
+                          : isPending
+                          ? "bg-gray-400 text-white hover:bg-gray-600"
+                          : "bg-[#67A76B] text-white hover:bg-green-600",
+                        buttonText: isDisabled
+                          ? "Follower"
+                          : isAccepted
+                          ? "Following"
+                          : isPending
+                          ? "Requested"
+                          : "Follow",
+                      };
+                      return (
+                        <div
+                          key={index}
+                          className=" flex items-center gap-x-1 border-b py-2"
+                        >
+                          <p className="w-[70%] text-[14px] text-left">
+                            {user.userName + "," + user.jobRole}
+                          </p>
+
+                          <button
+                            className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                            onClick={() => handleOtherFollower(user.uid)}
+                            disabled={user.uid === userData?.uid}
+                          >
+                            {css.buttonText}
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {/* Add more followers here */}
+                  </ul>
+                </div>
+                {/* Following Section */}
+                <div className="bg-white p-4 shadow-md rounded-md">
+                  <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                    Following List
+                  </h3>
+                  <ul className="space-y-2">
+                    {followingUsers.length === 0 && (
+                      <p>No Following List Found</p>
+                    )}
+                    {followingUsers?.map((user, index) => {
+                      const isPending = checkOtherFollowRequest(user.uid);
+                      const isAccepted = checkOtherAcceptedRequest(user.uid);
+                      const isDisabled = user.uid === userData?.uid;
+                      const css = {
+                        buttonStyle: isAccepted
+                          ? "bg-[#67A76B] text-white hover:bg-green-600"
+                          : isPending
+                          ? "bg-gray-400 text-white hover:bg-gray-600"
+                          : "bg-[#67A76B] text-white hover:bg-green-600",
+                        buttonText: isDisabled
+                          ? "Following"
+                          : isAccepted
+                          ? "Following"
+                          : isPending
+                          ? "Requested"
+                          : "Follow",
+                      };
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center gap-x-1 border-b py-2"
+                        >
+                          <p className="w-[70%] text-[14px] text-left">
+                            {user.userName + "," + user.jobRole}
+                          </p>
+
+                          <button
+                            className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                            onClick={() => handleOtherFollower(user.uid)}
+                            disabled={user.uid === userData?.uid}
+                          >
+                            {css.buttonText}
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Add more following here */}
+                  </ul>
+                </div>
+                {/* Career Section */}
+                <div className="bg-white p-4 shadow-md rounded-md">
+                  <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                    Job role and description
+                  </h3>
+                  <textarea
+                    disabled
+                    value={otherUser?.jobsAndDescriptions || ""}
+                    className="border mb-4 p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
+                  ></textarea>
+                  <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                    Career Aspirations
+                  </h3>
+                  <textarea
+                    disabled
+                    value={otherUser?.careerAspirations || ""}
+                    className="border p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     );
 };
 
