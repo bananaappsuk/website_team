@@ -115,29 +115,29 @@ const TaskSharing = () => {
         };
     }, [dropdownRef]);
 
-    // useEffect(() => {
-    //     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-    //         if (user) {
-    //             setUser(user);
-    //             const userDoc = await getDoc(doc(db, "users", user.uid));
-    //             if (userDoc.exists()) {
-    //                 setUserData({
-    //                     ...userDoc.data(),
-    //                     uid: user.uid, // Include UID in the userData state
-    //                 } as unknown as UserData);
-    //             }
-    //         } else {
-    //             setUser(null);
-    //             setUserData(null);
-    //         }
-    //         setLoading(false);
-    //     });
-    //     fetchPatientId();
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                setUser(user);
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    setUserData({
+                        ...userDoc.data(),
+                        uid: user.uid, // Include UID in the userData state
+                    } as unknown as UserData);
+                }
+            } else {
+                setUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+        fetchPatientId();
 
-    //     // Cleanup
-    //     return () => unsubscribe();
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, []);
+        // Cleanup
+        return () => unsubscribe();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const fetchQuizzes = async () => {
