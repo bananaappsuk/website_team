@@ -400,13 +400,21 @@ const OtherProfile = () => {
                     <div className="h-[1px] w-full bg-gray-300"></div>
                     {/* User Info */}
                     <div className="flex flex-col lg:flex-row mt-4">
-                        <div className="w-full lg:w-auto items-center p-4  flex-col">
-                            <img
-                                src={otherUser?.profilePicUrl}
-                                alt="profilePic"
-                                className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
-                            />
-                            <p className="text-lg font-bold">
+                        <div className="w-full lg:w-auto items-center p-4 flex-col">
+                            {otherUser?.profilePicUrl ? (
+                                <img
+                                    src={otherUser?.profilePicUrl}
+                                    alt="profilePic"
+                                    className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
+                                />
+                            ) : (
+                                <div
+                                    className="flex items-center justify-center bg-cover mx-auto object-cover w-[67px] h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                >
+                                    {otherUser?.userName?.[0]?.toUpperCase() || "?"}
+                                </div>
+                            )}
+                            <p className="text-lg font-bold mt-2">
                                 {otherUser?.userName + "," + otherUser?.jobRole}
                             </p>
                         </div>
