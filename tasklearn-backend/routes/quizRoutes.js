@@ -13,6 +13,8 @@ const {
   saveQuizzes,
   getSavedQuizzes,
   deleteSavedQuizzes,
+  getFollowerQuizzesOtherProfile,
+  getPublicQuizzesOtherProfile,
 } = require("../controllers/quizController");
 
 const router = express.Router();
@@ -29,5 +31,7 @@ router.patch("/visibility/:id",updateQuizVisibility);
 router.get('/feed/saved/all/:id',getSavedQuizzes);
 router.patch("/feed/saved/delete/:id", deleteSavedQuizzes);
 router.patch("/save/:id",saveQuizzes);
+router.get("/feed/followers/:id",getFollowerQuizzesOtherProfile);
+router.get("/all/feed/public",getPublicQuizzesOtherProfile);
 
 module.exports = router;

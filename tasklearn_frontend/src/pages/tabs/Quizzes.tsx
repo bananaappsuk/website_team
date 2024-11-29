@@ -255,8 +255,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
             <div className="w-full min-h-screen bg-white">
                 {!showQuiz && (
-                    <div className="my-4 flex justify-between items-center">
-                        <div className="text-center font-bold flex-1 text-[20px]">Quiz Visible to</div>
+                    <div className="flex justify-end">
                         <div className="ml-auto relative">
                             <input
                                 type="text"
@@ -274,50 +273,55 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                     </div>
                 )}
 
+
                 <main className="">
                     {filteredQuizzes.length === 0 ? (
                         <div className="text-[20px] text-center items-center font-bold text-black mt-12">
                             No quizzes available
                         </div>
                     ) : (
-                        <><div className="px-28 pt-8 pb-4 flex justify-between items-center">
-                            <div>
-                                <input
-                                    type="radio"
-                                    id="onlyMe"
-                                    name="visibility"
-                                    checked={visibilityData.visibility === "onlyMe"}
-                                    value="onlyMe"
-                                    onChange={handleVisibilityChange} />
-                                <label htmlFor="onlyMe" className="ml-2">
-                                    Only Me
-                                </label>
+                        <>
+                            <div className="my-4 flex justify-between items-center">
+                                <div className="text-center font-bold flex-1 text-[20px]">Quiz Visible to</div>
                             </div>
-                            <div>
-                                <input
-                                    type="radio"
-                                    id="followers"
-                                    name="visibility"
-                                    value="followers"
-                                    checked={visibilityData.visibility === "followers"}
-                                    onChange={handleVisibilityChange} />
-                                <label htmlFor="followers" className="ml-2">
-                                    Followers
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    type="radio"
-                                    id="public"
-                                    name="visibility"
-                                    checked={visibilityData.visibility === "public"}
-                                    value="public"
-                                    onChange={handleVisibilityChange} />
-                                <label htmlFor="public" className="ml-2">
-                                    Public
-                                </label>
-                            </div>
-                        </div><div className="">
+                            <div className="px-28 pt-8 pb-4 flex justify-between items-center">
+                                <div>
+                                    <input
+                                        type="radio"
+                                        id="onlyMe"
+                                        name="visibility"
+                                        checked={visibilityData.visibility === "onlyMe"}
+                                        value="onlyMe"
+                                        onChange={handleVisibilityChange} />
+                                    <label htmlFor="onlyMe" className="ml-2">
+                                        Only Me
+                                    </label>
+                                </div>
+                                <div>
+                                    <input
+                                        type="radio"
+                                        id="followers"
+                                        name="visibility"
+                                        value="followers"
+                                        checked={visibilityData.visibility === "followers"}
+                                        onChange={handleVisibilityChange} />
+                                    <label htmlFor="followers" className="ml-2">
+                                        Followers
+                                    </label>
+                                </div>
+                                <div>
+                                    <input
+                                        type="radio"
+                                        id="public"
+                                        name="visibility"
+                                        checked={visibilityData.visibility === "public"}
+                                        value="public"
+                                        onChange={handleVisibilityChange} />
+                                    <label htmlFor="public" className="ml-2">
+                                        Public
+                                    </label>
+                                </div>
+                            </div><div className="">
                                 <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
                                     {searchTerm && (
                                         <div className="flex justify-start font-bold">

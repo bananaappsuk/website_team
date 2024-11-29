@@ -98,7 +98,8 @@ const TaskSection: React.FC<CombinedProps> = ({
         setIsOpen(!isOpen);
     };
     const handleDropdown = (index: any) => {
-        setselectedTask(false);
+        setselectedTask(true);
+        // setShowQuiz(true);
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
         );

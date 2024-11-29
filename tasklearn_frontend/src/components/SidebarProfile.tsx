@@ -25,7 +25,6 @@ interface SidebarProfileProps {
     setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
     taskCategories: string[];
     setDropdownVisible: React.Dispatch<React.SetStateAction<boolean[]>>;
-    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SidebarProfile: FC<SidebarProfileProps> = ({
@@ -35,7 +34,6 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     setselectedTask,
     taskCategories,
     setDropdownVisible,
-    setShowQuiz,
 }) => {
     // Make sure to define userId in props
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -98,7 +96,6 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     const handleServerClick = async (server: Server) => {
         if (router.pathname === "/Homepage") {
             handleTasksClick("All Tasks");
-            setShowQuiz(false);
             setselectedTask(false);
             setDropdownVisible(Array(taskCategories.length).fill(false));
             setSelectedServerId(server._id);
@@ -107,6 +104,15 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
                     serverId: server._id,
                     serverName: server.channelName,
                     memberList: server.memberList
+                });
+            fetchPatientId(selectedServerId && selectedServerId)
+        } else if (router.pathname === "/UserProfile") {
+            setSelectedServerId(server._id);
+            onServerSelect &&
+                onServerSelect({
+                    serverId: server._id,
+                    serverName: server.channelName,
+                    memberList: server.memberList,
                 });
         }
     };

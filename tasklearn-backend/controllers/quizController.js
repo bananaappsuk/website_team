@@ -210,6 +210,36 @@ const deleteSavedQuizzes = async (req, res) => {
   }
 };
 
+const getFollowerQuizzesOtherProfile = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const quiz = await Quiz.find({
+      createdBy: id,
+      visibility: "followers",
+    });
+
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+};
+
+const getPublicQuizzesOtherProfile = async (req, res) => {
+
+  try {
+    const quiz = await Quiz.find({
+      visibility: "public",
+    });
+    
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+  
+
+};
+
 
 module.exports = {
   createQuiz,
@@ -224,4 +254,6 @@ module.exports = {
   saveQuizzes,
   getSavedQuizzes,
   deleteSavedQuizzes,
+  getPublicQuizzesOtherProfile,
+  getFollowerQuizzesOtherProfile,
 };

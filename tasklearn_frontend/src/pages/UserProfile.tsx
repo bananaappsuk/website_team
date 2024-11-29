@@ -61,7 +61,7 @@ const UserProfile = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("My Quiz");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { task } = useTask();
+    const { task, selectedServerId } = useTask();
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [followDocs, setFollowDocs] = useState<Follow[]>([]);
@@ -72,6 +72,11 @@ const UserProfile = () => {
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
     const searchRef = useRef<HTMLDivElement>(null);
     const [showResults, setShowResults] = useState(false);
+    const [selectedServer, setSelectedServer] = useState<{
+        serverId: string;
+        serverName: string;
+        memberList: string[];
+    } | null>(null);
 
 
     useEffect(() => {
@@ -238,7 +243,13 @@ const UserProfile = () => {
         }
     };
 
-
+    const handleServerSelect = (server: {
+        serverId: string;
+        serverName: string;
+        memberList: string[];
+    }) => {
+        setSelectedServer(server); // Update with selected server's ID and name
+    };
 
 
     return (
@@ -250,9 +261,7 @@ const UserProfile = () => {
                     throw new Error("Function not implemented.");
                 }} taskCategories={[]} setDropdownVisible={function (value: React.SetStateAction<boolean[]>): void {
                     throw new Error("Function not implemented.");
-                }} setShowQuiz={function (value: React.SetStateAction<boolean>): void {
-                    throw new Error("Function not implemented.");
-                }} />
+                }} onServerSelect={handleServerSelect} />
                 <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
@@ -284,18 +293,25 @@ const UserProfile = () => {
                     <div className="h-[1px] w-full bg-gray-300" />
                     <div className="flex mb-4 mt-2 ">
                         <div
-                            ref={dropdownRef}
+
                             className="flex flex-row items-center ml-4 gap-y-1"
                         >
                             <div
-                                className="flex flex-col items-center cursor-pointer"
-                                onClick={handleToggle}
+                                className="flex flex-col items-center"
                             >
-                                <img
-                                    src={userData?.profilePicUrl}
-                                    alt="profilePic"
-                                    className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full"
-                                />
+                                {userData?.profilePicUrl ? (
+                                    <img
+                                        src={userData?.profilePicUrl}
+                                        alt="profilePic"
+                                        className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full"
+                                    />
+                                ) : (
+                                    <div
+                                        className="flex items-center justify-center w-[67px] h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                    >
+                                        {userData?.userName?.[0]?.toUpperCase() || "?"}
+                                    </div>
+                                )}
                                 <p className="mt-2 font-semibold">
                                     {userData?.userName}, <span>{userData?.jobRole}</span>
                                 </p>
@@ -394,7 +410,13 @@ const UserProfile = () => {
                             ) : activeTab === "Tracking" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Tracking />
+                                        {selectedServer ? (
+                                            <Tracking selectedServer={selectedServer} />
+                                        ) : (
+                                            <div className="flex items-center justify-center px-4 py-1 text-black">
+                                                Select a server
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ) : activeTab === "Followers" ? (

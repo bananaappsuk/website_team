@@ -73,7 +73,7 @@ const FormContainer: React.FC<combinedProps> = ({
         };
     }, []);
 
-    console.log(patientIdLoading);
+    console.log("Task", selectedTask);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

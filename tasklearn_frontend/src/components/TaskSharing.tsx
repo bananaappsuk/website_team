@@ -587,8 +587,8 @@ const TaskSharing = () => {
     const handleTasksClick = (item: string) => {
         setSelectedQuizTaskId("");
         // handleResetInputs();
-        setselectedTask(false);
-        setShowQuiz(true);
+        setselectedTask(true);
+        setShowQuiz(false);
         setFilter(item);
         setShowForm(true);
         fetchTasks(item);
@@ -605,7 +605,6 @@ const TaskSharing = () => {
                     setselectedTask={setselectedTask}
                     taskCategories={taskCategories}
                     setDropdownVisible={setDropdownVisible}
-                    setShowQuiz={setShowQuiz}
                 />
                 <div className="w-[25%] flex min-h-screen">
                     <div className="w-full bg-white space-y-1">
@@ -622,19 +621,19 @@ const TaskSharing = () => {
                         <div className="h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
                             <div
-                                className="p-0 lg:p-8 flex justify-center cursor-pointer"
-                                onClick={() => {
-                                    setDropdownVisible(
-                                        Array(taskCategories.length).fill(false)
-                                    );
-                                    handleResetInputs();
-                                    setShowQuiz(false);
-                                    setselectedTask(false);
-                                }}
+                                className="p-0 lg:p-8 flex justify-center"
                             >
-                                <div className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center">
+                                <button className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer"
+                                    onClick={() => {
+                                        setDropdownVisible(
+                                            Array(taskCategories.length).fill(false)
+                                        );
+                                        handleResetInputs();
+                                        setShowQuiz(false);
+                                        setselectedTask(false);
+                                    }}>
                                     Task <FiPlus className="ml-1" />
-                                </div>
+                                </button>
                             </div>
 
                             <TaskSection
@@ -666,16 +665,23 @@ const TaskSharing = () => {
                     <section className="w-[70%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
-                                <div ref={dropdownRef} className="flex gap-x-2 items-center">
+                                <div className="flex gap-x-2 items-center">
                                     <div
-                                        className="flex items-center cursor-pointer gap-1"
-                                        onClick={handleToggle}
+                                        className="flex items-center gap-1"
                                     >
-                                        <img
-                                            src={userData?.profilePicUrl}
-                                            alt="profilePic"
-                                            className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
-                                        />
+                                        {userData?.profilePicUrl ? (
+                                            <img
+                                                src={userData?.profilePicUrl}
+                                                alt="profilePic"
+                                                className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="flex items-center justify-center w-[48.14px] h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                            >
+                                                {userData?.userName?.[0]?.toUpperCase() || "?"}
+                                            </div>
+                                        )}
                                         <p>{userData?.userName},</p>
                                         <p>{userData?.jobRole}</p>
                                     </div>
