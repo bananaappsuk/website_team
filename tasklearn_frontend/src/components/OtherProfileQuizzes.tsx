@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -5,13 +6,11 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import clear from "../assets/home/image 2.png";
 import submit from "../assets/home/image 1.png";
+import searchIcon from "../assets/Quiz/Group 1.png";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { Timestamp } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useTask } from "../components/TaskContext";
-
+import { db } from "../firebase";
 interface Quiz {
     _id: string;
     keyLearningPoint: string;
@@ -19,28 +18,24 @@ interface Quiz {
     Library: boolean;
     Learn: boolean;
     createdAt: Timestamp;
-    serverId: string;
     createdBy: string;
-    taskId: string;
 }
-
-interface TaskSectionProps {
-    server: { serverId: string; serverName: string; memberList: string[] } | null;
-    selectedQuizTaskId: string;
-    setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
-    showQuiz: boolean;
-    setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
+type UserData = {
+    uid: any;
+    email: string;
+    userName: string;
+    jobRole: string;
+    profilePicUrl: string | undefined;
+};
+interface Follow {
+    followeeId: string;
 }
-
-const ConvertQuiz: React.FC<TaskSectionProps> = ({
-    server,
-    selectedQuizTaskId,
-    setShowQuiz,
-    showQuiz,
-    setSelectedQuizTaskId,
-}) => {
+interface Props {
+    fetchId: Follow[];
+    otherUser: UserData | null;
+}
+const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const { task, setTask } = useTask();
     const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [currentAnswer, setCurrentAnswer] = useState("");
@@ -49,99 +44,116 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     const [showStar, setShowStar] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [userData, setUserData] = useState<UserData[]>([]);
     const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
     const [scoreError, setScoreError] = useState<boolean>(false);
-    const [question, setQuestion] = useState<number>(0);
-    const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
-
-    const handleClear = () => {
-        if (!currentAnswer.trim()) {
-            return; // Exit the function early
-        }
-        setScoreSuccess(false);
-        setScoreError(true); // Activate the error state
-        setTimeout(() => {
-            setScoreSuccess(false);
-            setScoreError(false); // Activate the error state
-        }, 4000);
-    };
-
+    const [question, setQuestion] = useState<number>(1);
+    const [reset, setReset] = useState<boolean>(false);
+    const [saved, setIsSaved] = useState<boolean>(false);
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
+                const combinedQuizzes: any[] = [];
+                for (let idObj of fetchId) {
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/followers/${idObj.followeeId}`,
+                        { method: "GET" }
+                    );
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch quizzes");
                     }
+                    const data = await response.json();
+                    combinedQuizzes.push(...data);
+                }
+                setQuizzes((prev) => deduplicateQuizzes([...prev, ...combinedQuizzes]));
+                setFilteredQuizzes((prev) =>
+                    deduplicateQuizzes([...prev, ...combinedQuizzes])
                 );
-                const data = await response.json();
-                console.log("Fetched quizzes:", data);
-                setQuizzes(data);
-                setLoading(false);
             } catch (error) {
                 console.error("Error fetching quizzes:", error);
                 setError((error as Error).message);
+            } finally {
                 setLoading(false);
             }
         };
-
-        const fetchQuizzes2 = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
-                    {
-                        method: "GET",
-                    }
-                );
-                const data = await response.json();
-                console.log("Fetched2 quizzes:", data);
-                setQuizzes(data);
-                setFilteredQuizzes(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching quizzes:", error);
-                setError((error as Error).message);
-                setLoading(false);
-            }
-        };
-        if (selectedQuizTaskId) {
+        if (fetchId.length > 0) {
+            setLoading(true);
             fetchQuizzes();
-        } else if (selectedQuizTaskId === "") {
-            fetchQuizzes2();
         }
-    }, []);
-
-    useEffect(() => {
-        if (selectedQuizTaskId && showQuiz) {
-            const filtered = quizzes.filter(
-                (quiz) => quiz.taskId === selectedQuizTaskId
+    }, [fetchId]);
+    const fetchPublicQuizzes = async () => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/all/feed/public`,
+                { method: "GET" }
             );
-            setFilteredQuizzes(filtered);
-            if (filtered.length > 0) {
-                const Newfiltered = quizzes.filter(
-                    (quiz) => quiz.taskId !== selectedQuizTaskId
-                );
-                setFilteredQuizzes([...filtered, ...Newfiltered]);
-                setCurrentQuizIndex(0);
-                setShowQuiz(true);
+            if (!response.ok) {
+                throw new Error("Failed to fetch quizzes");
             }
+            const data = await response.json();
+            const filteredData = data.filter(
+                (item: any) => item.createdBy === otherUser?.uid
+            );
+            setQuizzes((prev) => deduplicateQuizzes([...prev, ...data]));
+            setFilteredQuizzes((prev) => deduplicateQuizzes([...prev, ...filteredData]));
+        } catch (error) {
+            console.error("Error fetching quizzes:", error);
+        } finally {
+            setLoading(false);
         }
-    }, [selectedQuizTaskId, showQuiz, quizzes]);
+    };
+    useEffect(() => {
+        setLoading(true);
+        fetchPublicQuizzes();
+    }, []);
+    useEffect(() => {
+        const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
+            if (userIds.length === 0) {
+                return [];
+            }
+            const userDetails: UserData[] = [];
+            for (const id of userIds) {
+                const userDoc = await getDoc(doc(db, "users", id));
+                if (userDoc.exists()) {
+                    userDetails.push({ uid: id, ...userDoc.data() } as UserData);
+                }
+            }
+            setUserData(userDetails);
+            return userDetails;
+        };
+        if (filteredQuizzes.length > 0) {
+            const userIds = filteredQuizzes.map((quiz) => quiz.createdBy);
+            fetchUserDetails(userIds);
+        }
+    }, [filteredQuizzes]);
+    const deduplicateQuizzes = (quizzes: Quiz[]) => {
+        const seen = new Set();
+        return quizzes.filter((quiz: any) => {
+            const key = quiz._id; // Assuming each quiz has a unique ID
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    };
+    console.log("Uni", quizzes);
 
     useEffect(() => {
-        if (selectedQuizTaskId === "") {
-            const filtered = quizzes
-                .slice()
-                .reverse()
-                .filter((quiz) => quiz);
-
-            setFilteredQuizzes(filtered);
-            setCurrentQuizIndex(0);
-        }
-    }, [quizzes]);
-
-
+        const filtered = quizzes
+            .slice()
+            .reverse()
+            .filter(
+                (quiz) =>
+                    quiz.keyLearningPoint
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                    quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        setFilteredQuizzes(filtered);
+        setCurrentQuizIndex(0);
+    }, [searchTerm, quizzes]);
     useEffect(() => {
         if (filteredQuizzes[currentQuizIndex]?.Library) {
             setShowStar(true);
@@ -149,13 +161,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setShowStar(false);
         }
     }, [currentQuizIndex, filteredQuizzes]);
-
     const handleAnswerSubmit = () => {
-
-        if (!currentAnswer.trim()) {
-            return; // Exit the function early
-        }
-
         if (
             currentAnswer.trim().toLowerCase() ===
             filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase()
@@ -169,93 +175,81 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             setScoreSuccess(false);
             setQuestion((prevQuestion) => prevQuestion + 1);
         }
-        setIsAnswerSubmitted(true);
-        setTimeout(() => {
-            setScoreSuccess(false);
-            setScoreError(false);
-        }, 4000);
-        // setCurrentAnswer("");
+        setCurrentAnswer("");
     };
-
     const handleRevealAnswer = () => {
         setShowAnswer(true);
     };
-
-    const fetchTaskById = async (taskId: string) => {
-        try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
-            );
-
-            if (response) {
-                setTask(response.data);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    useEffect(() => {
-        if (filteredQuizzes[currentQuizIndex]) {
-            fetchTaskById(filteredQuizzes[currentQuizIndex].taskId);
-        }
-    }, [currentQuizIndex]);
-
     const handlePrevQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex > 0) {
             setCurrentQuizIndex(currentQuizIndex - 1);
             setShowAnswer(false);
         }
-        setCurrentAnswer("");
-
     };
-
     // Navigate to the next quiz
     const handleNextQuiz = () => {
-        setSelectedQuizTaskId("");
         if (currentQuizIndex < quizzes.length - 1) {
             setCurrentQuizIndex(currentQuizIndex + 1);
             setShowAnswer(false);
         }
-        setCurrentAnswer("");
-
     };
-
     if (loading) {
         return <div>Loading quizzes...</div>;
     }
-
     if (error) {
         return <div>Error: {error}</div>;
     }
-
     // If there are no quizzes, show a message
     if (quizzes.length === 0) {
         return <div>No quizzes available</div>;
     }
-    console.log(currentQuizIndex);
-
     return (
-        <div className="w-full bg-white relative overflow-y-auto max-h-screen">
+        <div className="w-full min-h-screen bg-white">
             <div className="my-4 flex justify-between items-center">
-                <div className=" font-semibold flex-1">Quiz</div>
-                <p className="">
-                    {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                        ? filteredQuizzes[currentQuizIndex]?.createdAt
-                            .toDate()
-                            .toLocaleDateString()
-                        : new Date(
-                            filteredQuizzes[currentQuizIndex]?.createdAt
-                        ).toLocaleDateString()}
-                </p>
-            </div>
-            <div className=" flex justify-end mr-7">
-                {filteredQuizzes[currentQuizIndex]?.Library && (
-                    <Image src={goldStar} alt="Star" className="h-6 w-6" />
-                )}
+                <div className=" font-semibold">
+                    <div>
+                        <span className="ml-auto">
+                            {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                                ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                    .toDate()
+                                    .toLocaleDateString()
+                                : new Date(
+                                    filteredQuizzes[currentQuizIndex]?.createdAt
+                                ).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+                <div className="ml-auto relative">
+                    <input
+                        type="text"
+                        placeholder="Search key words"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                    />
+                    <Image
+                        src={searchIcon}
+                        alt="Search Icon"
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                    />
+                </div>
             </div>
             <main className="">
+                <div className="text-sm text-black flex flex-row justify-end items-center gap-4 ">
+                    {searchTerm && (
+                        <div className="flex justify-start font-bold">
+                            <span className="w-48">Total Questions (Filtered):</span>
+                            <input
+                                className="w-12 border-2 text-center border-gray-300 rounded-md"
+                                value={filteredQuizzes.length}
+                                readOnly
+                            />
+                        </div>
+                    )}
+                    {filteredQuizzes[currentQuizIndex]?.Library && (
+                        <Image src={goldStar} alt="Star" className="h-6 w-6 " />
+                    )}
+                </div>
                 <div className="mt-4 flex">
                     <div className="w-full flex-col">
                         <div className="bg-white rounded-md">
@@ -266,7 +260,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                                 {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
                             </p>
                         </div>
-
                         <div className="bg-white rounded-md mb-4">
                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                 Action
@@ -275,10 +268,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                                 type="text"
                                 placeholder="Enter Answer"
                                 value={currentAnswer}
-                                onChange={(e) => {
-                                    setCurrentAnswer(e.target.value);
-                                    setIsAnswerSubmitted(false);
-                                }}
+                                onChange={(e) => setCurrentAnswer(e.target.value)}
                                 className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
                                     } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
                                     }`}
@@ -286,11 +276,10 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </div>
                     </div>
                 </div>
-
                 <div className="flex justify-center mt-4 gap-8">
                     <button
                         className="text-red-600 flex items-center"
-                        onClick={handleClear}
+                        onClick={() => setCurrentAnswer("")}
                     >
                         <span className="mr-1">
                             <Image src={clear} alt="clear" className="h-8 w-8" />
@@ -298,7 +287,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     </button>
                     <button
                         onClick={handleAnswerSubmit}
-                        disabled={isAnswerSubmitted}
                         className="text-green-600 flex items-center"
                     >
                         <span className="mr-1">
@@ -306,7 +294,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </span>
                     </button>
                 </div>
-
                 <div className="bg-white rounded-md my-6">
                     <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                         Action
@@ -320,45 +307,39 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </button>
                     ) : (
                         <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                            Answer:
-                            {filteredQuizzes[currentQuizIndex]?.action}
+                            Answer: {filteredQuizzes[currentQuizIndex]?.action}
                         </p>
                     )}
                 </div>
                 <div className="flex justify-center mt-8 gap-40">
-                    <button onClick={() => {
-                        handlePrevQuiz();
-                        setIsAnswerSubmitted(false); // Re-enable submit for the previous question
-                    }} disabled={currentQuizIndex === 0}>
+                    <button onClick={handlePrevQuiz} disabled={currentQuizIndex === 0}>
                         <FaArrowLeft size={24} />
                     </button>
                     <button
-                        onClick={() => {
-                            handleNextQuiz();
-                            setIsAnswerSubmitted(false); // Re-enable submit for the next question
-                        }}
-                        disabled={currentQuizIndex === filteredQuizzes.length - 1}
+                        onClick={handleNextQuiz}
+                        disabled={
+                            currentQuizIndex === quizzes.length - 1 ||
+                            currentQuizIndex === filteredQuizzes.length - 1
+                        }
                     >
                         <FaArrowRight size={24} />
                     </button>
                 </div>
-
                 <div className="mt-12 text-black flex flex-col">
-                    <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
+                    <div className="flex justify-center items-center font-bold ml-4">
                         <span className="w-48 text-right">Score:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={score ?? 0}
                             readOnly
                         />{" "}
-                        <p className="ml-2">/</p>
+                        /
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={`${question}`}
-                            readOnly
                         />
                     </div>
-                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
+                    <div className="mt-4 flex justify-center items-center font-bold">
                         <span className="w-48 text-right">Total Questions:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
@@ -371,5 +352,4 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
         </div>
     );
 };
-
-export default ConvertQuiz;
+export default OtherProfileQuizzes;

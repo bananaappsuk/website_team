@@ -9,7 +9,12 @@ type Props = {
     selectedTask: boolean;
     handleShare: (e: React.FormEvent) => Promise<void>;
     handleComplete: (e: React.FormEvent) => Promise<void>;
-
+    taggedStaffTags: string[];
+    contributingTags: string[];
+    setTaggedStaffTags: React.Dispatch<React.SetStateAction<string[]>>;
+    setContributingTags: React.Dispatch<React.SetStateAction<string[]>>;
+    setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
+    btnDisable: boolean;
 };
 type UserData = {
     uid: any;
@@ -31,14 +36,294 @@ const FormContainer: React.FC<combinedProps> = ({
     handleShare,
     handleComplete,
     userData,
+    taggedStaffTags,
+    setTaggedStaffTags,
+    contributingTags,
+    setContributingTags,
+    setBtnDisble,
+    btnDisable,
 }) => {
     const { task, setTask, patientIdLoading } = useTask();
+    const [searchUserName, setSearchUserName] = useState("");
+    const [searchUserName2, setSearchUserName2] = useState("");
+    const [serverUsers, setServerUsers] = useState<UserData[]>([]);
+    const [serverUsers2, setServerUsers2] = useState<UserData[]>([]);
+    const [showResults, setShowResults] = useState(false);
+    const [showResults2, setShowResults2] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+    const searchRef2 = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(true);
+    const [loading2, setLoading2] = useState(true);
+    const [userCheck, setUserCheck] = useState<boolean | undefined>(undefined);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                searchRef.current &&
+                !searchRef.current.contains(event.target as Node)
+            ) {
+                setShowResults(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    console.log("Task", selectedTask);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                searchRef2.current &&
+                !searchRef2.current.contains(event.target as Node)
+            ) {
+                setShowResults2(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    //useEffect for taggedStaff
+
+    useEffect(() => {
+        const fetchUsersByUIDs = async (uids: string[]) => {
+            setLoading(true);
+            try {
+                console.log("UIDs: ", uids);
+                if (searchUserName.trim() == "@") {
+                    const userDocs = await getDocs(collection(db, "users"));
+                    const allUsers = userDocs.docs.map((doc) => ({
+                        ...(doc.data() as UserData),
+                        uid: doc.id,
+                    }));
+                    const filteredUsers = allUsers?.filter(
+                        (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+                    );
+                    if (filteredUsers && filteredUsers.length > 0) {
+                        if (taggedStaffTags.length > 0) {
+                            const newFilteredUsers = filteredUsers.filter(
+                                (user) => !taggedStaffTags.includes(user.userName)
+                            );
+                            setServerUsers(newFilteredUsers);
+                        } else {
+                            setServerUsers(filteredUsers);
+                        }
+                    } else {
+                        setServerUsers([]);
+                    }
+                    setLoading(false); // Ensure setLoading(false) is called in all cases
+                }
+
+                if (searchUserName.trim() !== "@") {
+                    const userDocs = await getDocs(collection(db, "users"));
+                    const allUsers = userDocs.docs.map((doc) => ({
+                        ...(doc.data() as UserData),
+                        uid: doc.id,
+                    }));
+
+                    const filteredUsers = allUsers?.filter(
+                        (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+                    );
+
+                    const lowerCaseSearchTerm = searchUserName.toLowerCase();
+
+                    // Determine the match type based on the length of the search term
+                    const filtered = filteredUsers.filter((user) => {
+                        const userName = user.userName?.toLowerCase();
+
+                        // Match one letter or two or more letters
+                        if (
+                            lowerCaseSearchTerm.slice(1).length === 1 &&
+                            searchUserName.includes("@")
+                        ) {
+                            return (
+                                userName && userName.includes(lowerCaseSearchTerm.slice(1))
+                            );
+                        } else if (
+                            lowerCaseSearchTerm.slice(1).length >= 2 &&
+                            searchUserName.includes("@")
+                        ) {
+                            return (
+                                userName && userName.includes(lowerCaseSearchTerm.slice(1))
+                            );
+                        }
+                        return false; // No match if the search term is empty or less than 1
+                    });
+
+                    if (filtered) {
+                        setServerUsers(filtered);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (server?.memberList && showResults && server.memberList.length > 0) {
+            fetchUsersByUIDs(server?.memberList);
+        } else {
+            setServerUsers([]);
+            setLoading(false);
+        }
+
+        if (showResults) {
+            setShowResults2(false);
+        }
+    }, [showResults, searchUserName]);
+
+    //useEffect for contributingStaff
+    useEffect(() => {
+        const fetchUsersByUIDs = async (uids: string[]) => {
+            setLoading2(true);
+            try {
+                console.log("UIDs: ", uids);
+                if (searchUserName2.trim() == "@") {
+                    const userDocs = await getDocs(collection(db, "users"));
+                    const allUsers = userDocs.docs.map((doc) => ({
+                        ...(doc.data() as UserData),
+                        uid: doc.id,
+                    }));
+                    const filteredUsers = allUsers?.filter(
+                        (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+                    );
+                    if (filteredUsers && filteredUsers.length > 0) {
+                        if (contributingTags.length > 0) {
+                            const newFilteredUsers = filteredUsers.filter(
+                                (user) => !contributingTags.includes(user.userName)
+                            );
+                            setServerUsers2(newFilteredUsers);
+                        } else {
+                            setServerUsers2(filteredUsers);
+                        }
+                    } else {
+                        setServerUsers2([]);
+                    }
+                    setLoading2(false); // Ensure setLoading(false) is called in all cases
+                }
+
+                if (searchUserName2.trim() !== "@") {
+                    const userDocs = await getDocs(collection(db, "users"));
+                    const allUsers = userDocs.docs.map((doc) => ({
+                        ...(doc.data() as UserData),
+                        uid: doc.id,
+                    }));
+
+                    const filteredUsers = allUsers?.filter(
+                        (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+                    );
+
+                    const lowerCaseSearchTerm = searchUserName2.toLowerCase();
+
+                    // Determine the match type based on the length of the search term
+                    const filtered = filteredUsers.filter((user) => {
+                        const userName = user.userName?.toLowerCase();
+
+                        // Match one letter or two or more letters
+                        if (
+                            lowerCaseSearchTerm.slice(1).length === 1 &&
+                            searchUserName2.includes("@")
+                        ) {
+                            return (
+                                userName && userName.includes(lowerCaseSearchTerm.slice(1))
+                            );
+                        } else if (
+                            lowerCaseSearchTerm.slice(1).length >= 2 &&
+                            searchUserName2.includes("@")
+                        ) {
+                            return (
+                                userName && userName.includes(lowerCaseSearchTerm.slice(1))
+                            );
+                        }
+                        return false; // No match if the search term is empty or less than 1
+                    });
+
+                    if (filtered) {
+                        setServerUsers2(filtered);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            } finally {
+                setLoading2(false);
+            }
+        };
+
+        if (server?.memberList && showResults2 && server.memberList.length > 0) {
+            fetchUsersByUIDs(server?.memberList);
+        } else {
+            setServerUsers2([]);
+            setLoading2(false);
+        }
+    }, [showResults2, searchUserName2]);
+
+    const handleTagClick = (userName: string) => {
+        setTaggedStaffTags((prevTags) => [...prevTags, userName]);
+        setShowResults(false);
+        setSearchUserName("");
+    };
+
+    const handleTagClick2 = (userName: string) => {
+        setContributingTags((prevTags) => [...prevTags, userName]);
+        setShowResults2(false);
+        setSearchUserName2("");
+    };
+
+    useEffect(() => {
+        setTask((prevTask) => ({
+            ...prevTask,
+            taggedStaff: taggedStaffTags,
+            contributingStaff: contributingTags,
+        }));
+    }, [taggedStaffTags, contributingTags]);
+
+    console.log(contributingTags);
+
+    const handleRemoveTag = (tag: string) => {
+        const newTagas = taggedStaffTags.filter((item) => item !== tag);
+        setTaggedStaffTags(newTagas);
+        setShowResults(false);
+    };
+
+    const handleRemoveTag2 = (tag: string) => {
+        const newTagas = contributingTags.filter((item) => item !== tag);
+        setContributingTags(newTagas);
+        setShowResults2(false);
+    };
+
+    const userCheckFn = async () => {
+        return server?.memberList.some(
+            (item) => item === userData?.uid && server?.memberList.length > 0
+        );
+    };
+    // reset tags
+
+    const isReadOnlyTaggStaff = taggedStaffTags.length === 1;
+
+    const isReadOnlyContributing = contributingTags.length === 1;
+
+
+    if (patientIdLoading && server) {
+        return <p className=" text-center ">Loading...</p>;
+    }
+
+    console.log("load", patientIdLoading);
+    console.log(server, "server");
 
 
 
     return (
         <div>
-            {server ? (
+            {server && !patientIdLoading && (
                 <form className="p-4 rounded overflow-y-auto max-h-screen">
                     <div className="flex flex-col gap-4">
                         <div className=" relative">
@@ -65,7 +350,7 @@ const FormContainer: React.FC<combinedProps> = ({
                                     placeholder="@ Username"
                                     className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
                                         }`}
-                                    value={task.createdBy}
+                                    value={`@${task.createdBy}`}
                                     onChange={(e) =>
                                         setTask({ ...task, createdBy: e.target.value })
                                     }
@@ -75,47 +360,136 @@ const FormContainer: React.FC<combinedProps> = ({
                             </div>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative" ref={searchRef}>
                             <div className="flex items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                                    Tag staff for help / Completion :
+                                    Tag staff for help / Completion:
                                 </label>
+                                <div className="flex gap-x-3">
+                                    <div className=" z-40 ">
+                                        <div className="flex gap-x-3">
+                                            {taggedStaffTags?.map((tag, index) => (
+                                                <div
+                                                    key={index}
+                                                    className=" bg-white flex gap-x-2 px-2 items-center rounded-md  border border-black "
+                                                >
+                                                    {" "}
+                                                    <span>{`@${tag}`}</span>
+                                                    <button
+                                                        onClick={() => handleRemoveTag(tag)}
+                                                        disabled={selectedTask}
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                                 <input
                                     type="text"
-                                    placeholder="@ Username"
+                                    placeholder={`${taggedStaffTags.length === 0 ? "@ Username" : ""
+                                        }`}
                                     className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
                                         }`}
-                                    value={task.taggedStaff}
-                                    onChange={(e) =>
-                                        setTask({ ...task, taggedStaff: e.target.value })
-                                    }
-                                    required
-                                    readOnly={selectedTask}
+                                    value={`${selectedTask && taggedStaffTags.length === 0
+                                        ? task.taggedStaff.map((item: any) => `@${item}`).join(" ")
+                                        : searchUserName
+                                        }`}
+                                    onChange={(e) => {
+                                        setSearchUserName(e.target.value);
+                                    }}
+                                    onFocus={() => setShowResults(true)}
+                                    readOnly={selectedTask || isReadOnlyTaggStaff}
                                 />
                             </div>
+                            {showResults && serverUsers && !loading && !selectedTask && (
+                                <div className="absolute left-[14.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
+                                    {serverUsers.length > 0
+                                        ? serverUsers?.map((user) => (
+                                            <div key={user.uid} className="p-2 border-b">
+                                                <p
+                                                    className="font-medium"
+                                                    onClick={() => handleTagClick(user.userName)}
+                                                >
+                                                    {user?.userName}
+                                                </p>
+                                            </div>
+                                        ))
+                                        : !loading &&
+                                        showResults &&
+                                        server?.memberList?.length > 0 &&
+                                        server?.memberList?.includes(userData?.uid) &&
+                                        searchUserName === "@" && (
+                                            <div className="p-2 text-gray-500">No user found</div>
+                                        )}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="relative">
+                        <div className="relative" ref={searchRef2}>
                             <div className="flex items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
                                     Contributing Staff:
                                 </label>
+                                <div className="flex gap-x-3">
+                                    {contributingTags?.map((tag, index) => (
+                                        <div
+                                            key={index}
+                                            className=" bg-white flex gap-x-2 px-2 items-center rounded-md  border border-black "
+                                        >
+                                            {" "}
+                                            <span>{`@${tag}`}</span>
+                                            <button
+                                                onClick={() => handleRemoveTag2(tag)}
+                                                disabled={selectedTask}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                                 <input
                                     type="text"
-                                    placeholder="@ Username"
+                                    placeholder={`${contributingTags.length === 0 ? "@ Username" : ""
+                                        }`}
                                     className={`flex-1 outline-none  text-black ${selectedTask ? "cursor-default" : ""
                                         }`}
-                                    value={task.contributingStaff}
-                                    onChange={(e) =>
-                                        setTask({
-                                            ...task,
-                                            contributingStaff: e.target.value,
-                                        })
-                                    }
-                                    required
-                                    readOnly={selectedTask}
+                                    value={`${selectedTask && contributingTags.length === 0
+                                        ? task.contributingStaff
+                                            .map((item: any) => `@${item}`)
+                                            .join(" ")
+                                        : searchUserName2
+                                        }`}
+                                    onChange={(e) => {
+                                        setSearchUserName2(e.target.value);
+                                    }}
+                                    onFocus={() => setShowResults2(true)}
+                                    readOnly={selectedTask || isReadOnlyContributing}
                                 />
                             </div>
+                            {showResults2 && serverUsers2 && !loading2 && !selectedTask && (
+                                <div className="absolute left-[9.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
+                                    {serverUsers2.length > 0
+                                        ? serverUsers2?.map((user) => (
+                                            <div key={user.uid} className="p-2 border-b">
+                                                <p
+                                                    className="font-medium"
+                                                    onClick={() => handleTagClick2(user.userName)}
+                                                >
+                                                    {user?.userName}
+                                                </p>
+                                            </div>
+                                        ))
+                                        : !loading2 &&
+                                        showResults2 &&
+                                        server.memberList.length > 0 &&
+                                        server.memberList.includes(userData?.uid) &&
+                                        searchUserName2 === "@" && (
+                                            <div className="p-2 text-gray-500">No user found</div>
+                                        )}
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -271,7 +645,9 @@ const FormContainer: React.FC<combinedProps> = ({
                             className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
                                 ? "hidden"
                                 : "block"
+                                } ${selectedTask && "cursor-not-allowed"} ${!task.Learn && "cursor-not-allowed"
                                 }`}
+                            disabled={selectedTask || !task.Learn}
                         >
                             Share
                         </button>
@@ -315,13 +691,16 @@ const FormContainer: React.FC<combinedProps> = ({
                             type="button"
                             onClick={handleComplete}
                             className={`w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
-                                }`}
+                                } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
+                            disabled={selectedTask && btnDisable}
                         >
                             Complete
                         </button>
                     </div>
                 </form>
-            ) : (
+            )}
+
+            {!server && patientIdLoading && (
                 <div className="flex items-center justify-between px-4 py-1 text-black">
                     {" "}
                     Select a server

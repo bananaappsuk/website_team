@@ -49,6 +49,7 @@ type Props = {
     setShowQuiz: React.Dispatch<React.SetStateAction<boolean>>;
     showQuiz: boolean;
     setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
+    setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 interface TaskSectionProps {
@@ -74,6 +75,7 @@ const TaskSection: React.FC<CombinedProps> = ({
     showQuiz,
     setShowQuiz,
     setSelectedQuizTaskId,
+    setBtnDisble,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -96,7 +98,8 @@ const TaskSection: React.FC<CombinedProps> = ({
         setIsOpen(!isOpen);
     };
     const handleDropdown = (index: any) => {
-        setselectedTask(false);
+        setselectedTask(true);
+        // setShowQuiz(true);
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
         );
@@ -118,7 +121,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
-
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -193,11 +195,6 @@ const TaskSection: React.FC<CombinedProps> = ({
         fetchAndSearchData();
     }, [searchTerm, server?.serverId]);
 
-    console.log(filteredUsers);
-
-
-    console.log(filteredSearchTask);
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -227,6 +224,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                     setSelectedQuizTaskId(response.data._id);
                     setselectedTask(true);
                     setShowForm(true);
+                    setBtnDisble(false)
                 } else {
                     setselectedTask(false);
                     setSelectedQuizTaskId("");
@@ -236,8 +234,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             toast.error(error.message);
         }
     };
-
-    console.log(filteredPatientId);
 
     const handleDeleteTask = async (id: String, filter: any) => {
         try {

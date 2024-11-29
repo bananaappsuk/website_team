@@ -75,11 +75,15 @@ const TaskSharing = () => {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const router = useRouter();
     const { logout } = useAuth();
+    const [taggedStaffTags, setTaggedStaffTags] = useState<string[]>([]);
+    const [contributingTags, setContributingTags] = useState<string[]>([]);
     const [selectedServer, setSelectedServer] = useState<{
         serverId: string;
         serverName: string;
         memberList: string[];
     } | null>(null);
+
+    const [btnDisable, setBtnDisble] = useState<boolean>(false)
 
     const handleServerSelect = (server: {
         serverId: string;
@@ -187,7 +191,7 @@ const TaskSharing = () => {
 
     useEffect(() => {
         if (selectedServer?.serverId) {
-            fetchPatientId();
+            fetchPatientId(selectedServer.serverId);
         }
     }, [selectedServer]);
 
@@ -210,18 +214,24 @@ const TaskSharing = () => {
         return <p>Loading...</p>;
     }
 
+    console.log(btnDisable);
+
+
     const userId = userData ? userData.uid : null;
 
     const handleResetInputs = () => {
-        fetchPatientId();
+        fetchPatientId(selectedServer?.serverId);
+        setContributingTags([]);
+        setTaggedStaffTags([]);
+        setBtnDisble(false)
         const { _id, ...newTask } = task;
         setTask({
             ...newTask,
-            patientId: task.patientId,
+            patientId: task?.patientId,
             createdBy: userData?.userName,
-            taggedStaff: "",
+            taggedStaff: [""],
             serverId: "",
-            contributingStaff: "",
+            contributingStaff: [""],
             taskName: "",
             history: "",
             examination: "",
@@ -238,6 +248,7 @@ const TaskSharing = () => {
             isCompleted: false,
             isDeleted: false,
         });
+
     };
 
     const handleShare = async (e: React.FormEvent) => {
@@ -278,9 +289,10 @@ const TaskSharing = () => {
             if (response.ok) {
                 const data = await response.json();
 
-                setSelectedQuizTaskId("");
-                updatePatientId();
+
+                updatePatientId(selectedServer?.serverId);
                 toast.success("Task shared successfully");
+                setSelectedQuizTaskId("");
                 if (!task.Learn && !task.Library) {
                     router.reload();
                 }
@@ -300,11 +312,6 @@ const TaskSharing = () => {
                         }),
                     });
                 }
-                setTask({
-                    ...task,
-                    Library: false,
-                    Learn: false,
-                });
                 if (task.Library && task.Learn) {
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
                         method: "POST",
@@ -320,13 +327,12 @@ const TaskSharing = () => {
                             taskId: data?.task?._id,
                         }),
                     });
+                    setBtnDisble(true)
                     setShowQuiz(true);
-                    setTask({
-                        ...task,
-                        Library: false,
-                        Learn: false,
-                    });
-                    handleResetInputs();
+                    // handleResetInputs();
+                    setselectedTask(true);
+
+
                 }
 
                 // Check if Learn is selected
@@ -346,13 +352,11 @@ const TaskSharing = () => {
                             taskId: data?.task?._id,
                         }),
                     });
-                    setTask({
-                        ...task,
-                        Library: false,
-                        Learn: false,
-                    });
-                    handleResetInputs();
+                    // handleResetInputs();
+                    setBtnDisble(true)
                     setShowQuiz(true);
+                    setselectedTask(true);
+
                 }
             } else {
                 throw new Error("Failed to share task");
@@ -429,9 +433,9 @@ const TaskSharing = () => {
                         Library: false,
                         Learn: false,
                     });
-                    updatePatientId();
+                    updatePatientId(selectedServer?.serverId);
                     handleTasksClick("All Tasks");
-                    fetchPatientId();
+                    fetchPatientId(selectedServer?.serverId);
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 } else {
                     throw new Error("Failed to save task");
@@ -582,8 +586,8 @@ const TaskSharing = () => {
 
     const handleTasksClick = (item: string) => {
         setSelectedQuizTaskId("");
-        handleResetInputs();
-        setselectedTask(false);
+        // handleResetInputs();
+        setselectedTask(true);
         setShowQuiz(false);
         setFilter(item);
         setShowForm(true);
@@ -617,17 +621,19 @@ const TaskSharing = () => {
                         <div className="h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
                             <div
-                                className="p-0 lg:p-8 flex justify-center cursor-pointer"
-                                onClick={() => {
-                                    setDropdownVisible(Array(taskCategories.length).fill(false));
-                                    handleResetInputs();
-                                    setShowQuiz(false);
-                                    setselectedTask(false);
-                                }}
+                                className="p-0 lg:p-8 flex justify-center"
                             >
-                                <div className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center">
-                                    Task <FiPlus className="ml-2" />
-                                </div>
+                                <button className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer"
+                                    onClick={() => {
+                                        setDropdownVisible(
+                                            Array(taskCategories.length).fill(false)
+                                        );
+                                        handleResetInputs();
+                                        setShowQuiz(false);
+                                        setselectedTask(false);
+                                    }}>
+                                    Task <FiPlus className="ml-1" />
+                                </button>
                             </div>
 
                             <TaskSection
@@ -650,6 +656,7 @@ const TaskSharing = () => {
                                 showQuiz={showQuiz}
                                 setShowQuiz={setShowQuiz}
                                 setSelectedQuizTaskId={setSelectedQuizTaskId}
+                                setBtnDisble={setBtnDisble}
                             />
                         </div>
                     </div>
@@ -658,33 +665,40 @@ const TaskSharing = () => {
                     <section className="w-[70%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
-                                <div ref={dropdownRef} className="flex gap-x-2 items-center">
+                                <div className="flex gap-x-2 items-center">
                                     <div
-                                        className="flex items-center cursor-pointer gap-2"
-                                        onClick={handleToggle}
+                                        className="flex items-center gap-1"
                                     >
-                                        <img
-                                            src={userData?.profilePicUrl}
-                                            alt="profilePic"
-                                            className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
-                                        />
+                                        {userData?.profilePicUrl ? (
+                                            <img
+                                                src={userData?.profilePicUrl}
+                                                alt="profilePic"
+                                                className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="flex items-center justify-center w-[48.14px] h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                            >
+                                                {userData?.userName?.[0]?.toUpperCase() || "?"}
+                                            </div>
+                                        )}
                                         <p>{userData?.userName},</p>
                                         <p>{userData?.jobRole}</p>
                                     </div>
 
-                                    {/* Conditionally render the Logout button */}
-                                    {showLogout && (
-                                        <button
-                                            onClick={logout}
-                                            className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
-                                        >
-                                            Logout
-                                        </button>
-                                    )}
+
                                 </div>
-                                <div className="flex gap-2">
-                                    <a href="/Homepage">H</a>
-                                    <a href="/UserProfile">P</a>
+                                <div className="flex gap-4 items-center">
+                                    <div className="flex gap-2">
+                                        <a href="/Homepage">H</a>
+                                        <a href="/UserProfile">P</a>
+                                    </div>
+                                    <button
+                                        onClick={logout}
+                                        className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                                    >
+                                        Logout
+                                    </button>
                                 </div>
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
@@ -700,6 +714,12 @@ const TaskSharing = () => {
                             handleComplete={handleComplete}
                             server={selectedServer}
                             userData={userData}
+                            taggedStaffTags={taggedStaffTags}
+                            contributingTags={contributingTags}
+                            setTaggedStaffTags={setTaggedStaffTags}
+                            setContributingTags={setContributingTags}
+                            btnDisable={btnDisable}
+                            setBtnDisble={setBtnDisble}
                         />
                     </section>
                 )}
@@ -709,7 +729,9 @@ const TaskSharing = () => {
                         <div className="mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>
-                        <p className="font-bold text-2xl text-center px-8 py-4">Learning</p>
+                        <p className="font-bold text-2xl text-center px-8 py-4">
+                            Learning
+                        </p>
                         <div className="px-8">
                             <ConvertQuiz
                                 server={selectedServer}

@@ -26,6 +26,8 @@ import { toast } from "react-toastify";
 import { decryptData } from "../utils/cryptoUtils";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import Quizzes from "./tabs/Quizzes";
+import OtherProfileQuizzes from "@/components/OtherProfileQuizzes";
+import OtherProfileSection from "@/components/OtherProfileSection";
 
 type UserData = {
     uid: string;
@@ -421,7 +423,7 @@ const OtherProfile = () => {
                     </div>
                     {/* Main Quiz Section */}
                     <div className="p-4 lg:w-[40%] float-left">
-                        <Quizzes userData={userData} />
+                        <OtherProfileSection userData={userData} otherUser={otherUser} />
                     </div>
                     <div className="p-4 border-2 rounded-lg ">
                         {/* Tabs: Followers, Following, Career */}

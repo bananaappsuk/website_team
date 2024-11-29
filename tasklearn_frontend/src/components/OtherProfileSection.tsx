@@ -1,20 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import FeedQuizzes from "@/components/FeedQuizzes";
 import React, { useEffect, useState } from "react";
 import {
+    getDoc,
+    doc,
     collection,
+    addDoc,
+    deleteDoc,
     getDocs,
     query,
     where,
 } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../firebase";
 import { toast } from "react-toastify";
+import OtherProfileQuizzes from "./OtherProfileQuizzes";
 
 type Follow = {
     followeeId: string;
 };
-
 type UserData = {
     uid: string;
     email: string;
@@ -22,52 +25,27 @@ type UserData = {
     jobRole: string;
     profilePicUrl: string | undefined;
 };
-
 type Props = {
-    userData: UserData | null;
+    otherUser: UserData | null;
+    userData: UserData | null
 };
-
-const Feed: React.FC<Props> = ({ userData }) => {
+const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
     const [followeeId, setFolloweeId] = useState<Follow[]>([]);
     const [userId, setUserId] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const allUserId = async () => {
-        try {
-            const userDocs = await getDocs(collection(db, "users"));
-            const users = userDocs.docs.map((doc) => {
-                const data = doc.data() as UserData;
-                return {
-                    ...data,
-                    uid: doc.id,
-                };
-            });
-
-            const userFilter = users?.filter((user) => user.uid !== userData?.uid);
-            if (userFilter) {
-                setUserId(userFilter.map((ids) => ids.uid))
-            }
-
-        } catch (error) {
-            console.error("Error getting user data:", error);
-        }
-    };
-
-
     useEffect(() => {
         const fetchAllFollowRequests = async () => {
             try {
                 const q = query(
                     collection(db, "followRequests"),
                     where("status", "==", "accept"),
-                    where("followerId", "==", userData?.uid)
+                    where("followeeId", "==", otherUser?.uid),
                 );
-
                 const AllDocs = await getDocs(q);
                 const followeeIds = AllDocs.docs.map((doc) => ({
                     followeeId: doc.data().followeeId,
                 }));
-
+                console.log(followeeIds);
                 setFolloweeId(followeeIds);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
@@ -75,24 +53,14 @@ const Feed: React.FC<Props> = ({ userData }) => {
                 toast.error(error.message);
             }
         };
-
-        if (userData?.uid) {
+        if (otherUser?.uid) {
             fetchAllFollowRequests();
-            allUserId();
         }
-    }, [userData?.uid]);
-
+    }, [otherUser?.uid]);
     return (
         <div>
-            {(followeeId.length > 0 && userId.length > 0) || (followeeId.length === 0 && userId.length > 0) ? (
-                <FeedQuizzes fetchId={followeeId} userId={userId} currentUserData={userData} />
-            ) : (
-                <div>
-                    {/* Loading */}
-                </div>
-            )}
+            <OtherProfileQuizzes fetchId={followeeId} otherUser={otherUser} />
         </div>
     );
 };
-
-export default Feed;
+export default OtherProfileSection;

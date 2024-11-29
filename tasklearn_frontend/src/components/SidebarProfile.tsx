@@ -105,12 +105,21 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
                     serverName: server.channelName,
                     memberList: server.memberList
                 });
+            fetchPatientId(selectedServerId && selectedServerId)
+        } else if (router.pathname === "/UserProfile") {
+            setSelectedServerId(server._id);
+            onServerSelect &&
+                onServerSelect({
+                    serverId: server._id,
+                    serverName: server.channelName,
+                    memberList: server.memberList,
+                });
         }
     };
 
     return (
         <aside className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen border">
-            <div className="pt-12 text-green-500 text-lg md:text-3xl font-bold"></div>
+            <div className="text-green-500 text-lg md:text-3xl font-bold"></div>
             <div className="flex flex-col space-y-4">
                 {servers.map((server) => (
                     <div

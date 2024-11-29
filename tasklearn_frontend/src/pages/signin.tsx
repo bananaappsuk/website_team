@@ -178,8 +178,6 @@ const SignIn: React.FC = () => {
             return "Incorrect Username or Password. Please try again.";
         } else if (errorCode === "auth/too-many-requests") {
             return "Too many login attempts. Please try again later.";
-        } else if (errorCode === "auth/network-request-failed") {
-            return "Network error. Please check your connection.";
         } else {
             return "Login failed. Please try again.";
         }
@@ -206,7 +204,7 @@ const SignIn: React.FC = () => {
                                     htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
-                                    Username or email address
+                                    Username or Email address
                                 </label>
                                 <input
                                     type="text"
