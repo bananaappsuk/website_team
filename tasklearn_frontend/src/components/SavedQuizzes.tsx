@@ -11,6 +11,9 @@ import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
 import { db } from "../firebase";
 import deleteIcon from "../assets/Quiz/Vector.png";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useRouter } from "next/router";
+import { encryptData } from "../utils/cryptoUtils";
 
 interface Quiz {
     _id: string;
@@ -36,6 +39,9 @@ interface Follow {
 }
 interface Props {
     currentUserData: UserData | null;
+    userData: UserData[];
+    filteredQuizzes: Quiz[];
+    currentQuizIndex: number;
 }
 
 const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
@@ -55,6 +61,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
     const [question, setQuestion] = useState<number>(0);
     const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
     const [answeredQuestions, setAnsweredQuestions] = useState<Record<number, boolean>>({});
+    const router = useRouter();
 
     const handleClear = () => {
         if (!currentAnswer.trim()) {
@@ -66,6 +73,30 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
             setScoreSuccess(false);
             setScoreError(false); // Activate the error state
         }, 4000);
+    };
+
+    const handleProfile = async (data: string) => {
+        const [userName] = data.split(",");
+        try {
+            const q = query(
+                collection(db, "users"),
+                where("userName", "==", userName)
+            );
+            const userDocs = await getDocs(q);
+            const users = userDocs.docs.map((doc) => {
+                const data = doc.data() as UserData;
+                return { ...data, uid: doc.id };
+            });
+            const encryptedUser = encryptData(users[0]);
+            if (encryptedUser) {
+                sessionStorage.setItem("user", encryptedUser);
+                router.push("/OtherProfile");
+            } else {
+                console.error("Failed to encrypt user data");
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
     };
 
     useEffect(() => {
@@ -272,25 +303,36 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
 
             {filteredQuizzes.length > 0 && (
                 <main className="">
-                    <div className="text-black flex items-center gap-4 my-8">
+                    <div className="text-black flex items-center gap-2 my-8">
                         <div className="font-bold">
-                            <div className="text-[20px] text-start">
-                                <span>{userData && userData[currentQuizIndex]?.userName}</span>,{" "}
-                                <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
-                                <span className="ml-auto">
-                                    [{filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                                        ? filteredQuizzes[currentQuizIndex]?.createdAt
-                                            .toDate()
-                                            .toLocaleDateString()
-                                        : new Date(
-                                            filteredQuizzes[currentQuizIndex]?.createdAt
-                                        ).toLocaleDateString()}]
-                                </span>
+                            <div className="text-[20px] text-start" >
+                                <div className="cursor-pointer text-black hover:underline" onClick={() =>
+                                    handleProfile(
+                                        `${userData[currentQuizIndex]?.userName},${userData[currentQuizIndex]?.jobRole}`
+                                    )
+                                }>
+                                    <span >
+                                        {userData && userData[currentQuizIndex]?.userName}
+                                    </span>,{" "}
+                                    <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
+                                </div>
                             </div>
                         </div>
-
+                        <div className="font-bold text-[20px] text-start">
+                            <span className="">
+                                [
+                                {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                                    ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                        .toDate()
+                                        .toLocaleDateString()
+                                    : new Date(
+                                        filteredQuizzes[currentQuizIndex]?.createdAt
+                                    ).toLocaleDateString()}
+                                ]
+                            </span>
+                        </div>
                         {filteredQuizzes[currentQuizIndex]?.Library && (
-                            <div className="ml-4">
+                            <div className="ml-2">
                                 <Image src={goldStar} alt="Star" className="h-6 w-6 " />
                             </div>
                         )}

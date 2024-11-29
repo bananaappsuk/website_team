@@ -10,6 +10,9 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import goldStar from "../assets/Library/Vector (1).png";
 import { db } from "../firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useRouter } from "next/router";
+import { encryptData } from "../utils/cryptoUtils";
 
 interface Quiz {
     _id: string;
@@ -37,6 +40,9 @@ interface Props {
     fetchId: Follow[];
     userId: string[];
     currentUserData: UserData | null;
+    userData: UserData[];
+    filteredQuizzes: Quiz[];
+    currentQuizIndex: number;
 }
 
 const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
@@ -58,6 +64,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
     const [answeredQuestions, setAnsweredQuestions] = useState<Record<number, boolean>>({});
+    const router = useRouter();
 
 
     const handleClear = () => {
@@ -70,6 +77,30 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
             setScoreSuccess(false);
             setScoreError(false); // Activate the error state
         }, 4000);
+    };
+
+    const handleProfile = async (data: string) => {
+        const [userName] = data.split(",");
+        try {
+            const q = query(
+                collection(db, "users"),
+                where("userName", "==", userName)
+            );
+            const userDocs = await getDocs(q);
+            const users = userDocs.docs.map((doc) => {
+                const data = doc.data() as UserData;
+                return { ...data, uid: doc.id };
+            });
+            const encryptedUser = encryptData(users[0]);
+            if (encryptedUser) {
+                sessionStorage.setItem("user", encryptedUser);
+                router.push("/OtherProfile");
+            } else {
+                console.error("Failed to encrypt user data");
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
     };
 
     useEffect(() => {
@@ -283,200 +314,217 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
         }
     };
 
+
     if (loading) {
         return <div >Loading feed quizzes...</div>; // Show loading while fetching data
-    }
-
-    if (filteredQuizzes.length === 0) {
-        return (
-            <div className="text-[20px] text-center font-bold items-center text-black mt-12">
-                No feed quizzes available
-            </div>
-        ); // Show "No feed quizzes available" after loading if no quizzes are found
     }
 
 
     return (
         <div className="w-full min-h-screen bg-white">
-            <div className="my-4 flex justify-between items-center">
-                <div className="ml-auto relative">
-                    <input
-                        type="text"
-                        placeholder="Search key words"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
-                    />
-                    <Image
-                        src={searchIcon}
-                        alt="Search Icon"
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
-                    />
-                </div>
-            </div>
-
-            <main className="">
-
-                <div className="text-black flex flex-row items-center gap-4 ">
+            <div className="flex">
+                {searchTerm && (
                     <div className="font-bold">
-                        <div className="text-[20px] text-start">
-                            <span>{userData && userData[currentQuizIndex]?.userName}</span>,{" "}
-                            <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
-                            <span className="ml-auto">[
-                                {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
-                                    ? filteredQuizzes[currentQuizIndex]?.createdAt
-                                        .toDate()
-                                        .toLocaleDateString()
-                                    : new Date(
-                                        filteredQuizzes[currentQuizIndex]?.createdAt
-                                    ).toLocaleDateString()}]
-                            </span>
-                        </div>
-                    </div>
-
-
-                    {filteredQuizzes[currentQuizIndex]?.Library && (
-                        <div className="ml-auto mr-8">
-                            <Image src={goldStar} alt="Star" className="h-6 w-6" />
-                        </div>
-                    )}
-                </div>
-                <div className="relative group flex mt-7 gap-4">
-                    {searchTerm && (
-                        <div className="font-bold">
-                            <span className="w-100">Total Questions (Filtered):</span>
-                            <input
-                                className="w-12 border-2 text-center border-gray-300 rounded-md"
-                                value={filteredQuizzes.length}
-                                readOnly
-                            />
-                        </div>
-                    )}
-                    <div className="justify-end flex ml-auto">
-                        <button
-                            className="p-2 px-7 rounded-md bg-[#68A86B] text-white"
-                            onClick={() => handleSave(filteredQuizzes[currentQuizIndex]._id)}
-                        >
-                            {isSaved ? "Saved" : "Save"}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="mt-4 flex">
-                    <div className="w-full flex-col">
-                        <div className="bg-white rounded-md">
-                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                Key Learning Points
-                            </h3>
-                            <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
-                                {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
-                            </p>
-                        </div>
-
-                        <div className="bg-white rounded-md mb-4">
-                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                Action
-                            </h3>
-                            <input
-                                type="text"
-                                placeholder="Enter Answer"
-                                value={currentAnswer}
-                                onChange={(e) => {
-                                    setCurrentAnswer(e.target.value);
-                                    setIsAnswerSubmitted(false);
-                                }}
-                                className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
-                                    } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
-                                    }`}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-center mt-4 gap-8">
-                    <button
-                        className="text-red-600 flex items-center"
-                        onClick={handleClear}
-                    >
-                        <span className="mr-1">
-                            <Image src={clear} alt="clear" className="h-8 w-8" />
-                        </span>
-                    </button>
-                    <button
-                        onClick={handleAnswerSubmit}
-                        disabled={isCurrentQuestionAnswered}
-                        className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                        <span className="mr-1">
-                            <Image src={submit} alt="submit" className="h-10 w-10" />
-                        </span>
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-md my-6">
-                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                        Action
-                    </h3>
-                    {!showAnswer ? (
-                        <button
-                            className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
-                            onClick={handleRevealAnswer}
-                        >
-                            CLICK TO REVEAL ANSWER
-                        </button>
-                    ) : (
-                        <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                            Answer: {filteredQuizzes[currentQuizIndex]?.action}
-                        </p>
-                    )}
-                </div>
-                <div className="flex justify-center mt-8 gap-40">
-                    <button onClick={() => {
-                        handlePrevQuiz();
-                        setIsAnswerSubmitted(false); // Re-enable submit for the previous question
-                    }} disabled={currentQuizIndex === 0}>
-                        <FaArrowLeft size={24} />
-                    </button>
-                    <button
-                        onClick={() => {
-                            handleNextQuiz();
-                            setIsAnswerSubmitted(false); // Re-enable submit for the next question
-                        }}
-                        disabled={
-                            currentQuizIndex === quizzes.length - 1 ||
-                            currentQuizIndex === filteredQuizzes.length - 1
-                        }
-                    >
-                        <FaArrowRight size={24} />
-                    </button>
-                </div>
-
-                <div className="mt-12 text-black flex flex-col">
-                    <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
-                        <span className="w-48 text-right">Score:</span>
+                        <span className="w-100">Total Questions (Filtered):</span>
                         <input
-                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                            value={score ?? 0}
-                            readOnly
-                        />{" "}
-                        <p className="ml-2">/</p>
-                        <input
-                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                            value={`${question}`}
-                            readOnly
-                        />
-                    </div>
-                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
-                        <span className="w-48 text-right">Total Questions:</span>
-                        <input
-                            className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            className="w-12 border-2 text-center border-gray-300 rounded-md"
                             value={filteredQuizzes.length}
                             readOnly
                         />
                     </div>
+                )}
+                <div className="ml-auto">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search key words"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                        />
+                        <Image
+                            src={searchIcon}
+                            alt="Search Icon"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                        />
+                    </div>
                 </div>
+            </div>
 
-            </main>
+            {filteredQuizzes.length === 0 && (
+                <div className="text-[20px] text-center font-bold items-center text-black mt-12">
+                    No feed quizzes available
+                </div>
+            )}
+            {filteredQuizzes.length > 0 && (
+                <div>
+                    <div className="my-8 flex justify-between items-center">
+                        <div className="flex font-bold">
+                            <div className="text-[20px] text-start" >
+                                <div className="cursor-pointer text-black hover:underline" onClick={() =>
+                                    handleProfile(
+                                        `${userData[currentQuizIndex]?.userName},${userData[currentQuizIndex]?.jobRole}`
+                                    )
+                                }>
+                                    <span >
+                                        {userData && userData[currentQuizIndex]?.userName}
+                                    </span>,{" "}
+                                    <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
+                                </div>
+                            </div>
+                            <div className="text-[20px] text-start">
+                                <span className="ml-2">
+                                    [
+                                    {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
+                                        ? filteredQuizzes[currentQuizIndex]?.createdAt
+                                            .toDate()
+                                            .toLocaleDateString()
+                                        : new Date(
+                                            filteredQuizzes[currentQuizIndex]?.createdAt
+                                        ).toLocaleDateString()}
+                                    ]
+                                </span>
+                            </div>
+                            {filteredQuizzes[currentQuizIndex]?.Library && (
+
+                                <div className="ml-4">
+                                    <Image src={goldStar} alt="Star" className="h-6 w-6" />
+                                </div>
+                            )}
+                        </div>
+                        <div className="relative group flex gap-4">
+                            <div className="justify-end flex ml-auto">
+                                <button
+                                    className="p-2 px-7 rounded-md bg-[#68A86B] text-white"
+                                    onClick={() => handleSave(filteredQuizzes[currentQuizIndex]._id)}
+                                >
+                                    {isSaved ? "Saved" : "Save"}
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <main className="">
+
+
+                        <div className="mt-4 flex">
+                            <div className="w-full flex-col">
+                                <div className="bg-white rounded-md">
+                                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                        Key Learning Points
+                                    </h3>
+                                    <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
+                                        {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
+                                    </p>
+                                </div>
+
+                                <div className="bg-white rounded-md mb-4">
+                                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                        Action
+                                    </h3>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Answer"
+                                        value={currentAnswer}
+                                        onChange={(e) => {
+                                            setCurrentAnswer(e.target.value);
+                                            setIsAnswerSubmitted(false);
+                                        }}
+                                        className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
+                                            } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
+                                            }`}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center mt-4 gap-8">
+                            <button
+                                className="text-red-600 flex items-center"
+                                onClick={handleClear}
+                            >
+                                <span className="mr-1">
+                                    <Image src={clear} alt="clear" className="h-8 w-8" />
+                                </span>
+                            </button>
+                            <button
+                                onClick={handleAnswerSubmit}
+                                disabled={isCurrentQuestionAnswered}
+                                className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                                <span className="mr-1">
+                                    <Image src={submit} alt="submit" className="h-10 w-10" />
+                                </span>
+                            </button>
+                        </div>
+
+                        <div className="bg-white rounded-md my-6">
+                            <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                Action
+                            </h3>
+                            {!showAnswer ? (
+                                <button
+                                    className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                    onClick={handleRevealAnswer}
+                                >
+                                    CLICK TO REVEAL ANSWER
+                                </button>
+                            ) : (
+                                <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
+                                    Answer: {filteredQuizzes[currentQuizIndex]?.action}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex justify-center mt-8 gap-40">
+                            <button onClick={() => {
+                                handlePrevQuiz();
+                                setIsAnswerSubmitted(false); // Re-enable submit for the previous question
+                            }} disabled={currentQuizIndex === 0}>
+                                <FaArrowLeft size={24} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleNextQuiz();
+                                    setIsAnswerSubmitted(false); // Re-enable submit for the next question
+                                }}
+                                disabled={
+                                    currentQuizIndex === quizzes.length - 1 ||
+                                    currentQuizIndex === filteredQuizzes.length - 1
+                                }
+                            >
+                                <FaArrowRight size={24} />
+                            </button>
+                        </div>
+
+                        <div className="mt-12 text-black flex flex-col">
+                            <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
+                                <span className="w-48 text-right">Score:</span>
+                                <input
+                                    className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                                    value={score ?? 0}
+                                    readOnly
+                                />{" "}
+                                <p className="ml-2">/</p>
+                                <input
+                                    className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                                    value={`${question}`}
+                                    readOnly
+                                />
+                            </div>
+                            <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
+                                <span className="w-48 text-right">Total Questions:</span>
+                                <input
+                                    className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                                    value={filteredQuizzes.length}
+                                    readOnly
+                                />
+                            </div>
+                        </div>
+
+                    </main>
+                </div>
+            )}
         </div>
     );
 };
