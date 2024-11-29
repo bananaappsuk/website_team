@@ -57,6 +57,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     const [reset, setReset] = useState<boolean>(false);
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+    const [answeredQuestions, setAnsweredQuestions] = useState<Record<number, boolean>>({});
 
 
     const handleClear = () => {
@@ -200,31 +201,39 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     }, [currentQuizIndex, filteredQuizzes]);
 
     const handleAnswerSubmit = () => {
-
-        if (!currentAnswer.trim()) {
-            return; // Exit the function early
+        if (!currentAnswer.trim() || answeredQuestions[currentQuizIndex]) {
+            return; // Exit if the answer is empty or the question is already answered
         }
 
-        if (
+        const isCorrect =
             currentAnswer.trim().toLowerCase() ===
-            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase()
-        ) {
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        if (isCorrect) {
             setScore((prevScore) => prevScore + 1);
             setScoreSuccess(true);
             setScoreError(false);
-            setQuestion((prevQuestion) => prevQuestion + 1);
         } else {
             setScoreError(true);
             setScoreSuccess(false);
-            setQuestion((prevQuestion) => prevQuestion + 1);
         }
+
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: true, // Mark the current question as answered
+        }));
+
+        setQuestion((prevQuestion) => prevQuestion + 1);
         setIsAnswerSubmitted(true);
+
         setTimeout(() => {
             setScoreSuccess(false);
             setScoreError(false);
         }, 4000);
-        // setCurrentAnswer("");
     };
+
+    // Update button disabled state based on whether the question is answered
+    const isCurrentQuestionAnswered = !!answeredQuestions[currentQuizIndex];
 
     const handleRevealAnswer = () => {
         setShowAnswer(true);
@@ -395,8 +404,8 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                     </button>
                     <button
                         onClick={handleAnswerSubmit}
-                        disabled={isAnswerSubmitted}
-                        className="text-green-600 flex items-center"
+                        disabled={isCurrentQuestionAnswered}
+                        className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                         <span className="mr-1">
                             <Image src={submit} alt="submit" className="h-10 w-10" />
