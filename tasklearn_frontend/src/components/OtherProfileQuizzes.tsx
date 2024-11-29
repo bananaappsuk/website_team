@@ -48,9 +48,22 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
     const [userData, setUserData] = useState<UserData[]>([]);
     const [scoreSuccess, setScoreSuccess] = useState<boolean>(false);
     const [scoreError, setScoreError] = useState<boolean>(false);
-    const [question, setQuestion] = useState<number>(1);
-    const [reset, setReset] = useState<boolean>(false);
-    const [saved, setIsSaved] = useState<boolean>(false);
+    const [question, setQuestion] = useState<number>(0);
+    const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+    const [answeredQuestions, setAnsweredQuestions] = useState<Record<number, boolean>>({});
+
+    const handleClear = () => {
+        if (!currentAnswer.trim()) {
+            return; // Exit the function early
+        }
+        setScoreSuccess(false);
+        setScoreError(true); // Activate the error state
+        setTimeout(() => {
+            setScoreSuccess(false);
+            setScoreError(false); // Activate the error state
+        }, 4000);
+    };
+
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
@@ -162,21 +175,39 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
         }
     }, [currentQuizIndex, filteredQuizzes]);
     const handleAnswerSubmit = () => {
-        if (
+        if (!currentAnswer.trim() || answeredQuestions[currentQuizIndex]) {
+            return; // Exit if the answer is empty or the question is already answered
+        }
+
+        const isCorrect =
             currentAnswer.trim().toLowerCase() ===
-            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase()
-        ) {
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        if (isCorrect) {
             setScore((prevScore) => prevScore + 1);
             setScoreSuccess(true);
             setScoreError(false);
-            setQuestion((prevQuestion) => prevQuestion + 1);
         } else {
             setScoreError(true);
             setScoreSuccess(false);
-            setQuestion((prevQuestion) => prevQuestion + 1);
         }
-        setCurrentAnswer("");
+
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: true, // Mark the current question as answered
+        }));
+
+        setQuestion((prevQuestion) => prevQuestion + 1);
+        setIsAnswerSubmitted(true);
+
+        setTimeout(() => {
+            setScoreSuccess(false);
+            setScoreError(false);
+        }, 4000);
     };
+
+    // Update button disabled state based on whether the question is answered
+    const isCurrentQuestionAnswered = !!answeredQuestions[currentQuizIndex];
     const handleRevealAnswer = () => {
         setShowAnswer(true);
     };
@@ -185,13 +216,16 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
             setCurrentQuizIndex(currentQuizIndex - 1);
             setShowAnswer(false);
         }
+        setCurrentAnswer("");
     };
+
     // Navigate to the next quiz
     const handleNextQuiz = () => {
         if (currentQuizIndex < quizzes.length - 1) {
             setCurrentQuizIndex(currentQuizIndex + 1);
             setShowAnswer(false);
         }
+        setCurrentAnswer("");
     };
     if (loading) {
         return <div>Loading quizzes...</div>;
@@ -268,7 +302,10 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                                 type="text"
                                 placeholder="Enter Answer"
                                 value={currentAnswer}
-                                onChange={(e) => setCurrentAnswer(e.target.value)}
+                                onChange={(e) => {
+                                    setCurrentAnswer(e.target.value);
+                                    setIsAnswerSubmitted(false);
+                                }}
                                 className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
                                     } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
                                     }`}
@@ -279,7 +316,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                 <div className="flex justify-center mt-4 gap-8">
                     <button
                         className="text-red-600 flex items-center"
-                        onClick={() => setCurrentAnswer("")}
+                        onClick={handleClear}
                     >
                         <span className="mr-1">
                             <Image src={clear} alt="clear" className="h-8 w-8" />
@@ -287,7 +324,8 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                     </button>
                     <button
                         onClick={handleAnswerSubmit}
-                        className="text-green-600 flex items-center"
+                        disabled={isCurrentQuestionAnswered}
+                        className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                         <span className="mr-1">
                             <Image src={submit} alt="submit" className="h-10 w-10" />
@@ -312,11 +350,17 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                     )}
                 </div>
                 <div className="flex justify-center mt-8 gap-40">
-                    <button onClick={handlePrevQuiz} disabled={currentQuizIndex === 0}>
+                    <button onClick={() => {
+                        handlePrevQuiz();
+                        setIsAnswerSubmitted(false); // Re-enable submit for the previous question
+                    }} disabled={currentQuizIndex === 0}>
                         <FaArrowLeft size={24} />
                     </button>
                     <button
-                        onClick={handleNextQuiz}
+                        onClick={() => {
+                            handleNextQuiz();
+                            setIsAnswerSubmitted(false); // Re-enable submit for the next question
+                        }}
                         disabled={
                             currentQuizIndex === quizzes.length - 1 ||
                             currentQuizIndex === filteredQuizzes.length - 1
@@ -326,20 +370,21 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                     </button>
                 </div>
                 <div className="mt-12 text-black flex flex-col">
-                    <div className="flex justify-center items-center font-bold ml-4">
+                    <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
                         <span className="w-48 text-right">Score:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={score ?? 0}
                             readOnly
                         />{" "}
-                        /
+                        <p className="ml-2">/</p>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                             value={`${question}`}
+                            readOnly
                         />
                     </div>
-                    <div className="mt-4 flex justify-center items-center font-bold">
+                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
                         <span className="w-48 text-right">Total Questions:</span>
                         <input
                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
