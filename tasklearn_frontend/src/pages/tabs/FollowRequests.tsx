@@ -169,7 +169,7 @@ const Requests: React.FC<Props> = ({ userData }) => {
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-center">No Follow Request</div>
+                    <div className="text-center text-[20px]">No follow requests</div>
                 ) : (
                     reqUsers?.map((user, index) => (
                         <li
@@ -177,13 +177,13 @@ const Requests: React.FC<Props> = ({ userData }) => {
                             className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
                         >
                             <div>
-                                <p className=" text-xl font-medium">
+                                <p className="text-[20px] font-medium">
                                     {user.userName + "," + user.jobRole}
                                 </p>
                             </div>
                             <div className="flex space-x-2 mr1">
                                 <button
-                                    className="bgco_2 text-white py-1 px-4 rounded-md hover:bg-green-600 bg-[#67A76B] transition duration-300"
+                                    className="bgco_2 text-white py-1 px-4 rounded-md font-semibold hover:bg-green-600 bg-[#67A76B] transition duration-300"
                                     onClick={() => handleAccept(user.uid)}
                                 >
                                     Accept

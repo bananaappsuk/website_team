@@ -144,12 +144,12 @@ const Following: React.FC<Props> = ({ userData }) => {
 
     return (
         <div className="w-full mx-auto p-4">
-            <h2 className="text-center text-lg font-semibold mb-4">Following List</h2>
+            <h2 className="text-center text-lg font-semibold mb-4">Following list</h2>
             <ul className="space-y-4">
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-center">You haven't followed anyone yet</div>
+                    <div className="text-center text-[20px]">You haven't followed anyone yet</div>
                 ) : (
                     reqUsers?.map((user, index) => {
                         const isFollowing = checkFollowingRequest(user.uid);
@@ -164,12 +164,12 @@ const Following: React.FC<Props> = ({ userData }) => {
                                 className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
                             >
                                 <div>
-                                    <p className="text-sm">
+                                    <p className="text-[20px] font-medium">
                                         {user.userName + ", " + user.jobRole}
                                     </p>
                                 </div>
                                 <button
-                                    className={`mr1 py-1 px-4 rounded-md transition duration-300 ${css.buttonStyle}`}
+                                    className={`mr1 py-1 px-4 rounded-md font-semibold transition duration-300 ${css.buttonStyle}`}
                                     onClick={() => handleFollowingRequest(user.uid)}
                                 >
                                     {css.buttonText}

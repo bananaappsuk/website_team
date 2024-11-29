@@ -1,5 +1,7 @@
 // controllers/quizController.js
 const Quiz = require("../models/quizModel");
+const Task = require("../models/Task");
+const Library = require("../models/libraryModel");
 
 // Create a new quiz
 const createQuiz = async (req, res) => {
@@ -30,7 +32,6 @@ const createQuiz = async (req, res) => {
 
 const getQuizzes = async (req, res) => {
   const { id } = req.params;
-  console.log(id);
   try {
     const quizzes = await Quiz.find({ createdBy: id });
     res.status(200).json(quizzes);
@@ -65,11 +66,9 @@ const deleteQuiz = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const quiz = await Quiz.findByIdAndDelete(id);
-
-    if (!quiz) {
-      return res.status(404).json({ message: "Quiz not found" });
-    }
+    const quiz = await Quiz.findOneAndDelete({ taskId: id });
+    const library = await Library.findOneAndDelete({ taskId: id });
+    const task = await Task.findOneAndDelete({ _id: id });
 
     res.status(200).json({ message: "Quiz deleted successfully" });
   } catch (error) {
@@ -82,6 +81,7 @@ const deleteQuizByTaskId = async (req, res) => {
   const { id } = req.params;
   try {
     const quiz = await Quiz.findOneAndDelete({ taskId: id });
+    const library = await Library.findOneAndDelete({ taskId: id });
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }
@@ -101,9 +101,14 @@ const updateQuizVisibility = async (req, res) => {
     return res.status(404).json({ message: "Quiz ID not found" });
   }
   try {
-    const quiz = await Quiz.findByIdAndUpdate(id, {
-      visibility,
-    });
+    const quiz = await Quiz.findByIdAndUpdate(
+      id,
+      {
+        visibility,
+      },
+      { new: true }
+    );
+    res.status(200).json(quiz); 
   } catch (error) {
     console.error("Error deleting quiz:", error);
   }
@@ -116,7 +121,6 @@ const getFollowerQuizzes = async (req, res) => {
     const quiz = await Quiz.find({
       createdBy: id,
       visibility: "followers",
-      isSaved: false,
     });
 
     res.status(200).json(quiz);
@@ -125,15 +129,107 @@ const getFollowerQuizzes = async (req, res) => {
   }
 };
 
-const getPublicQuizzes=async(req,res)=>{
-
-  const {id}=req.params
+const getPublicQuizzes = async (req, res) => {
+  const { id } = req.params;
 
   try {
     const quiz = await Quiz.find({
       createdBy: id,
       visibility: "public",
-      isSaved: false,
+    });
+    
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+  
+
+};
+
+const saveQuizzes = async (req, res) => {
+  const { id } = req.params;
+  const { savedBy } = req.body;
+
+  try {
+    const quiz = await Quiz.findById(id);
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found." });
+    }
+
+    // Check if user has already saved this quiz by index
+    const index = quiz.savedBy.indexOf(savedBy);
+    if (index > -1) {
+      // Remove user ID from the array
+      quiz.savedBy.splice(index, 1);
+    } else {
+      // Add user ID to the array
+      quiz.savedBy.push(savedBy);
+    }
+
+    await quiz.save();
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to save quiz", error });
+  }
+};
+
+const getSavedQuizzes = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const quizzes = await Quiz.find({
+      visibility: { $in: ["followers", "public", "onlyMe"] },
+      savedBy: { $in: [id] }, // Check if userId is in the savedBy array
+    });
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to saved quiz", error });
+  }
+};
+
+const deleteSavedQuizzes = async (req, res) => {
+  const { id } = req.params;
+
+  const { savedBy } = req.body;
+  try {
+    const quiz = await Quiz.findById(id);
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found." });
+    }
+    // Check if user has already saved this quiz by index
+    const index = quiz.savedBy.indexOf(savedBy);
+    if (index > -1) {
+      // Remove user ID from the array
+      quiz.savedBy.splice(index, 1);
+    }
+    await quiz.save();
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete saved quiz", error });
+  }
+};
+
+const getFollowerQuizzesOtherProfile = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const quiz = await Quiz.find({
+      createdBy: id,
+      visibility: "followers",
+    });
+
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve quizzes", error });
+  }
+};
+
+const getPublicQuizzesOtherProfile = async (req, res) => {
+
+  try {
+    const quiz = await Quiz.find({
+      visibility: "public",
     });
     
     res.status(200).json(quiz);
@@ -155,4 +251,9 @@ module.exports = {
   getPublicQuizzes,
   getFollowerQuizzes,
   updateQuizVisibility,
+  saveQuizzes,
+  getSavedQuizzes,
+  deleteSavedQuizzes,
+  getPublicQuizzesOtherProfile,
+  getFollowerQuizzesOtherProfile,
 };

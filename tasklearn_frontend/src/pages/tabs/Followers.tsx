@@ -171,13 +171,12 @@ const Followers: React.FC<Props> = ({ userData }) => {
                 List of followers
             </h2>
             <ul className="space-y-4">
-                {isloading && <div className="text-center">Loading...</div>}
 
-                {/* No Followers Found */}
-                {!isloading && reqUsers.length === 0 && (
-                    <div className="text-center">You Don't Have Any Followers Yet</div>
-                )}
-                {!isloading &&
+                {isloading ? (
+                    <div className="text-center">Loading...</div>
+                ) : reqUsers.length === 0 ? (
+                    <div className="text-center text-[20px]">You don’t have any followers</div>
+                ) : (
                     reqUsers?.map((user, index) => {
                         const isPending = checkFollowRequest(user.uid);
                         const isAccepted = checkAcceptedRequest(user.uid);
@@ -199,19 +198,20 @@ const Followers: React.FC<Props> = ({ userData }) => {
                                 className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
                             >
                                 <div>
-                                    <p className="text-md font-medium">
+                                    <p className="text-[20px] font-medium">
                                         {user.userName + ", " + user.jobRole}
                                     </p>
                                 </div>
                                 <button
-                                    className={` py-1 px-4 rounded-md transition duration-300  ${css.buttonStyle} `}
+                                    className={` py-1 px-4 rounded-md font-semibold transition duration-300  ${css.buttonStyle} `}
                                     onClick={() => handleFollowRequest(user.uid)}
                                 >
                                     {css.buttonText}
                                 </button>
                             </li>
                         );
-                    })}
+                    })
+                )}
             </ul>
         </div>
     );

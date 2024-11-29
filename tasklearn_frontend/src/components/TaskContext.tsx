@@ -20,8 +20,8 @@ export interface Task {
     [x: string]: any;
     createdBy: any;
     serverId: string;
-    taggedStaff: string;
-    contributingStaff: string;
+    taggedStaff: string[];
+    contributingStaff: string[];
     taskName: string;
     history: string;
     examination: string;
@@ -46,7 +46,7 @@ interface TaskContextType {
     fetchPatientId: any;
     updatePatientId: any;
     selectedServerId: string | null;
-    setSelectedServerId: React.Dispatch<React.SetStateAction<string | null>>;
+    setSelectedServerId: React.Dispatch<React.SetStateAction<string>>;
     patientIdLoading: boolean;
 }
 
@@ -65,50 +65,59 @@ export const TaskContext = createContext<TaskContextType | undefined>(
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     children,
 }) => {
-    const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
+    const [selectedServerId, setSelectedServerId] = useState<string>("");
     const [patientId, setPatientId] = useState<string | null>(null);
     const [patientIdLoading, setpatientIdLoading] = useState<boolean>(true);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [user, setUser] = useState<User | null>(null);
 
-    const fetchPatientId = async () => {
+    const fetchPatientId = async (selectedServerId: string) => {
         setpatientIdLoading(true);
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/fetch/${selectedServerId}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-            if (response.ok) {
-                const data = await response.json();
+            if (selectedServerId) {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/fetch/${selectedServerId}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+                if (response.ok) {
+                    const data = await response.json();
 
-                if (data) {
-                    const firstElement = data;
+                    if (data) {
+                        const firstElement = data;
 
-                    setPatientId(firstElement.patientId);
+                        setPatientId(firstElement.patientId);
 
-                    const patientId = firstElement.patientId;
-                    if (patientId && userData) {
-                        setTask((prevTask) => ({ ...prevTask, patientId, createdBy: userData.userName }));
+                        const patientId = firstElement.patientId;
+                        if (patientId && userData !== null) {
+                            setTask((prevTask) => ({
+                                ...prevTask,
+                                patientId,
+                                createdBy: userData?.userName,
+                            }));
+                        }
                     }
                 }
             }
         } catch (error: any) {
             toast.error(error);
         } finally {
-            setpatientIdLoading(false);
+
+            setTimeout(() => {
+                setpatientIdLoading(false);
+            }, 1000)
+
         }
     };
 
     useEffect(() => {
         if (selectedServerId) {
-
-            fetchPatientId();
+            fetchPatientId(selectedServerId);
         }
     }, [selectedServerId]);
 
@@ -139,7 +148,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
 
 
-    const updatePatientId = async () => {
+    const updatePatientId = async (serverId: string) => {
         try {
             if (patientId) {
                 const prefix = patientId.slice(0, patientId.search(/\d/));
@@ -150,9 +159,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
                 const updatedPatientId = `${prefix}${incrementedNumber}`;
 
-                if (updatedPatientId && selectedServerId) {
+                if (updatedPatientId && serverId) {
                     const response = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/update/${selectedServerId}`,
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/update/${serverId}`,
                         {
                             method: "PATCH",
                             headers: {
@@ -162,9 +171,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                         }
                     );
 
-                    if (response.ok) {
-                        fetchPatientId();
-                    }
+                    // if (response.ok) {
+                    //     fetchPatientId(selectedServerId);
+                    // }
                 }
             }
         } catch (error: any) {
@@ -198,8 +207,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     const [task, setTask] = useState<Task>({
         patientId: "",
         createdBy: "",
-        taggedStaff: "",
-        contributingStaff: "",
+        taggedStaff: [""],
+        contributingStaff: [""],
         serverId: "",
         taskName: "",
         history: "",

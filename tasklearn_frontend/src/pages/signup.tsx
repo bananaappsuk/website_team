@@ -233,10 +233,10 @@ const SignUp: React.FC = () => {
             toast.error("Passwords do not match!");
             return;
         }
-        if (!formData.profilePic) {
-            toast.error("Please upload a profile picture.");
-            return;
-        }
+        // if (!formData.profilePic) {
+        //     toast.error("Please upload a profile picture.");
+        //     return;
+        // }
 
         if (!termsAccepted) {
             toast.error("You must accept the Terms of Use and Privacy Policy.");
@@ -248,29 +248,34 @@ const SignUp: React.FC = () => {
                 formData.email,
                 formData.password
             );
-            const profilePicData = await profilePicUpload(formData.profilePic);
-            if (profilePicData) {
-                const user = signupResponse.user;
-                await setDoc(doc(db, "users", user.uid), {
-                    email: formData.email,
-                    userName: formData.userName,
-                    jobRole: formData.jobRole,
-                    profilePicUrl: profilePicData.profilePicUrl,
-                });
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    toast.success("Account created successfully!", { autoClose: 1000 });
-                    setOpenServer(true);
-                    setTimeout(() => {
-                        router.push({
-                            pathname: "/Homepage",
-                            query: { openServer: true.toString() },
-                        } as unknown as string);
-                    }, 1000);
-                }
+
+            let profilePicUrl = "";
+
+            if (formData.profilePic) {
+                const profilePicData = await profilePicUpload(formData.profilePic);
+                profilePicUrl = profilePicData?.profilePicUrl || "";
             }
-        } catch (error) {
+            const user = signupResponse.user;
+            await setDoc(doc(db, "users", user.uid), {
+                email: formData.email,
+                userName: formData.userName,
+                jobRole: formData.jobRole,
+                profilePicUrl,
+            });
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                toast.success("Account created successfully!", { autoClose: 1000 });
+                setOpenServer(true);
+                setTimeout(() => {
+                    router.push({
+                        pathname: "/Homepage",
+                        query: { openServer: true.toString() },
+                    } as unknown as string);
+                }, 1000);
+            }
+        }
+        catch (error) {
             if (error instanceof Error) {
                 switch (error.message) {
                     case "Firebase: Error (auth/email-already-in-use).":
