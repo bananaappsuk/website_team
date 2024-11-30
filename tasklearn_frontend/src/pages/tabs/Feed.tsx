@@ -88,7 +88,7 @@ const Feed: React.FC<Props> = ({ userData }) => {
                 <FeedQuizzes fetchId={followeeId} userId={userId} currentUserData={userData} />
             ) : (
                 <div>
-                    {/* Loading */}
+                    Loading feed quizzes...
                 </div>
             )}
         </div>
