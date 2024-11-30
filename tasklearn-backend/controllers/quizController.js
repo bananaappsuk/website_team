@@ -134,7 +134,7 @@ const getPublicQuizzes = async (req, res) => {
 
   try {
     const quiz = await Quiz.find({
-      createdBy: id,
+      createdBy: { $ne: id },
       visibility: "public",
     });
     
