@@ -44,7 +44,7 @@ app.use('/api/patientId', patientRoutes);
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the Task!!!! </h1>');
+  res.send('<h1>Welcome to the task!!!! </h1>');
 });
 
 // Error handling middleware
