@@ -143,21 +143,20 @@ const TaskSection: React.FC<CombinedProps> = ({
     const fetchAndSearchData = async () => {
       const trimmedSearchTerm = searchTerm.trim();
 
-      // Case 1: Empty search or invalid query
-      if (!trimmedSearchTerm || trimmedSearchTerm === '@') {
+      // Clear results when input is empty
+      if (!trimmedSearchTerm) {
         setFilteredPatientId([]);
-        setShowResults(true);
-        return; // Prevent API call
+        setShowResults(false); // Hide dropdown for empty input
+        return;
       }
 
       // Case 2: No server selected
       if (!server?.serverId) {
         setFilteredPatientId([]);
-        setShowResults(true);
-        return; // Prevent API call
+        setShowResults(false); // Hide dropdown if no server selected
+        return;
       }
 
-      // Determine the type of search (user or patient)
       const isUserSearch = trimmedSearchTerm.startsWith('@');
       const query = isUserSearch
         ? trimmedSearchTerm.substring(1) // Remove '@' for user search
@@ -176,22 +175,25 @@ const TaskSection: React.FC<CombinedProps> = ({
 
         if (response.status === 200) {
           console.log('API Response:', response.data); // Debugging log
-          setFilteredPatientId(response.data); // Populate results
+          setFilteredPatientId(response.data);
+          setShowResults(true); // Show dropdown for valid results
         } else {
-          setFilteredPatientId([]); // Clear results for non-200 responses
+          setFilteredPatientId([]);
+          setShowResults(false); // Hide dropdown for invalid responses
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setFilteredPatientId([]); // Clear results on error
+        setFilteredPatientId([]);
+        setShowResults(false); // Hide dropdown on error
       }
     };
 
     const delayDebounce = setTimeout(() => {
-      fetchAndSearchData(); // Call the function with debouncing
+      fetchAndSearchData();
     }, 300); // 300ms debounce delay
 
-    return () => clearTimeout(delayDebounce); // Cleanup on unmount or searchTerm/serverId change
-  }, [searchTerm, server?.serverId]);
+    return () => clearTimeout(delayDebounce); // Clear timeout on cleanup
+  }, [searchTerm, server?.serverId]); // Trigger when searchTerm or serverId changes
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -437,16 +439,22 @@ const TaskSection: React.FC<CombinedProps> = ({
           placeholder="Search @ User, Patient ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setShowResults(true)}
+          onFocus={() => setShowResults(true)} // Show results on focus
+          onBlur={() => {
+            // Hide results only if the user clicks outside
+            setTimeout(() => setShowResults(false), 200); // Add delay to allow click on dropdown
+          }}
           className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
         />
         {showResults && (
           <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
             {!server?.serverId ? (
+              // Show this message when no server is selected
               <div className="p-2 text-gray-500">
                 Please enter a server to search tasks
               </div>
             ) : filteredPatientId.length > 0 ? (
+              // Show tasks if any match the search
               filteredPatientId.map((task, index) => (
                 <div
                   key={index}
@@ -463,6 +471,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                 </div>
               ))
             ) : (
+              // Show this message when no tasks are found
               <div className="p-2 text-gray-500">No matching tasks found</div>
             )}
           </div>
