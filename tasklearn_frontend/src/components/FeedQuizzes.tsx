@@ -40,9 +40,9 @@ interface Props {
     fetchId: Follow[];
     userId: string[];
     currentUserData: UserData | null;
-    userData: UserData[];
-    filteredQuizzes: Quiz[];
-    currentQuizIndex: number;
+    // userData: UserData[];
+    // filteredQuizzes: Quiz[];
+    // currentQuizIndex: number;
 }
 
 const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
