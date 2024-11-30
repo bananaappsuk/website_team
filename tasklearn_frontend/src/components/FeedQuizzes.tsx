@@ -131,44 +131,40 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
 
         const fetchPublicQuizzes = async () => {
             try {
-                if (userId.length > 0) {
-                    for (let idObj of userId) {
-                        const response = await fetch(
-                            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/public/${idObj}`,
-                            { method: "GET" }
-                        );
-
-                        if (!response.ok) {
-                            throw new Error("Failed to fetch quizzes");
-                        }
-                        const data = await response.json();
-                        setQuizzes((prev) => [...prev, ...data]);
-
-                        setFilteredQuizzes((prev) => [...prev, ...data]);
-                    }
-                } else {
-                    console.error("No followeeId available.");
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/public/${currentUserData?.uid}`,
+                    { method: "GET" }
+                );
+                if (!response.ok) {
+                    throw new Error("Failed to fetch quizzes");
                 }
+                const data = await response.json();
+                setQuizzes((prev) => deduplicateQuizzes([...prev, ...data]));
+                setFilteredQuizzes((prev) => deduplicateQuizzes([...prev, ...data]));
+                setLoading(false);
             } catch (error) {
                 console.error("Error fetching quizzes:", error);
                 setError((error as Error).message);
-            } finally {
                 setLoading(false);
             }
         };
-
         if (fetchId.length > 0) {
             fetchQuizzes();
         }
-
-        if (userId.length > 0) {
-            fetchPublicQuizzes();
-        }
+        fetchPublicQuizzes();
     }, []);
-
-
+    const deduplicateQuizzes = (quizzes: Quiz[]) => {
+        const seen = new Set();
+        return quizzes.filter((quiz: any) => {
+            const key = quiz._id;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    };
     //useEffect to check Quiz is saved or not
-
     useEffect(() => {
         const currentQuiz = filteredQuizzes[currentQuizIndex];
         if (currentQuiz) {
@@ -179,13 +175,11 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
             }
         }
     }, [filteredQuizzes, currentQuizIndex, currentUserData]);
-
     useEffect(() => {
         const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
             if (userIds.length === 0) {
                 return [];
             }
-
             const userDetails: UserData[] = [];
             for (const id of userIds) {
                 const userDoc = await getDoc(doc(db, "users", id));
@@ -194,17 +188,13 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                 }
             }
             setUserData(userDetails);
-
             return userDetails;
         };
-
         if (filteredQuizzes.length > 0) {
             const userIds = filteredQuizzes.map((quiz) => quiz.createdBy);
             fetchUserDetails(userIds);
         }
     }, [filteredQuizzes]);
-
-    console.log(isSaved);
 
     useEffect(() => {
         const filtered = Array.isArray(quizzes)
