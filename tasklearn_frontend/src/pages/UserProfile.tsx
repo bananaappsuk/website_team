@@ -411,7 +411,7 @@ const UserProfile = () => {
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         {selectedServer ? (
-                                            <Tracking selectedServer={selectedServer} />
+                                            <Tracking selectedServer={selectedServer} currentUserData={userData} />
                                         ) : (
                                             <div className="flex items-center justify-center px-4 py-1 text-black">
                                                 Select a server

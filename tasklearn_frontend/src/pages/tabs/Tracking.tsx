@@ -21,8 +21,9 @@ type UserData = {
 };
 interface TrackingProps {
     selectedServer: Server | null;
+    currentUserData: UserData | null;
 }
-const Tracking: React.FC<TrackingProps> = ({ selectedServer }) => {
+const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) => {
     const [tasksList, setTasksList] = useState<[]>([]);
     const [allUsers, setAllUsers] = useState<UserData[]>([]);
     const [leaderboard, setLeaderboard] = useState<{
@@ -106,17 +107,19 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer }) => {
                 const data = doc.data() as UserData;
                 return { ...data, uid: doc.id };
             });
-            const encryptedUser = encryptData(users[0]);
-            if (encryptedUser) {
-                sessionStorage.setItem("user", encryptedUser);
-                router.push("/OtherProfile");
+            if (users[0].uid !== currentUserData?.uid) {
+                const encryptedUser = encryptData(users[0]);
+                if (encryptedUser) {
+                    sessionStorage.setItem("user", encryptedUser);
+                    router.push("/OtherProfile");
+                }
             } else {
                 console.error("Failed to encrypt user data");
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
-    }
+    };
     return (
         <div className="flex flex-col items-center">
             <h1 className=" font-bold text-[20px]">
@@ -178,16 +181,29 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer }) => {
                 <div className=" overflow-y-auto max-h-screen">
                     {Object.entries(leaderboard)
                         .sort((a, b) => b[1] - a[1]) // Sort by count in descending order
-                        .map(([key, count]) => (
-                            <React.Fragment key={key}>
-                                <div className="grid grid-cols-2 gap-[1rem] font-bold gap-x-[9rem] mt-[2.5rem]">
-                                    <p className=" cursor-pointer" onClick={() => handleProfile(key)}>{key}</p>
-                                    <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
-                                        {count}
-                                    </p>
-                                </div>
-                            </React.Fragment>
-                        ))}
+                        .map(([key, count]) => {
+                            const [userName] = key.split(",");
+                            return (
+                                <React.Fragment key={key}>
+                                    <div className="grid grid-cols-2 gap-[1rem] font-bold gap-x-[9rem] mt-[2.5rem]">
+                                        <button
+                                            className={`${userName === currentUserData?.userName
+                                                ? "cursor-default"
+                                                : "cursor-pointer hover:underline"
+                                                }`}
+                                            onClick={() => handleProfile(key)}
+                                            disabled={userName === currentUserData?.userName}
+                                        >
+                                            {key}
+                                        </button>
+                                        <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
+                                            {count}
+                                        </p>
+                                    </div>
+                                </React.Fragment>
+                            );
+                        }
+                        )}
                 </div>
                 {Object.keys(leaderboard).length === 0 && !loading && (
                     <div className=" mt-5">No contributors found</div>
