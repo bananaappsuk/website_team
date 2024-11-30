@@ -108,8 +108,10 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
             const filteredData = data.filter(
                 (item: any) => item.createdBy === otherUser?.uid
             );
-            setQuizzes((prev) => deduplicateQuizzes([...prev, ...data]));
-            setFilteredQuizzes((prev) => deduplicateQuizzes([...prev, ...filteredData]));
+            setQuizzes((prev) => deduplicateQuizzes([...prev, ...filteredData]));
+            setFilteredQuizzes((prev) =>
+                deduplicateQuizzes([...prev, ...filteredData])
+            );
         } catch (error) {
             console.error("Error fetching quizzes:", error);
         } finally {
@@ -151,7 +153,6 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
             return true;
         });
     };
-    console.log("Uni", quizzes);
 
     useEffect(() => {
         const filtered = quizzes

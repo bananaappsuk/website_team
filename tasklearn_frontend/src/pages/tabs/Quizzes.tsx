@@ -123,10 +123,10 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
         setCurrentQuizIndex(0);
     }, [searchTerm, quizzes]);
 
-    const handleDeleteQuiz = async (quizId: string) => {
+    const handleDeleteQuiz = async (taskId: string) => {
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${quizId}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${taskId}`,
                 {
                     method: "DELETE",
                 }
@@ -137,7 +137,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                 throw new Error(errorData.message || "Failed to delete quiz");
             }
 
-            const updatedQuizzes = quizzes.filter((quiz) => quiz._id !== quizId);
+            const updatedQuizzes = quizzes.filter((quiz) => quiz.taskId !== taskId);
             setQuizzes(updatedQuizzes);
             setFilteredQuizzes(updatedQuizzes);
 
@@ -365,7 +365,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     <div className="relative group">
                                         <button
                                             className="p-2"
-                                            onClick={() => handleDeleteQuiz(filteredQuizzes[currentQuizIndex]._id)}
+                                            onClick={() => handleDeleteQuiz(filteredQuizzes[currentQuizIndex]?.taskId)}
                                         >
                                             <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
                                         </button>
