@@ -141,36 +141,56 @@ const TaskSection: React.FC<CombinedProps> = ({
 
   useEffect(() => {
     const fetchAndSearchData = async () => {
-      if (searchTerm.trim().startsWith('@')) {
-        const query = searchTerm.trim().substring(1); // Remove '@' from the query
+      const trimmedSearchTerm = searchTerm.trim();
 
-        if (query === '') {
-          setFilteredPatientId([]); // Clear results if the query is empty
-          return;
+      // Case 1: Empty search or invalid query
+      if (!trimmedSearchTerm || trimmedSearchTerm === '@') {
+        setFilteredPatientId([]);
+        setShowResults(true);
+        return; // Prevent API call
+      }
+
+      // Case 2: No server selected
+      if (!server?.serverId) {
+        setFilteredPatientId([]);
+        setShowResults(true);
+        return; // Prevent API call
+      }
+
+      // Determine the type of search (user or patient)
+      const isUserSearch = trimmedSearchTerm.startsWith('@');
+      const query = isUserSearch
+        ? trimmedSearchTerm.substring(1) // Remove '@' for user search
+        : trimmedSearchTerm;
+
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
+          {
+            params: {
+              query,
+              serverId: server.serverId,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          console.log('API Response:', response.data); // Debugging log
+          setFilteredPatientId(response.data); // Populate results
+        } else {
+          setFilteredPatientId([]); // Clear results for non-200 responses
         }
-
-        try {
-          const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
-            {
-              params: { query, serverId: server?.serverId },
-            }
-          );
-
-          console.log('API Response:', response.data); // For debugging
-
-          setFilteredPatientId(response.data); // This will be an array (possibly empty)
-        } catch (error) {
-          console.error('Error fetching search results:', error);
-          toast.error('Error fetching search results');
-          setFilteredPatientId([]); // Clear results on error
-        }
-      } else {
-        setFilteredPatientId([]); // Clear results if '@' is not at the start
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setFilteredPatientId([]); // Clear results on error
       }
     };
 
-    fetchAndSearchData();
+    const delayDebounce = setTimeout(() => {
+      fetchAndSearchData(); // Call the function with debouncing
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(delayDebounce); // Cleanup on unmount or searchTerm/serverId change
   }, [searchTerm, server?.serverId]);
 
   useEffect(() => {
@@ -420,9 +440,13 @@ const TaskSection: React.FC<CombinedProps> = ({
           onFocus={() => setShowResults(true)}
           className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
         />
-        {showResults && searchTerm.trim().startsWith('@') && (
+        {showResults && (
           <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-            {filteredPatientId.length > 0 ? (
+            {!server?.serverId ? (
+              <div className="p-2 text-gray-500">
+                Please enter a server to search tasks
+              </div>
+            ) : filteredPatientId.length > 0 ? (
               filteredPatientId.map((task, index) => (
                 <div
                   key={index}

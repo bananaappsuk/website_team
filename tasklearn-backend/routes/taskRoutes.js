@@ -4,26 +4,26 @@ const Task = require('../models/Task'); // Make sure your Task model is correctl
 
 // Search tasks by username or patientId
 router.get('/search', async (req, res) => {
-  console.log(req.query);
   const { query, serverId } = req.query;
 
-  // Validate required parameters
-  if (!query || !serverId) {
+  if (!query?.trim() || query === '@' || !serverId) {
     return res
       .status(400)
       .json({ message: 'Query and serverId are required parameters' });
   }
 
   try {
-    const regex = new RegExp(query, 'i'); // Case-insensitive matching
+    const escapeRegex = (string) =>
+      string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapeRegex(query.trim()), 'i');
+
     const tasks = await Task.find({
       serverId,
       $or: [{ patientId: regex }, { createdBy: regex }],
-      isDeleted: false, // Exclude deleted tasks
+      isDeleted: false,
     });
 
-    // Always return a 200 status with the tasks array (even if empty)
-    res.status(200).json(tasks);
+    res.status(200).json(tasks); // Always return an array
   } catch (error) {
     console.error('Error searching tasks:', error);
     res.status(500).json({ message: 'Error fetching search results', error });
