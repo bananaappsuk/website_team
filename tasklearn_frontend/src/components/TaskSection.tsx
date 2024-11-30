@@ -459,9 +459,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                 <div
                   key={index}
                   className="p-2 border-b cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    fetchTaskById(task._id);
-                    setShowResults(false);
+                  onMouseDown={() => {
+                    fetchTaskById(task._id); // Ensure this fetches the task details
+                    setShowResults(false); // Hide the dropdown after selection
                   }}
                 >
                   <p className="font-semibold">Patient ID : {task.patientId}</p>
