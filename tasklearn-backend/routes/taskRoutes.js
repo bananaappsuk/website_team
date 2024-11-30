@@ -4,6 +4,7 @@ const Task = require('../models/Task'); // Make sure your Task model is correctl
 
 // Search tasks by username or patientId
 router.get('/search', async (req, res) => {
+  console.log(req.query);
   const { query, serverId } = req.query;
 
   // Validate required parameters
@@ -21,51 +22,11 @@ router.get('/search', async (req, res) => {
       isDeleted: false, // Exclude deleted tasks
     });
 
-    // Check if tasks were found
-    if (tasks.length === 0) {
-      return res.status(404).json({ message: 'No matching tasks found' });
-    }
-
-    res.status(200).json(tasks); // Return matching tasks
-  } catch (error) {
-    console.error('Error searching tasks:', error);
-    res.status(500).json({ message: 'Error searching tasks', error });
-  }
-});
-
-// Create a new task
-router.post('/', async (req, res) => {
-  try {
-    const task = new Task(req.body);
-    await task.save();
-    res.status(201).json({ message: 'Task created successfully', task });
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating task', error });
-  }
-});
-
-// Get all tasks
-router.get('/', async (req, res) => {
-  try {
-    const tasks = await Task.find();
+    // Always return a 200 status with the tasks array (even if empty)
     res.status(200).json(tasks);
   } catch (error) {
-    res.status(500).json({ message: 'Error retrieving tasks', error });
-  }
-});
-
-//get task by id
-
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const task = await Task.findById(id);
-    res.status(200).json(task);
-    if (!task) {
-      return res.status(404).send('Task not found');
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving task', error });
+    console.error('Error searching tasks:', error);
+    res.status(500).json({ message: 'Error fetching search results', error });
   }
 });
 
@@ -102,6 +63,42 @@ router.patch('/:id', async (req, res) => {
     res.status(200).json({ message: 'task removed successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error Updating tasks', error });
+  }
+});
+
+// Create a new task
+router.post('/', async (req, res) => {
+  try {
+    const task = new Task(req.body);
+    await task.save();
+    res.status(201).json({ message: 'Task created successfully', task });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating task', error });
+  }
+});
+
+// Get all tasks
+router.get('/', async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving tasks', error });
+  }
+});
+
+//get task by id
+
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Task.findById(id);
+    res.status(200).json(task);
+    if (!task) {
+      return res.status(404).send('Task not found');
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving task', error });
   }
 });
 

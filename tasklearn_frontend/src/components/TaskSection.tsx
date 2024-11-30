@@ -141,40 +141,36 @@ const TaskSection: React.FC<CombinedProps> = ({
 
   useEffect(() => {
     const fetchAndSearchData = async () => {
-      if (searchTerm.startsWith('@')) {
-        const query = searchTerm.substring(1).trim(); // Extract text after '@'
+      if (searchTerm.trim().startsWith('@')) {
+        const query = searchTerm.trim().substring(1); // Remove '@' from the query
 
         if (query === '') {
-          setFilteredPatientId([]); // Clear results if no query after '@'
+          setFilteredPatientId([]); // Clear results if the query is empty
           return;
         }
 
         try {
-          console.log(query);
-          console.log(server?.serverId);
           const response = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
             {
-              params: {
-                query,
-                serverId: server?.serverId,
-              },
+              params: { query, serverId: server?.serverId },
             }
           );
 
-          setFilteredPatientId(response.data); // Set fetched tasks
+          console.log('API Response:', response.data); // For debugging
+
+          setFilteredPatientId(response.data); // This will be an array (possibly empty)
         } catch (error) {
           console.error('Error fetching search results:', error);
           toast.error('Error fetching search results');
-          setFilteredPatientId([]);
+          setFilteredPatientId([]); // Clear results on error
         }
       } else {
-        setFilteredPatientId([]); // Clear search results if '@' is not used
+        setFilteredPatientId([]); // Clear results if '@' is not at the start
       }
     };
 
-    const debounceTimeout = setTimeout(fetchAndSearchData, 300); // Debounce for smoother UX
-    return () => clearTimeout(debounceTimeout); // Cleanup timeout
+    fetchAndSearchData();
   }, [searchTerm, server?.serverId]);
 
   useEffect(() => {
@@ -424,21 +420,19 @@ const TaskSection: React.FC<CombinedProps> = ({
           onFocus={() => setShowResults(true)}
           className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
         />
-        {showResults && searchTerm.startsWith('@') && (
+        {showResults && searchTerm.trim().startsWith('@') && (
           <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-            {taskLoading ? (
-              <div className="p-2 text-gray-500">Loading...</div>
-            ) : filteredPatientId.length > 0 ? (
-              filteredPatientId.map((task: any, index: number) => (
+            {filteredPatientId.length > 0 ? (
+              filteredPatientId.map((task, index) => (
                 <div
                   key={index}
                   className="p-2 border-b cursor-pointer hover:bg-gray-100"
                   onClick={() => {
-                    fetchTaskById(task._id); // Fetch and select task on click
-                    setShowResults(false); // Close dropdown
+                    fetchTaskById(task._id);
+                    setShowResults(false);
                   }}
                 >
-                  <p className="font-semibold">{task.patientId}</p>
+                  <p className="font-semibold">Patient ID : {task.patientId}</p>
                   <p className="text-sm text-gray-500">
                     Created by: {task.createdBy}
                   </p>
