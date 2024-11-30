@@ -39,9 +39,6 @@ interface Follow {
 }
 interface Props {
     currentUserData: UserData | null;
-    userData: UserData[];
-    filteredQuizzes: Quiz[];
-    currentQuizIndex: number;
 }
 
 const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
