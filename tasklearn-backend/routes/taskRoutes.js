@@ -4,9 +4,10 @@ const Task = require('../models/Task'); // Make sure your Task model is correctl
 
 // Search tasks by username or patientId
 router.get('/search', async (req, res) => {
+  console.log(req.query);
   const { query, serverId } = req.query;
 
-  if (!query?.trim() || query === '@' || !serverId) {
+  if (!query?.trim() || !serverId) {
     return res
       .status(400)
       .json({ message: 'Query and serverId are required parameters' });

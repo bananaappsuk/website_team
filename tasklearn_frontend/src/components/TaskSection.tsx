@@ -143,26 +143,34 @@ const TaskSection: React.FC<CombinedProps> = ({
     const fetchAndSearchData = async () => {
       const trimmedSearchTerm = searchTerm.trim();
 
-      // Clear results when input is empty
+      // Case 1: Clear results when input is empty
       if (!trimmedSearchTerm) {
-        setFilteredPatientId([]);
+        console.log('Clearing results: Empty search term');
+        setFilteredPatientId([]); // Clear previous results
         setShowResults(false); // Hide dropdown for empty input
         return;
       }
 
       // Case 2: No server selected
       if (!server?.serverId) {
-        setFilteredPatientId([]);
-        setShowResults(false); // Hide dropdown if no server selected
+        console.log('No server selected');
+        setFilteredPatientId([]); // Clear results when no server is selected
+        setShowResults(true); // Hide dropdown when no server is selected
         return;
       }
 
+      // Determine if it's a user search or patient ID search
       const isUserSearch = trimmedSearchTerm.startsWith('@');
       const query = isUserSearch
         ? trimmedSearchTerm.substring(1) // Remove '@' for user search
         : trimmedSearchTerm;
 
+      console.log('Search term:', searchTerm);
+      console.log('Query parameter:', query);
+      console.log('Server ID:', server?.serverId);
+
       try {
+        // Fetch data from the backend
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
           {
@@ -175,24 +183,35 @@ const TaskSection: React.FC<CombinedProps> = ({
 
         if (response.status === 200) {
           console.log('API Response:', response.data); // Debugging log
-          setFilteredPatientId(response.data);
+          setFilteredPatientId(response.data); // Populate results
           setShowResults(true); // Show dropdown for valid results
         } else {
-          setFilteredPatientId([]);
+          console.log('No valid results returned');
+          setFilteredPatientId([]); // Clear results for invalid responses
           setShowResults(false); // Hide dropdown for invalid responses
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setFilteredPatientId([]);
+        if (axios.isAxiosError(error)) {
+          // Axios-specific error handling
+          console.error('Axios Error:', error.response?.data || error.message);
+        } else {
+          // Generic error handling
+          console.error('Unexpected Error:', error);
+        }
+        setFilteredPatientId([]); // Clear results on error
         setShowResults(false); // Hide dropdown on error
       }
     };
 
+    // Debounce to avoid rapid API calls
     const delayDebounce = setTimeout(() => {
-      fetchAndSearchData();
+      fetchAndSearchData(); // Call the async function after debounce delay
     }, 300); // 300ms debounce delay
 
-    return () => clearTimeout(delayDebounce); // Clear timeout on cleanup
+    return () => {
+      console.log('Clearing debounce timeout');
+      clearTimeout(delayDebounce); // Clear timeout on cleanup
+    };
   }, [searchTerm, server?.serverId]); // Trigger when searchTerm or serverId changes
 
   useEffect(() => {
@@ -439,39 +458,40 @@ const TaskSection: React.FC<CombinedProps> = ({
           placeholder="Search @ User, Patient ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setShowResults(true)} // Show results on focus
-          onBlur={() => {
-            // Hide results only if the user clicks outside
-            setTimeout(() => setShowResults(false), 200); // Add delay to allow click on dropdown
-          }}
+          onFocus={() => setShowResults(true)}
           className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
         />
         {showResults && (
           <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
             {!server?.serverId ? (
-              // Show this message when no server is selected
               <div className="p-2 text-gray-500">
-                Please enter a server to search tasks
+                You must select a server to search tasks
               </div>
             ) : filteredPatientId.length > 0 ? (
-              // Show tasks if any match the search
-              filteredPatientId.map((task, index) => (
-                <div
-                  key={index}
-                  className="p-2 border-b cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => {
-                    fetchTaskById(task._id); // Ensure this fetches the task details
-                    setShowResults(false); // Hide the dropdown after selection
-                  }}
-                >
-                  <p className="font-semibold">Patient ID : {task.patientId}</p>
-                  <p className="text-sm text-gray-500">
-                    Created by: {task.createdBy}
-                  </p>
-                </div>
-              ))
+              filteredPatientId.map((task, index) =>
+                task.message ? ( // Check if it's a message object
+                  <div key={index} className="p-2 text-gray-500">
+                    {task.message}
+                  </div>
+                ) : (
+                  <div
+                    key={index}
+                    className="p-2 border-b cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      fetchTaskById(task._id);
+                      setShowResults(false);
+                    }}
+                  >
+                    <p className="font-semibold">
+                      Patient ID : {task.patientId}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Created by: {task.createdBy}
+                    </p>
+                  </div>
+                )
+              )
             ) : (
-              // Show this message when no tasks are found
               <div className="p-2 text-gray-500">No matching tasks found</div>
             )}
           </div>
