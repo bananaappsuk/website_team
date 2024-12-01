@@ -485,8 +485,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                     <p className="font-semibold">
                       Patient ID : {task.patientId}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Created by: {task.createdBy}
+                    <p className="text-sm text-gray-900">
+                      Created by:{' '}
+                      <span className="font-semibold"> {task.createdBy} </span>
                     </p>
                   </div>
                 )
