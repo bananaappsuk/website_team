@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 import { FC, useEffect, useState } from "react";
 import React from "react";
 import Link from "next/link";
@@ -21,6 +20,7 @@ interface Server {
 }
 
 interface SidebarProfileProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userId: any;
     onServerSelect?: (server: { serverId: string; serverName: string; memberList: string[] }) => void;
     handleTasksClick: (arg: string) => void;
@@ -28,6 +28,7 @@ interface SidebarProfileProps {
     taskCategories: string[];
     setDropdownVisible: React.Dispatch<React.SetStateAction<boolean[]>>;
     handleResetInputs: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFilteredTasks: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
