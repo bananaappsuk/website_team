@@ -167,7 +167,6 @@ const OtherProfile = () => {
             setOtherFollowingIds(followingIds);
             setLoading(false);
         } catch (error) {
-            console.log(error);
         }
     };
 
@@ -191,7 +190,6 @@ const OtherProfile = () => {
             setOtherFollowerIds(followerIds);
             setLoading(false);
         } catch (error) {
-            console.log(error);
         }
     };
 
@@ -367,7 +365,6 @@ const OtherProfile = () => {
         }
     };
 
-    console.log(followingUsers);
 
     return (
         <div className="w-full flex gap-2 bg-gray-100">

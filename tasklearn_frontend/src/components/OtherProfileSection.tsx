@@ -45,7 +45,6 @@ const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
                 const followeeIds = AllDocs.docs.map((doc) => ({
                     followeeId: doc.data().followeeId,
                 }));
-                console.log(followeeIds);
                 setFolloweeId(followeeIds);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {

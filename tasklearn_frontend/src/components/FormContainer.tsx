@@ -73,7 +73,6 @@ const FormContainer: React.FC<combinedProps> = ({
     };
   }, []);
 
-  console.log("Task", selectedTask);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,7 +97,6 @@ const FormContainer: React.FC<combinedProps> = ({
     const fetchUsersByUIDs = async (uids: string[]) => {
       setLoading(true);
       try {
-        console.log("UIDs: ", uids);
         if (searchUserName.trim() == "@") {
           const userDocs = await getDocs(collection(db, "users"));
           const allUsers = userDocs.docs.map((doc) => ({
@@ -186,7 +184,6 @@ const FormContainer: React.FC<combinedProps> = ({
     const fetchUsersByUIDs = async (uids: string[]) => {
       setLoading2(true);
       try {
-        console.log("UIDs: ", uids);
         if (searchUserName2.trim() == "@") {
           const userDocs = await getDocs(collection(db, "users"));
           const allUsers = userDocs.docs.map((doc) => ({
@@ -286,7 +283,6 @@ const FormContainer: React.FC<combinedProps> = ({
     }));
   }, [taggedStaffTags, contributingTags]);
 
-  console.log(contributingTags);
 
   const handleRemoveTag = (tag: string) => {
     const newTagas = taggedStaffTags.filter((item) => item !== tag);
@@ -316,8 +312,6 @@ const FormContainer: React.FC<combinedProps> = ({
     return <p className=" text-center ">Loading...</p>;
   }
 
-  console.log("load", patientIdLoading);
-  console.log(server, "server");
 
 
 

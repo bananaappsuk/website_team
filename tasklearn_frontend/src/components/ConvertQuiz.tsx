@@ -92,11 +92,9 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     }
                 );
                 const data = await response.json();
-                console.log("Fetched quizzes:", data);
                 setQuizzes(data);
                 setLoading(false);
             } catch (error) {
-                console.error("Error fetching quizzes:", error);
                 setError((error as Error).message);
                 setLoading(false);
             }
@@ -123,7 +121,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     }
                 );
                 const data = await response.json();
-                console.log("Fetched2 quizzes:", data);
                 setQuizzes(data);
                 setFilteredQuizzes(data);
                 setLoading(false);
@@ -284,7 +281,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
     if (quizzes.length === 0) {
         return <div>No quizzes available</div>;
     }
-    console.log(currentQuizIndex);
 
     return (
         <div className="w-full bg-white relative overflow-y-auto max-h-screen p-1">

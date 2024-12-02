@@ -112,7 +112,6 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
     }, [tasksList, allUsers]);
     const handleProfile = async (data: string) => {
         const [userName] = data.split(",");
-        console.log(userName);
         try {
             const q = query(
                 collection(db, "users"),

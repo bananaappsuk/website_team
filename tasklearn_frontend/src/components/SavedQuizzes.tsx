@@ -150,7 +150,6 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
         }
         if (response.ok) {
             const data = await response.json();
-            console.log("savedQuiz", data);
 
             setQuizzes(data);
             setFilteredQuizzes(data);
