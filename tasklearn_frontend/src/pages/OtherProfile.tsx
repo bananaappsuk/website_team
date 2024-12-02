@@ -26,8 +26,6 @@ import { toast } from "react-toastify";
 import { decryptData } from "../utils/cryptoUtils";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import Quizzes from "./tabs/Quizzes";
-import OtherProfileQuizzes from "@/components/OtherProfileQuizzes";
-import OtherProfileSection from "@/components/OtherProfileSection";
 
 type UserData = {
     uid: string;
@@ -399,29 +397,21 @@ const OtherProfile = () => {
                     </div>
                     <div className="h-[1px] w-full bg-gray-300"></div>
                     {/* User Info */}
-                    <div className="flex flex-col lg:flex-row mt-4">
-                        <div className="w-full lg:w-auto items-center p-4 flex-col">
-                            {otherUser?.profilePicUrl ? (
-                                <img
-                                    src={otherUser?.profilePicUrl}
-                                    alt="profilePic"
-                                    className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
-                                />
-                            ) : (
-                                <div
-                                    className="flex items-center justify-center bg-cover mx-auto object-cover w-[67px] h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
-                                >
-                                    {otherUser?.userName?.[0]?.toUpperCase() || "?"}
-                                </div>
-                            )}
-                            <p className="text-lg font-bold mt-2">
+                    <div className="flex flex-col lg:flex-row mt-4 w-[33%] sm:w-[100%]">
+                        <div className="w-[100%] sm:w-[33%] lg:w-auto items-center p-4  flex-col">
+                            <img
+                                src={otherUser?.profilePicUrl}
+                                alt="profilePic"
+                                className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
+                            />
+                            <p className="text-lg font-bold">
                                 {otherUser?.userName + "," + otherUser?.jobRole}
                             </p>
                         </div>
-                        <div className="ml-auto flex items-center">
+                        <div className="ml-auto flex items-center ">
                             {/* Step 3: Add onClick handler to open modal */}
                             <button
-                                className={`mb-20   rounded-md px-4 py-2 ${checkAcceptedRequest() ? styleAccept : stylePending
+                                className={`mb-6 rounded-md px-4 py-2 ${checkAcceptedRequest() ? styleAccept : stylePending
                                     }`}
                                 onClick={handleFollowRequest}
                             >
@@ -430,29 +420,34 @@ const OtherProfile = () => {
                         </div>
                     </div>
                     {/* Main Quiz Section */}
-                    <div className="p-4 lg:w-[40%] float-left">
-                        <OtherProfileSection userData={userData} otherUser={otherUser} />
+                    <div className="p-4 w-[100%] sm:float-none lg:w-[40%] lg:float-left">
+                        <Quizzes userData={userData} />
                     </div>
-                    <div className="p-4 border-2 rounded-lg ">
+                    <div className="p-4 border-2 rounded-lg">
                         {/* Tabs: Followers, Following, Career */}
-                        <div className="flex justify-around border-b mb-4 P1_2 fo_22">
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                        <div className="flex justify-around border-b mb-4 P1_2 fo_22 lg:hidden">
+                            <button className="text-center flex-1 py-2 border-gray-400 max-sm:hidden lg:block">
                                 Followers
                             </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                            <button className="text-center flex-1 py-2 border-gray-400 max-sm:hidden lg:block">
                                 Following
                             </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                            <button className="text-center flex-1 py-2 border-gray-400 max-sm:hidden lg:block">
                                 Career
                             </button>
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center">
                             {/* Followers Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
+                            <div className="flex justify-around border-b mb-4 P1_2 fo_22 max-sm:block lg:hidden">
+                            <button className="text-center flex-1 py-2 border-gray-400 ">
+                                Followers
+                            </button>
+                            </div>
+                            <div className="bg-white p-4 shadow-md rounded-md w-[100%]  ">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     List of Followers
                                 </h3>
-                                <ul className="space-y-2">
+                                <ul className="space-y-2 text-[14px] sm:text-[15px] ">
                                     {followerUsers.length === 0 && <p>No Followers List Found</p>}
                                     {followerUsers?.map((user, index) => {
                                         const isPending = checkOtherFollowRequest(user.uid);
@@ -495,11 +490,16 @@ const OtherProfile = () => {
                                 </ul>
                             </div>
                             {/* Following Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
+                            <div className="flex justify-around border-b mb-4 P1_2 fo_22 max-sm:block lg:hidden">
+                            <button className="text-center flex-1 py-2 border-gray-400 ">
+                                Following
+                            </button>
+                            </div>
+                            <div className="bg-white p-4 shadow-md rounded-md w-[100%] ">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     Following List
                                 </h3>
-                                <ul className="space-y-2">
+                                <ul className="space-y-2 text-[14px] sm:text-[15px]">
                                     {followingUsers.length === 0 && (
                                         <p>No Following List Found</p>
                                     )}
@@ -545,7 +545,12 @@ const OtherProfile = () => {
                                 </ul>
                             </div>
                             {/* Career Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
+                            <div className="flex justify-around border-b mb-4 P1_2 fo_22 max-sm:block lg:hidden">
+                            <button className="text-center flex-1 py-2 border-gray-400 ">
+                                Career
+                            </button>
+                            </div>
+                            <div className="bg-white p-4 shadow-md rounded-md w-[100%] ">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     Job role and description
                                 </h3>
