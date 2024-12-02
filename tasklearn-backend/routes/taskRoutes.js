@@ -25,7 +25,6 @@ router.get("/", async (req, res) => {
 
 // Search
 router.get('/search', async (req, res) => {
-  console.log(req.query);
   const { query, serverId } = req.query;
 
   if (!query?.trim() || !serverId) {

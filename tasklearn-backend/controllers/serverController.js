@@ -3,8 +3,6 @@ const Server = require('../models/serverModel');
 const s3 = require('../config/awsConfig');
 
 const createServer = async (req, res) => {
-    console.log('Request body:', req.body); // Check incoming body
-    console.log('Uploaded file:', req.file); // Check uploaded file
 
     const { channelName, channelType, createdByUserId } = req.body;
     const file = req.file;

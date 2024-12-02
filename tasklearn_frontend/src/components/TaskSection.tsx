@@ -157,7 +157,6 @@ const TaskSection: React.FC<CombinedProps> = ({
 
             // Case 1: Clear results when input is empty
             if (!trimmedSearchTerm) {
-                console.log('Clearing results: Empty search term');
                 setFilteredPatientId([]); // Clear previous results
                 setShowResults(false); // Hide dropdown for empty input
                 return;
@@ -165,7 +164,6 @@ const TaskSection: React.FC<CombinedProps> = ({
 
             // Case 2: No server selected
             if (!server?.serverId) {
-                console.log('No server selected');
                 setFilteredPatientId([]); // Clear results when no server is selected
                 setShowResults(true); // Hide dropdown when no server is selected
                 return;
@@ -177,9 +175,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                 ? trimmedSearchTerm.substring(1) // Remove '@' for user search
                 : trimmedSearchTerm;
 
-            console.log('Search term:', searchTerm);
-            console.log('Query parameter:', query);
-            console.log('Server ID:', server?.serverId);
+
 
             try {
                 // Fetch data from the backend
@@ -206,11 +202,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                 );
 
                 if (response.status === 200) {
-                    console.log('API Response:', response.data); // Debugging log
                     setFilteredPatientId(response.data); // Populate results
                     setShowResults(true); // Show dropdown for valid results
                 } else {
-                    console.log('No valid results returned');
                     setFilteredPatientId([]); // Clear results for invalid responses
                     setShowResults(false); // Hide dropdown for invalid responses
                 }
@@ -233,7 +227,6 @@ const TaskSection: React.FC<CombinedProps> = ({
         }, 300); // 300ms debounce delay
 
         return () => {
-            console.log('Clearing debounce timeout');
             clearTimeout(delayDebounce); // Clear timeout on cleanup
         };
     }, [searchTerm, server?.serverId]); // Trigger when searchTerm or serverId changes

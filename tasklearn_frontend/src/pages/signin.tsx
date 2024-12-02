@@ -45,7 +45,6 @@ const SignIn: React.FC = () => {
                 const queryDoc = await getDocs(q);
 
                 if (queryDoc.empty) {
-                    console.log(queryDoc);
 
                     setUserNameExists(true);
                 }

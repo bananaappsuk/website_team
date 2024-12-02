@@ -164,7 +164,6 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                 const data = await response.json();
 
                 if (data) {
-                    console.log("Server created successfully:", data);
                     const sequenceNumber = 1;
                     const randomNumber =
                         Math.floor(Math.random() * 900) + 100;

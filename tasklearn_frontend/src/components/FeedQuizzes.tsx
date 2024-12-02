@@ -132,7 +132,6 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                             throw new Error("Failed to fetch quizzes");
                         }
                         const data = await response.json();
-                        console.log("Log", data);
                         setQuizzes((prev) => [...prev, ...data]);
                         setFilteredQuizzes((prev) => [...prev, ...data]);
                     }
