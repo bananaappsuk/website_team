@@ -98,7 +98,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                 throw new Error("Failed to fetch quizzes");
             }
             const data = await response.json();
-            console.log("Fetched quizzes:", data);
             setQuizzes(data);
             setFilteredQuizzes(data);
             setLoading(false);
@@ -249,7 +248,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
     ) => {
         const newVisibility = e.target.value;
         setVisibilityData({ visibility: newVisibility });
-        console.log("vis", newVisibility);
         try {
             const auth = getAuth();
             const user = auth.currentUser;

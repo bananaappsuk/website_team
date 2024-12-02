@@ -230,7 +230,6 @@ const TaskSharing = () => {
         return <p>Loading...</p>;
     }
 
-    console.log(btnDisable);
 
 
     const userId = userData ? userData.uid : null;
