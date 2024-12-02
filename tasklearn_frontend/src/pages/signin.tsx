@@ -201,7 +201,7 @@ const SignIn: React.FC = () => {
                         <form onSubmit={handleSubmit} className="w-90">
                             <div className="flex-col items-center sm:flex-row px-4 md:px-4 lg:px-20 xl:px-40 mb-6">
                                 <label
-                                    htmlFor="identifier"
+                                    // htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
                                     Username or email address
@@ -209,7 +209,7 @@ const SignIn: React.FC = () => {
                                 <input
                                     type="text"
                                     name="identifier"
-                                    id="identifier"
+                                    // id="identifier"
                                     ref={identifierRef}
                                     value={formData.identifier}
                                     onChange={handleChange}
@@ -220,7 +220,7 @@ const SignIn: React.FC = () => {
                             <div className="mb-4">
                                 <div className="flex-col items-center px-4 md:px-4 lg:px-20 xl:px-40 sm:flex-row mb-4">
                                     <label
-                                        htmlFor="password"
+                                        // htmlFor="password"
                                         className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                     >
                                         Password
@@ -229,7 +229,7 @@ const SignIn: React.FC = () => {
                                         <input
                                             type={passwordVisible ? "text" : "password"}
                                             name="password"
-                                            id="password"
+                                            // id="password"
                                             value={formData.password}
                                             required={!emailError && !userNameExists}
                                             onChange={handleChange}
@@ -256,11 +256,9 @@ const SignIn: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div
-                                className="px-4 md:px-4 lg:px-20 xl:px-40 cursor-pointer"
-                                onClick={() => router.push("/ForgotPassword")}
-                            >
-                                <p className="text-[#A0A0A0]">Forgot Password?</p>
+                            <div className="px-4 md:px-4 lg:px-20 xl:px-40 ">
+                                <button type="button" className="text-[#A0A0A0] cursor-pointer hover:underline"
+                                    onClick={() => router.push("/ForgotPassword")}>Forgot Password?</button>
                             </div>
                             <div className="flex flex-col mt-[1.5rem] justify-center items-center gap-[0.5rem]">
                                 <button

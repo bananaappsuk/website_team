@@ -57,23 +57,24 @@ const ForgotPassword: React.FC = () => {
                         <p className="text-center text-xs sm:text-xs text-[#68A86B] font-normal mb-6 sm:mb-16">
                             Collaborate to Learn, Learn to Collaborate
                         </p>
-                        <div
-                            className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 flex gap-x-1 items-center cursor-pointer text-[#67A76B] mb-4 w-[50%]"
-                            onClick={() => router.push("/signin")}
-                        >
-                            <Image
-                                src={backArrow}
-                                alt="back"
-                                width={16}
-                                height={16}
-                                className=" object-contain -[#67A76B]"
-                            />
-                            <p className="ml-2 text-[14px]">Back to Sign in</p>
+                        <div className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 w-[50%]">
+                            <div
+                                className="flex gap-x-1 items-center text-[#67A76B] mb-4"
+                                onClick={() => router.push("/signin")}
+                            >
+                                <Image
+                                    src={backArrow}
+                                    alt="back"
+                                    width={16}
+                                    height={16}
+                                    className=" object-contain text-[#67A76B] cursor-pointer"
+                                />
+                                <p className="ml-2 text-[14px] cursor-pointer" >Back to Sign in</p>
+                            </div>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="flex-col items-center sm:flex-row px-4 md:px-4 lg:px-20 xl:px-40 mb-6">
                                 <label
-                                    htmlFor="email"
                                     className="block text-[#646161] mb-3 sm:mb-4 xl:mb-5 text-sm sm:text-[16.5px]"
                                 >
                                     Forgot password, enter your email ID
@@ -81,7 +82,6 @@ const ForgotPassword: React.FC = () => {
                                 <input
                                     type="email"
                                     name="email"
-                                    id="email"
                                     required
                                     className="w-full px-4 py-2 border-black border text-black rounded-lg"
                                     placeholder="Email"

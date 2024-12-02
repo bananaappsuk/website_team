@@ -324,10 +324,10 @@ const FormContainer: React.FC<combinedProps> = ({
     return (
         <div>
             {server && !patientIdLoading && (
-                <form className="p-4 rounded overflow-y-auto max-h-screen">
+                <form className="p-1 xl:p-4 w-full rounded overflow-y-auto max-h-screen">
                     <div className="flex flex-col gap-4">
                         <div className=" relative">
-                            <div className="flex items-center border border-gray p-1 rounded-md">
+                            <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
                                     Patient ID:
                                 </label>
@@ -341,16 +341,16 @@ const FormContainer: React.FC<combinedProps> = ({
                             </div>
                         </div>
                         <div className="relative">
-                            <div className="flex items-center border border-gray p-1 rounded-md">
+                            <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
                                     Created by:
                                 </label>
                                 <input
                                     type="text"
                                     placeholder="@ Username"
-                                    className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
+                                    className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : "cursor-default"
                                         }`}
-                                    value={`@${task.createdBy}`}
+                                    value={`${task.createdBy}`}
                                     onChange={(e) =>
                                         setTask({ ...task, createdBy: e.target.value })
                                     }
@@ -361,7 +361,7 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
 
                         <div className="relative" ref={searchRef}>
-                            <div className="flex items-center border border-gray p-1 rounded-md">
+                            <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
                                     Tag staff for help / Completion:
                                 </label>
@@ -393,11 +393,14 @@ const FormContainer: React.FC<combinedProps> = ({
                                     className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
                                         }`}
                                     value={`${selectedTask && taggedStaffTags.length === 0
-                                        ? task.taggedStaff.map((item: any) => `@${item}`).join(" ")
+                                        ? task?.taggedStaff?.map((item: any) => `@${item}`).join(" ")
                                         : searchUserName
                                         }`}
                                     onChange={(e) => {
-                                        setSearchUserName(e.target.value);
+                                        const value = e.target.value;
+                                        if (value === "" || /^@\w*$/.test(value)) {
+                                            setSearchUserName(value);
+                                        }
                                     }}
                                     onFocus={() => setShowResults(true)}
                                     readOnly={selectedTask || isReadOnlyTaggStaff}
@@ -428,7 +431,7 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
 
                         <div className="relative" ref={searchRef2}>
-                            <div className="flex items-center border border-gray p-1 rounded-md">
+                            <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                                 <label className="whitespace-nowrap mr-2 text-[#666666]">
                                     Contributing Staff:
                                 </label>
@@ -456,13 +459,16 @@ const FormContainer: React.FC<combinedProps> = ({
                                     className={`flex-1 outline-none  text-black ${selectedTask ? "cursor-default" : ""
                                         }`}
                                     value={`${selectedTask && contributingTags.length === 0
-                                        ? task.contributingStaff
-                                            .map((item: any) => `@${item}`)
+                                        ? task?.contributingStaff
+                                            ?.map((item: any) => `@${item}`)
                                             .join(" ")
                                         : searchUserName2
                                         }`}
                                     onChange={(e) => {
-                                        setSearchUserName2(e.target.value);
+                                        const value = e.target.value;
+                                        if (value === "" || /^@\w*$/.test(value)) { // Allow empty input or valid "@username" format
+                                            setSearchUserName2(value);
+                                        }
                                     }}
                                     onFocus={() => setShowResults2(true)}
                                     readOnly={selectedTask || isReadOnlyContributing}
@@ -493,14 +499,14 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
 
                         <div>
-                            <label className="block mb-1 text-[#666666]">
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
                                 {" "}
                                 Task Name/Instructions
                             </label>
                             <input
                                 type="text"
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.taskName}
                                 onChange={(e) => setTask({ ...task, taskName: e.target.value })}
@@ -509,10 +515,10 @@ const FormContainer: React.FC<combinedProps> = ({
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block mb-1 text-[#666666]">History</label>
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">History</label>
                             <textarea
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.history}
                                 onChange={(e) => setTask({ ...task, history: e.target.value })}
@@ -522,10 +528,10 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
                         <div className="flex gap-4 w-full">
                             <div className="flex-1">
-                                <label className="block mb-1 text-[#666666]">Examination</label>
+                                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Examination</label>
                                 <textarea
                                     placeholder=""
-                                    className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                    className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                         }`}
                                     value={task.examination}
                                     onChange={(e) =>
@@ -536,10 +542,10 @@ const FormContainer: React.FC<combinedProps> = ({
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block mb-1 text-[#666666]">Diagnosis</label>
+                                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Diagnosis</label>
                                 <textarea
                                     placeholder=""
-                                    className={`w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                    className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                         }`}
                                     value={task.diagnosis}
                                     onChange={(e) =>
@@ -552,10 +558,10 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
 
                         <div className="col-span-2">
-                            <label className="block mb-1 text-[#666666]">Plan</label>
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Plan</label>
                             <textarea
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.plan}
                                 onChange={(e) => setTask({ ...task, plan: e.target.value })}
@@ -564,10 +570,10 @@ const FormContainer: React.FC<combinedProps> = ({
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block mb-1 text-[#666666]">Follow Up</label>
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Follow Up</label>
                             <textarea
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.followUp}
                                 onChange={(e) => setTask({ ...task, followUp: e.target.value })}
@@ -576,12 +582,12 @@ const FormContainer: React.FC<combinedProps> = ({
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block mb-1 text-[#666666]">
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
                                 Post Consultation
                             </label>
                             <textarea
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.postConsultation}
                                 onChange={(e) =>
@@ -592,10 +598,10 @@ const FormContainer: React.FC<combinedProps> = ({
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block mb-1 text-[#666666]">Feedback</label>
+                            <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Feedback</label>
                             <textarea
                                 placeholder=""
-                                className={`w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                     }`}
                                 value={task.feedback}
                                 onChange={(e) => setTask({ ...task, feedback: e.target.value })}
@@ -605,12 +611,12 @@ const FormContainer: React.FC<combinedProps> = ({
                         </div>
                         <div className="flex gap-4 w-full">
                             <div className="flex-1">
-                                <label className="block mb-1 text-[#666666]">
+                                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
                                     Key Learning Points
                                 </label>
                                 <textarea
                                     placeholder="Enter why this task is being done"
-                                    className={`w-full border border-gray py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                    className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                         }`}
                                     value={task.keyLearningPoint}
                                     onChange={(e) =>
@@ -620,10 +626,10 @@ const FormContainer: React.FC<combinedProps> = ({
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block mb-1 text-[#666666]">Action</label>
+                                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Action</label>
                                 <textarea
                                     placeholder="Enter how this task should be done"
-                                    className={`w-full border border-gray py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                                    className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                                         }`}
                                     value={task.action}
                                     onChange={(e) => setTask({ ...task, action: e.target.value })}
@@ -642,19 +648,20 @@ const FormContainer: React.FC<combinedProps> = ({
                         <button
                             type="submit"
                             onClick={handleShare}
-                            className={`btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
+                            className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
                                 ? "hidden"
                                 : "block"
-                                } ${selectedTask && "cursor-not-allowed"} ${!task.Learn && "cursor-not-allowed"
+                                } ${selectedTask && "cursor-not-allowed"} ${!task.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
                                 }`}
                             disabled={selectedTask || !task.Learn}
                         >
                             Share
                         </button>
-                        <label className="block mb-2 text-black font-bold">
+                        <label className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] block mb-2 text-black font-bold">
                             <input
                                 type="checkbox"
-                                className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200  relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer"
+                                className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
+                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
                                     }`}
                                 checked={task.Library}
                                 onChange={(e) =>
@@ -665,14 +672,15 @@ const FormContainer: React.FC<combinedProps> = ({
                             Library
                         </label>
                         <label
-                            className={`block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
+                            className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] block mb-2 text-black font-bold ${task?.isShared || task?.isCompleted || task?.isDeleted
                                 ? "absolute right-0"
                                 : ""
                                 }`}
                         >
                             <input
                                 type="checkbox"
-                                className={`mr-2 appearance-none h-4 w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:absolute checked:before:left-0 checked:before:top-[-5px] ${selectedTask ? "cursor-default" : "cursor-pointer "
+                                className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
+                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
                                     }`}
                                 checked={task.Learn}
                                 onChange={(e) => setTask({ ...task, Learn: e.target.checked })}
@@ -682,15 +690,15 @@ const FormContainer: React.FC<combinedProps> = ({
                         </label>
                     </div>
                     <div className="flex mt-2 justify-center">
-                        <p className="text-[#797878]">
-                            messages about task during supervision/collaboration
+                        <p className="text-[6px] sm:text-[11px] md:text-[13px] lg:text-[16px] text-[#797878]">
+                            Messages about task during supervision/collaboration
                         </p>
                     </div>
                     <div className="flex mt-4 justify-center">
                         <button
                             type="button"
                             onClick={handleComplete}
-                            className={`w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-7 rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+                            className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[25%] md:w-[25%] lg:w-[20%] xl:w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
                                 } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
                             disabled={selectedTask && btnDisable}
                         >

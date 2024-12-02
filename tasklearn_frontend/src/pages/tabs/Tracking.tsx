@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import router from "next/router";
 import { encryptData } from "../../utils/cryptoUtils";
+import { getAuth } from 'firebase/auth';
 interface Server {
     serverId: string;
     serverName: string;
@@ -34,11 +35,26 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
     useEffect(() => {
         fetchTasks();
     }, [selectedServer?.serverId]);
+
     const fetchTasks = async () => {
         setLoading(true)
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${selectedServer?.serverId}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${selectedServer?.serverId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
             if (response.data) {
                 setTasksList(response.data);
@@ -87,7 +103,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                 );
             }, 0);
             if (contributionCount > 0) {
-                const key = `${user.userName},${user.jobRole}`;
+                const key = `${user.userName}, ${user.jobRole}`;
                 acc[key] = contributionCount;
             }
             return acc;
@@ -122,12 +138,12 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
     };
     return (
         <div className="flex flex-col items-center">
-            <h1 className=" font-bold text-[20px]">
+            <h1 className="font-bold text-[20px]">
                 {selectedServer && selectedServer.serverName}
             </h1>
-            <div className="grid grid-cols-2 gap-[3.2rem] font-bold gap-x-[9rem] mt-[2.5rem]">
+            <div className="grid grid-cols-2 gap-[2rem] items-center justify-center font-bold gap-x-[19rem] mt-[2.5rem] mb-8">
                 <p>Number of pending tasks</p>
-                <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
                     {
                         tasksList.filter(
                             (task: {
@@ -142,7 +158,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     }
                 </p>
                 <p>Number of completed tasks</p>
-                <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
                     {
                         tasksList.filter(
                             (task: {
@@ -157,7 +173,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     }
                 </p>
                 <p>Number of learning tasks</p>
-                <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
                     {" "}
                     {
                         tasksList.filter(
@@ -173,21 +189,21 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     }
                 </p>
             </div>
-            <div>
-                <h1 className=" font-bold flex justify-center text-[20px] mt-12">
+            <div className="rounded-md border border-gray-200 p-4 mt-4">
+                <h1 className=" font-bold flex justify-center text-[20px] mt-4">
                     Top Contributors
                 </h1>
                 {loading && <p className="text-center">Loading...</p>}
-                <div className=" overflow-y-auto max-h-screen">
+                <div className="overflow-y-auto max-h-screen mt-4">
                     {Object.entries(leaderboard)
                         .sort((a, b) => b[1] - a[1]) // Sort by count in descending order
                         .map(([key, count]) => {
                             const [userName] = key.split(",");
                             return (
                                 <React.Fragment key={key}>
-                                    <div className="grid grid-cols-2 gap-[1rem] font-bold gap-x-[9rem] mt-[2.5rem]">
+                                    <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[12rem]">
                                         <button
-                                            className={`${userName === currentUserData?.userName
+                                            className={`flex justify-start ${userName === currentUserData?.userName
                                                 ? "cursor-default"
                                                 : "cursor-pointer hover:underline"
                                                 }`}
@@ -196,17 +212,20 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                                         >
                                             {key}
                                         </button>
-                                        <p className="w-[95px] h-[25px] border border-[#848181] flex justify-center">
+
+                                        <p className="ml-[60px] w-[50px] h-[25px] border border-[#848181] flex justify-center">
                                             {count}
                                         </p>
+
                                     </div>
+                                    <div className="border border-gray-200 h-[1px] w-full my-4"></div>
                                 </React.Fragment>
                             );
                         }
                         )}
                 </div>
                 {Object.keys(leaderboard).length === 0 && !loading && (
-                    <div className=" mt-5">No contributors found</div>
+                    <div className="mt-5">No contributors found</div>
                 )}
             </div>
         </div>

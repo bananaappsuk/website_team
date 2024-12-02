@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { auth, db } from "../../firebase";
 import { getDoc, doc } from "firebase/firestore";
 import { User } from "firebase/auth";
+import { getAuth } from 'firebase/auth';
+import { toast } from "react-toastify";
 
 const JoinServer: FC = () => {
     type UserData = {
@@ -56,9 +58,18 @@ const JoinServer: FC = () => {
         const joinServer = async () => {
             if (id && userData) { // Ensure id and userData are both available
                 try {
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        toast.error("User is not authenticated");
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/join`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, },
                         body: JSON.stringify({ serverId: id, userId: userData.uid }), // Pass userData.uid as userId
                     });
 

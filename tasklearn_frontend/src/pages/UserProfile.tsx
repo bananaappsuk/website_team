@@ -31,7 +31,7 @@ import Feed from "./tabs/Feed";
 import Saved from "./tabs/Saved";
 
 const tabs = [
-    { name: "My Quiz" },
+    { name: "MyQuiz" },
     { name: "Library" },
     { name: "Tracking", content: "Tracking Content" },
     { name: "Feed", content: "Feed Content" },
@@ -261,14 +261,18 @@ const UserProfile = () => {
                     throw new Error("Function not implemented.");
                 }} taskCategories={[]} setDropdownVisible={function (value: React.SetStateAction<boolean[]>): void {
                     throw new Error("Function not implemented.");
-                }} onServerSelect={handleServerSelect} />
-                <div className="w-full bg-white shadow-md rounded-lg text-black">
+                }} onServerSelect={handleServerSelect} handleResetInputs={function (): void {
+                    throw new Error("Function not implemented.");
+                }} setFilteredTasks={function (value: React.SetStateAction<any[]>): void {
+                    throw new Error("Function not implemented.");
+                }} />
+                <div className="lg:w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
-                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
+                            <h1 className="text-[12px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
                                 <a href="/Homepage">T-askLearn</a>
                             </h1>
-                            <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                            <p className="text-center text-[3px] sm:text-[5px] md:text-[5px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
                                 <a href="/Homepage">
                                     Collaborate to Learn, Learn to Collaborate
                                 </a>
@@ -334,7 +338,7 @@ const UserProfile = () => {
                                     className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5"
                                 />
                                 {showResults && searchTerm && (
-                                    <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
+                                    <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto z-10">
                                         {filteredUsers.length > 0 ? (
                                             filteredUsers.map((user, index) => {
                                                 return (
@@ -394,7 +398,7 @@ const UserProfile = () => {
                         </div>
 
                         <div className="p-4">
-                            {activeTab === "My Quiz" ? (
+                            {activeTab === "MyQuiz" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
 
