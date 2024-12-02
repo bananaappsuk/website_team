@@ -50,7 +50,7 @@ app.use('/api/patientId', verifyToken, patientRoutes);
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the task!!! </h1>');
+  res.send('<h1>Welcome to the Task!!! </h1>');
 });
 
 // Error handling middleware
