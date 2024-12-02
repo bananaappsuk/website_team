@@ -10,6 +10,8 @@ import searchIcon from "../../assets/Quiz/Group 1.png";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { Timestamp } from "firebase/firestore";
 import goldStar from "../../assets/Library/Vector (1).png";
+import { getAuth } from 'firebase/auth';
+import { toast } from "react-toastify";
 
 interface Quiz {
     _id: string;
@@ -75,8 +77,22 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
     const fetchQuizzes = async () => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${userData?.uid}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${userData?.uid}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
             if (!response.ok) {
                 throw new Error("Failed to fetch quizzes");
@@ -125,10 +141,23 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
     const handleDeleteQuiz = async (taskId: string) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/${taskId}`,
+
                 {
                     method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
 
@@ -222,12 +251,22 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
         setVisibilityData({ visibility: newVisibility });
         console.log("vis", newVisibility);
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/visibility/${filteredQuizzes[currentQuizIndex]?._id}`,
                 {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({ visibility: newVisibility }),
                 }
@@ -267,18 +306,21 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             <div className="w-full min-h-screen bg-white">
                 {!showQuiz && (
                     <div className="flex justify-end">
-                        <div className="ml-auto relative">
+                        {filteredQuizzes.length > 0 && (
+                            <div className="ml-60 lg:ml-64 text-center font-bold flex-1 text-[14px] xl:text-[20px]">Quiz Visible to</div>
+                        )}
+                        <div className="flex justify-end ml-auto relative">
                             <input
                                 type="text"
                                 placeholder="Search key words"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100"
+                                className="border-2 rounded-md px-3 pl-12 py-1 bg-gray-100 w-[80%]"
                             />
                             <Image
                                 src={searchIcon}
                                 alt="Search Icon"
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                                className="absolute left-16 top-1/2 transform -translate-y-1/2 w-4 h-4"
                             />
                         </div>
                     </div>
@@ -292,9 +334,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                         </div>
                     ) : (
                         <>
-                            <div className="my-4 flex justify-between items-center">
-                                <div className="text-center font-bold flex-1 text-[20px]">Quiz Visible to</div>
-                            </div>
                             <div className="px-28 pt-8 pb-4 flex justify-between items-center">
                                 <div>
                                     <input
@@ -343,9 +382,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                                 readOnly />
                                         </div>
                                     )}
-
-
-
                                     <p className="flex ml-auto gap-4">
                                         {filteredQuizzes[currentQuizIndex]?.Library && (
                                             <Image src={goldStar} alt="Star" className="h-6 w-6" />
@@ -438,7 +474,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         </button>
                                     ) : (
                                         <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                                            Answer: {filteredQuizzes[currentQuizIndex]?.action}
+                                            Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                                         </p>
                                     )}
                                 </div>

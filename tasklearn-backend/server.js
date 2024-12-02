@@ -24,6 +24,8 @@ mongoose.connect(process.env.DB, {
     process.exit(1); // Exit process with failure if the database connection fails
   });
 
+  const verifyToken = require('./middleware/authMiddleware');
+
 // Define routes
 const taskRoutes = require('./routes/taskRoutes');
 const quizRoutes = require('./routes/quizRoutes'); // New quiz routes
@@ -33,13 +35,13 @@ const serverRoutes = require('./routes/serverRoutes');
 const patientRoutes = require('./routes/patientIdRoutes');
 
 
-app.use('/api/tasks', taskRoutes);
-app.use("/api/task", taskRoutes); 
-app.use('/api/quizzes', quizRoutes); // Use quiz routes
-app.use('/api/libraries', libraryRoutes); // Use library routes
-app.use("/api/upload", profileRoutes);
-app.use('/api/servers', serverRoutes);
-app.use('/api/patientId', patientRoutes);
+app.use('/api/tasks', verifyToken, taskRoutes);
+app.use("/api/task", verifyToken, taskRoutes); 
+app.use('/api/quizzes', verifyToken, quizRoutes); // Use quiz routes
+app.use('/api/libraries', verifyToken, libraryRoutes); // Use library routes
+app.use("/api/upload", verifyToken, profileRoutes);
+app.use('/api/servers', verifyToken, serverRoutes);
+app.use('/api/patientId', verifyToken, patientRoutes);
 
 
 // Root route for testing the API

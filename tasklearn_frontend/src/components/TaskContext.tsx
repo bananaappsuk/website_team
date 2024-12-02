@@ -14,6 +14,7 @@ import React, {
 } from "react";
 import { toast } from "react-toastify";
 import { User } from "firebase/auth";
+import { getAuth } from 'firebase/auth';
 
 export interface Task {
     patientId: any;
@@ -75,6 +76,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     const fetchPatientId = async (selectedServerId: string) => {
         setpatientIdLoading(true);
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             if (selectedServerId) {
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/patientId/fetch/${selectedServerId}`,
@@ -82,6 +92,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                         method: "GET",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                     }
                 );
@@ -110,7 +121,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
             setTimeout(() => {
                 setpatientIdLoading(false);
-            }, 1000)
+            }, 1500)
 
         }
     };
@@ -150,6 +161,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
     const updatePatientId = async (serverId: string) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             if (patientId) {
                 const prefix = patientId.slice(0, patientId.search(/\d/));
                 const numberPart = patientId.slice(prefix.length);
@@ -166,6 +186,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                             method: "PATCH",
                             headers: {
                                 "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
                             },
                             body: JSON.stringify({ updatedPatientId }),
                         }
@@ -186,8 +207,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     useEffect(() => {
         const fetchTaskByServerId = async (serverId: string) => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await axios.get(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${serverId}`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${serverId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 if (response) {
                     setTask(response.data);

@@ -22,6 +22,8 @@ import TaskSection from "./TaskSection";
 import FormContainer from "./FormContainer";
 import ConvertQuiz from "../components/ConvertQuiz";
 import { Timestamp } from "firebase/firestore/lite";
+import { getAuth } from 'firebase/auth';
+
 
 const TaskSharing = () => {
     const [showLogout, setShowLogout] = useState(false);
@@ -142,9 +144,23 @@ const TaskSharing = () => {
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${selectedServer?.serverId}`,
-                    { method: "GET" }
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -221,8 +237,11 @@ const TaskSharing = () => {
 
     const handleResetInputs = () => {
         fetchPatientId(selectedServer?.serverId);
+        setSelectedQuizTaskId("")
+        setFilteredQuizzes([])
         setContributingTags([]);
         setTaggedStaffTags([]);
+        setShowQuiz(false)
         setBtnDisble(false)
         const { _id, ...newTask } = task;
         setTask({
@@ -272,12 +291,22 @@ const TaskSharing = () => {
         }
 
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         ...task,
@@ -298,10 +327,20 @@ const TaskSharing = () => {
                 }
                 if (task.Library) {
                     // Create Library
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        toast.error("User is not authenticated");
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({
                             keyLearningPoint: task.keyLearningPoint,
@@ -313,10 +352,20 @@ const TaskSharing = () => {
                     });
                 }
                 if (task.Library && task.Learn) {
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        toast.error("User is not authenticated");
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({
                             keyLearningPoint: task.keyLearningPoint,
@@ -338,10 +387,20 @@ const TaskSharing = () => {
                 // Check if Learn is selected
                 else if (task.Learn && !task.Library) {
                     // Create quiz
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        toast.error("User is not authenticated");
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({
                             keyLearningPoint: task.keyLearningPoint,
@@ -389,12 +448,22 @@ const TaskSharing = () => {
         //complete task
         if (selectedTask) {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/task/update/${task?._id}`,
                     {
                         method: "PATCH",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                     }
                 );
@@ -410,12 +479,22 @@ const TaskSharing = () => {
         }
         if (!selectedTask) {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
                     {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
                         },
                         body: JSON.stringify({
                             ...task,
@@ -449,8 +528,22 @@ const TaskSharing = () => {
     const fetchTasks = async (filter: any) => {
         setTaskLoading(true);
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?filter=${filter}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?filter=${filter}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
 
             if (response.status === 200) {
@@ -588,11 +681,16 @@ const TaskSharing = () => {
         setSelectedQuizTaskId("");
         // handleResetInputs();
         setselectedTask(true);
-        setShowQuiz(false);
+        if (filteredQuizzes.length > 0) {
+            setShowQuiz(true)
+        }
+        else {
+            setShowQuiz(false);
+        }
         setFilter(item);
         setShowForm(true);
-        fetchTasks(item);
     };
+
 
     return (
         <>
@@ -605,14 +703,16 @@ const TaskSharing = () => {
                     setselectedTask={setselectedTask}
                     taskCategories={taskCategories}
                     setDropdownVisible={setDropdownVisible}
+                    handleResetInputs={handleResetInputs}
+                    setFilteredTasks={setFilteredTasks}
                 />
-                <div className="w-[25%] flex min-h-screen">
-                    <div className="w-full bg-white space-y-1">
-                        <div className="px-4 pt-3 pb-4 text-center">
-                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
+                <div className="w-[25%] sm:w-[30%] md:w-[40%] lg:w-[30%] w-[25%] flex min-h-screen">
+                    <div className="w-full bg-white space-y-2">
+                        <div className="text-center">
+                            <h1 className="text-[10px] sm:text-lg md:text-lg lg:text-xl xl:text-3xl font-bold text-[#68A86B]">
                                 <a href="/Homepage">T-askLearn</a>
                             </h1>
-                            <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                            <p className="text-[3px] sm:text-[5px] md:text-[5px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
                                 <a href="/Homepage">
                                     Collaborate to Learn, Learn to Collaborate
                                 </a>
@@ -621,9 +721,9 @@ const TaskSharing = () => {
                         <div className="h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
                             <div
-                                className="p-0 lg:p-8 flex justify-center"
+                                className="p-0 flex justify-center"
                             >
-                                <button className="w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold p-1 lg:py-2 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer"
+                                <button className="md:w-[35%] lg:w-[50%] xl:w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold px-1 py-1 md:px-2 lg:py-1 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer text-[8px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px]"
                                     onClick={() => {
                                         setDropdownVisible(
                                             Array(taskCategories.length).fill(false)
@@ -632,7 +732,7 @@ const TaskSharing = () => {
                                         setShowQuiz(false);
                                         setselectedTask(false);
                                     }}>
-                                    Task <FiPlus className="ml-1" />
+                                    Task <FiPlus className="font-bold ml-1 h-2 w-2 sm:h-2 sm:w-2 lg:h-3 lg:w-3 xl:h-4 xl:w-4" />
                                 </button>
                             </div>
 
@@ -657,14 +757,15 @@ const TaskSharing = () => {
                                 setShowQuiz={setShowQuiz}
                                 setSelectedQuizTaskId={setSelectedQuizTaskId}
                                 setBtnDisble={setBtnDisble}
+                                setFilteredTasks={setFilteredTasks}
                             />
                         </div>
                     </div>
                 </div>
                 {showForm && (
-                    <section className="w-[70%] bg-white shadow">
+                    <section className="w-[100%] sm:w-[100%] md:w-[100%] lg:w-[100%] xl:w-[100%] bg-white shadow">
                         <div className="pt-1">
-                            <div className="pt-5 px-4 text-black font-bold items-center flex justify-between">
+                            <div className="pt-1 sm:pt-5 px-1 sm:px-4 text-black font-bold items-center flex justify-between">
                                 <div className="flex gap-x-2 items-center">
                                     <div
                                         className="flex items-center gap-1"
@@ -673,29 +774,31 @@ const TaskSharing = () => {
                                             <img
                                                 src={userData?.profilePicUrl}
                                                 alt="profilePic"
-                                                className="bg-cover object-cover w-[48.14px] h-[48.14px] rounded-full"
+                                                className="bg-cover object-cover w-[18.14px] h-[18.14px] sm:w-[28.14px] sm:h-[28.14px] lg:w-[38.14px] lg:h-[38.14px] xl:w-[48.14px] xl:h-[48.14px] rounded-full"
                                             />
                                         ) : (
                                             <div
-                                                className="flex items-center justify-center w-[48.14px] h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                                className="flex items-center justify-center w-[48.14px] h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold"
                                             >
                                                 {userData?.userName?.[0]?.toUpperCase() || "?"}
                                             </div>
                                         )}
-                                        <p>{userData?.userName},</p>
-                                        <p>{userData?.jobRole}</p>
+                                        <div className="flex flex-col sm:flex-row">
+                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.userName},</p>
+                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.jobRole}</p>
+                                        </div>
                                     </div>
 
 
                                 </div>
-                                <div className="flex gap-4 items-center">
-                                    <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-0 sm:gap-4 items-center">
+                                    <div className="text-[6px] sm:text-[7px] md:text-[10px] lg:text-[12px] xl:text-lg flex gap-1 md:gap-2 justify-center">
                                         <a href="/Homepage">H</a>
                                         <a href="/UserProfile">P</a>
                                     </div>
                                     <button
                                         onClick={logout}
-                                        className="ml-2 p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
+                                        className="text-[6px] sm:text-[7px] md:text-[10px] lg:text-[12px] xl:text-lg w-[100%] xl:ml-2 p-1 md:p-2 bg-[#68A86B] text-white rounded-md hover:bg-red-600"
                                     >
                                         Logout
                                     </button>
@@ -703,7 +806,7 @@ const TaskSharing = () => {
                             </div>
                             <div className="mt-2 h-[1px] w-full bg-gray-300" />
                             <div className="p-4">
-                                <p className="text-2xl text-black font-bold text-center">
+                                <p className="text-[12px] sm:text-[14px] md:text-[16px] xl:text-2xl text-black font-bold text-center">
                                     Task Sharing
                                 </p>
                             </div>
@@ -725,14 +828,14 @@ const TaskSharing = () => {
                 )}
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className="text-black w-[40%] shadow-lg border-2 bg-white rounded-lg">
-                        <div className="mt-20">
+                    <div className="text-black w-[35%] sm:w-[25%] md:w-[25%] lg:w-[30%] xl:w-[40%] shadow-lg border-2 bg-white rounded-lg">
+                        <div className="mt-10 sm:mt-14 lg:mt-16 xl:mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>
-                        <p className="font-bold text-2xl text-center px-8 py-4">
+                        <p className="mt-4 font-bold text-[12px] sm:text-[14px] md:text-[16px] xl:text-2xl text-center xl:px-8 xl:py-4">
                             Learning
                         </p>
-                        <div className="px-8">
+                        <div className="p-1 xl:px-8">
                             <ConvertQuiz
                                 server={selectedServer}
                                 selectedQuizTaskId={selectedQuizTaskId}

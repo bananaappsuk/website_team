@@ -14,6 +14,8 @@ import BgImage from "../../public/assets/Rectangle68.png";
 import { doc, setDoc, getDocs, collection, query, getDoc } from "firebase/firestore";
 import { useTask } from "../components/TaskContext";
 import Link from "next/link";
+import { getAuth } from 'firebase/auth';
+
 
 interface FormData {
     email: string;
@@ -190,12 +192,24 @@ const SignUp: React.FC = () => {
 
     const profilePicUpload = async (profilePic: any) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const profile = new FormData();
             profile.append("profilePic", profilePic);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/upload/profile`,
                 {
                     method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                     body: profile,
                 }
             );
@@ -318,7 +332,6 @@ const SignUp: React.FC = () => {
                         <form onSubmit={handleSubmit} className="font-Poppins">
                             <div className="mb-4">
                                 <label
-                                    htmlFor="email"
                                     className="block text-gray-700 mb-1 text-sm sm:text-base"
                                 >
                                     Email
@@ -326,7 +339,6 @@ const SignUp: React.FC = () => {
                                 <input
                                     type="email"
                                     name="email"
-                                    id="email"
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
@@ -335,7 +347,6 @@ const SignUp: React.FC = () => {
                             </div>
                             <div className="mb-4">
                                 <label
-                                    htmlFor="userName"
                                     className="block text-gray-700 mb-1 text-sm sm:text-base"
                                 >
                                     Username
@@ -343,7 +354,6 @@ const SignUp: React.FC = () => {
                                 <input
                                     type="text"
                                     name="userName"
-                                    id="userName"
                                     value={formData.userName}
                                     onChange={(e) => {
                                         // This regex allows either only letters or a combination of letters and numbers, but not just numbers or special characters
@@ -364,7 +374,6 @@ const SignUp: React.FC = () => {
                             <div className="mb-4 relative">
                                 <div className="flex justify-between">
                                     <label
-                                        htmlFor="password"
                                         className="block text-gray-700 mb-1 text-sm sm:text-base"
                                     >
                                         Password
@@ -420,7 +429,6 @@ const SignUp: React.FC = () => {
                                 <input
                                     type={passwordVisible ? "text" : "password"}
                                     name="password"
-                                    id="password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
@@ -453,7 +461,6 @@ const SignUp: React.FC = () => {
                             <div className="mb-4">
                                 <div className="relative flex justify-between">
                                     <label
-                                        htmlFor="confirmPassword"
                                         className="block text-gray-700 mb-1 text-sm sm:text-base"
                                     >
                                         Confirm Password
@@ -482,7 +489,6 @@ const SignUp: React.FC = () => {
                                 <input
                                     type={confirmPasswordVisible ? "text" : "password"}
                                     name="confirmPassword"
-                                    id="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     required={allRequirementsMet}
@@ -521,7 +527,7 @@ const SignUp: React.FC = () => {
                             </div>
                             <div className="mb-5">
                                 <label className="block text-gray-700 mb-1 text-sm sm:text-base">
-                                    Upload Profile Picture
+                                    Upload Profile Picture (Optional)
                                 </label>
                                 <div className="mt-2 flex gap-x-2 text-black items-center">
                                     <label

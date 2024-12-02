@@ -4,6 +4,8 @@ import Image from 'next/image';
 import deleteIcon from "../../assets/Quiz/Vector.png";
 import searchIcon from "../../assets/Quiz/Group 1.png";
 import { Timestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { toast } from 'react-toastify';
 
 interface Library {
     _id: string;
@@ -40,8 +42,22 @@ const Libraries: React.FC<Props> = ({ userData }) => {
     useEffect(() => {
         const fetchLibraries = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 if (!response.ok) {
                     throw new Error("Failed to fetch Libraries");
@@ -75,10 +91,22 @@ const Libraries: React.FC<Props> = ({ userData }) => {
 
     const handleDeleteLibrary = async (taskId: string) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${taskId}`,
                 {
                     method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
 

@@ -13,6 +13,8 @@ import { db } from "../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { encryptData } from "../utils/cryptoUtils";
+import { toast } from "react-toastify";
+import { getAuth } from 'firebase/auth';
 
 interface Quiz {
     _id: string;
@@ -106,11 +108,25 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 if (fetchId.length > 0) {
                     for (let idObj of fetchId) {
                         const response = await fetch(
                             `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/${idObj.followeeId}`,
-                            { method: "GET" }
+                            {
+                                method: "GET",
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            }
                         );
                         if (!response.ok) {
                             throw new Error("Failed to fetch quizzes");
@@ -131,9 +147,23 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
 
         const fetchPublicQuizzes = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/public/${currentUserData?.uid}`,
-                    { method: "GET" }
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 if (!response.ok) {
                     throw new Error("Failed to fetch quizzes");
@@ -278,12 +308,22 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     };
 
     const updateSaveQuiz = async (quizId: string) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+            toast.error("User is not authenticated");
+            return;
+        }
+
+        const token = await user.getIdToken();
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/save/${filteredQuizzes[currentQuizIndex]._id}`,
             {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
 
                 body: JSON.stringify({ savedBy: currentUserData?.uid }),
@@ -462,7 +502,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                 </button>
                             ) : (
                                 <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                                    Answer: {filteredQuizzes[currentQuizIndex]?.action}
+                                    Answer : <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                                 </p>
                             )}
                         </div>
