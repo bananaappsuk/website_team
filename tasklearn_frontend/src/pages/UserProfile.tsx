@@ -418,7 +418,7 @@ const UserProfile = () => {
                                             <Tracking selectedServer={selectedServer} currentUserData={userData} />
                                         ) : (
                                             <div className="flex items-center justify-center px-4 py-1 text-black">
-                                                Select a server
+                                                Create or Select a server
                                             </div>
                                         )}
                                     </div>

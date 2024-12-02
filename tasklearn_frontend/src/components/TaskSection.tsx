@@ -636,9 +636,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                     </ul>
                 </div>
             ) : (
-                <div className="flex items-center justify-between px-4 py-1 text-black">
+                <div className="flex items-center justify-center font-bold px-4 py-1 text-black">
                     {" "}
-                    Select a server
+                    Create or Select a server
                 </div>
             )}
         </div>

@@ -708,10 +708,10 @@ const FormContainer: React.FC<combinedProps> = ({
         </form>
       )}
 
-      {!server && patientIdLoading && (
-        <div className="flex items-center justify-between px-4 py-1 text-black">
+      {!server && (
+        <div className="flex items-center justify-center px-4 py-1 text-black font-bold">
           {" "}
-          Select a server
+          Create or Select a server
         </div>
       )}
     </div>
