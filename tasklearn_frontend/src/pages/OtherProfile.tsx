@@ -225,19 +225,26 @@ const OtherProfile = () => {
         }
     }, [userData, otherUser, sendFollowRequest]);
 
+    const fetchOtherUserDataDetails = async (user: UserData) => {
+        try {
+            if (user && user.uid) {
+                const updatedOtherUser = await getDoc(doc(db, "users", user.uid));
+                setOtherUser({
+                    ...updatedOtherUser.data(),
+                    uid: user.uid,
+                } as unknown as UserData);
+            } else {
+                console.error("User ID is undefined or user data is incomplete");
+            }
+        } catch (error) {
+            console.error("Error decrypting user data:", error);
+        }
+    }
     useEffect(() => {
         const userStr = sessionStorage.getItem("user");
+        const user = decryptData(userStr);
         if (userStr) {
-            try {
-                const user = decryptData(userStr);
-                if (user && user.uid) {
-                    setOtherUser(user);
-                } else {
-                    console.error("User ID is undefined or user data is incomplete");
-                }
-            } catch (error) {
-                console.error("Error decrypting user data:", error);
-            }
+            fetchOtherUserDataDetails(user)
         } else {
             console.error("No user data found");
         }
@@ -364,64 +371,50 @@ const OtherProfile = () => {
 
     return (
         <div className="w-full flex gap-2 bg-gray-100">
-            <div className="flex flex-col lg:flex-row w-full">
-                {/* Sidebar */}
-                {/* <div className="w-full lg:w-[7%] flex lg:flex-col items-center bg-white p-4">
-          <div className="pt-4 text-green-500 text-lg md:text-3xl font-bold">
-            <Link href="/Homepage">TL</Link>
-          </div>
-          <div className="hidden lg:block rounded-full overflow-hidden h-12 w-12 mt-4">
-          
-          </div>
-          <button className="mt-4 h-10 w-10 bg-gray-300 rounded-full text-3xl text-white">
-            +
-          </button>
-        </div> */}
-                {/* <img src="assets/Ellipse_1.png" alt="Profile" /> */}
-                {/* Main Content Area */}
+            <div className="flex flex-col xl:flex-row w-full">
                 <div className="w-full lg:w-[100%] bg-white shadow-md p-4">
                     {/* Header */}
                     <div className="p-4 flex justify-between">
-                        <div className="text-start">
-                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
+                        <div className="">
+                            <h1 className="text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
                                 <Link href="/Homepage">T-askLearn</Link>
                             </h1>
-                            <p className="text-[2px] sm:text-[4px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                            <p className="text-center text-[4px] sm:text-[5px] md:text-[5px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
                                 <Link href="/Homepage">
                                     Collaborate to Learn, Learn to Collaborate
                                 </Link>
                             </p>
                         </div>
-                        <div className="px-4 text-black font-bold items-center flex justify-end gap-2">
+                        <div className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-lg px-4 text-black font-bold items-center flex justify-end gap-2">
                             <Link href="/Homepage">H</Link>
                             <Link href="/UserProfile">P</Link>
                         </div>
                     </div>
                     <div className="h-[1px] w-full bg-gray-300"></div>
                     {/* User Info */}
-                    <div className="flex flex-col lg:flex-row mt-4">
-                        <div className="w-full lg:w-auto items-center p-4 flex-col">
+                    <div className="flex mt-4">
+                        <div className="flex justify-start w-auto items-center p-4 flex-col">
                             {otherUser?.profilePicUrl ? (
                                 <img
                                     src={otherUser?.profilePicUrl}
                                     alt="profilePic"
-                                    className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full mx-auto"
+                                    className="bg-cover object-cover flex w-[37px] h-[37px] sm:w-[47px] sm:h-[47px] lg:w-[57px] lg:h-[57px] xl:w-[67px] xl:h-[67px] rounded-full mx-auto"
                                 />
                             ) : (
                                 <div
-                                    className="flex items-center justify-center bg-cover mx-auto object-cover w-[67px] h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
+                                    className="flex items-center justify-center bg-cover mx-auto object-cover w-[37px] h-[37px] sm:w-[47px] sm:h-[47px] lg:w-[57px] lg:h-[57px] xl:w-[67px] xl:h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg"
                                 >
                                     {otherUser?.userName?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
-                            <p className="text-lg font-bold mt-2">
+                            <p className="font-bold mt-2 text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-lg">
                                 {otherUser?.userName + "," + otherUser?.jobRole}
                             </p>
                         </div>
                         <div className="ml-auto flex items-center">
                             {/* Step 3: Add onClick handler to open modal */}
                             <button
-                                className={`mb-20   rounded-md px-4 py-2 ${checkAcceptedRequest() ? styleAccept : stylePending
+                                className={`xl:mb-20 text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-lg rounded-md px-2 py-1 md:px-5 md:py-2 xl:px-6 xl:py-2 ${checkAcceptedRequest() ? styleAccept : stylePending
                                     }`}
                                 onClick={handleFollowRequest}
                             >
@@ -430,29 +423,34 @@ const OtherProfile = () => {
                         </div>
                     </div>
                     {/* Main Quiz Section */}
-                    <div className="p-4 lg:w-[40%] float-left">
+                    <div className="p-4 w-[100%] sm:float-none lg:w-[40%] lg:float-left">
                         <OtherProfileSection userData={userData} otherUser={otherUser} />
                     </div>
-                    <div className="p-4 border-2 rounded-lg ">
+                    <div className="p-4 border-2 rounded-lg">
                         {/* Tabs: Followers, Following, Career */}
-                        <div className="flex justify-around border-b mb-4 P1_2 fo_22">
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                        {/* <div className="flex justify-between border-b mb-4 hidden lg:block">
+                            <button className="text-center text-lg font-bold py-2 border-gray-400">
                                 Followers
                             </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                            <button className="text-center text-lg font-bold py-2 border-gray-400">
                                 Following
                             </button>
-                            <button className="text-center flex-1 py-2 border-gray-400">
+                            <button className="text-center text-lg font-bold py-2 border-gray-400">
                                 Career
                             </button>
-                        </div>
+                        </div> */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center">
                             {/* Followers Section */}
+                            <div className="w-full flex justify-around border-b mb-4 block lg:hidden">
+                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                    Followers
+                                </button>
+                            </div>
                             <div className="bg-white p-4 shadow-md rounded-md">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     List of Followers
                                 </h3>
-                                <ul className="space-y-2">
+                                <ul className="space-y-2 text-[14px] sm:text-[15px] ">
                                     {followerUsers.length === 0 && <p>No Followers List Found</p>}
                                     {followerUsers?.map((user, index) => {
                                         const isPending = checkOtherFollowRequest(user.uid);
@@ -495,7 +493,12 @@ const OtherProfile = () => {
                                 </ul>
                             </div>
                             {/* Following Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
+                            <div className="flex justify-around border-b mb-4 block lg:hidden">
+                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                    Following
+                                </button>
+                            </div>
+                            <div className="bg-white p-4 shadow-md rounded-md w-[100%]">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     Following List
                                 </h3>
@@ -545,7 +548,12 @@ const OtherProfile = () => {
                                 </ul>
                             </div>
                             {/* Career Section */}
-                            <div className="bg-white p-4 shadow-md rounded-md">
+                            <div className="flex justify-around border-b mb-4 block lg:hidden">
+                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                    Career
+                                </button>
+                            </div>
+                            <div className="bg-white p-4 shadow-md rounded-md w-[100%]">
                                 <h3 className="text-lg font-bold border-b pb-2 mb-4">
                                     Job role and description
                                 </h3>

@@ -9,6 +9,8 @@ import uploadImage from "../../../src/assets/home/Group 4.png";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import { useTask } from "@/components/TaskContext";
+import { getAuth } from 'firebase/auth';
+
 
 interface Server {
     _id: string;
@@ -62,8 +64,22 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
     useEffect(() => {
         const fetchServers = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 const data = await response.json();
                 const userServers = data.filter(
@@ -124,10 +140,22 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
         setLoading(true);
 
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/servers`,
                 {
                     method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                     body: formData,
                 }
             );
@@ -152,6 +180,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
                             },
                             body: JSON.stringify({ patientId, createdId: data._id }),
                         }

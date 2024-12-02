@@ -14,6 +14,9 @@ import deleteIcon from "../assets/Quiz/Vector.png";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { encryptData } from "../utils/cryptoUtils";
+import { toast } from "react-toastify";
+import { getAuth } from 'firebase/auth';
+
 
 interface Quiz {
     _id: string;
@@ -122,12 +125,22 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
 
 
     const fetchSavedQuizzes = async () => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+            toast.error("User is not authenticated");
+            return;
+        }
+
+        const token = await user.getIdToken();
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/all/${currentUserData?.uid}`,
             {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );
@@ -232,12 +245,22 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
 
     const handleRemoveSave = async (quizId: string) => {
         if (quizId) {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/saved/delete/${filteredQuizzes[currentQuizIndex]._id}`,
                 {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
 
                     body: JSON.stringify({ savedBy: currentUserData?.uid }),
@@ -410,7 +433,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                             </button>
                         ) : (
                             <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                                Answer: {filteredQuizzes[currentQuizIndex]?.action}
+                                Answer : <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                             </p>
                         )}
                     </div>

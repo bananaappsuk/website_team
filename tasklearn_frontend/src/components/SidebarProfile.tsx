@@ -7,6 +7,8 @@ import Link from "next/link";
 import CreateServerPopup from "../pages/server/CreateServerPopup";
 import router from "next/router";
 import { useTask } from "./TaskContext";
+import { toast } from "react-toastify";
+import { getAuth } from 'firebase/auth';
 
 interface Server {
     _id: string;
@@ -25,6 +27,9 @@ interface SidebarProfileProps {
     setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
     taskCategories: string[];
     setDropdownVisible: React.Dispatch<React.SetStateAction<boolean[]>>;
+    handleResetInputs: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setFilteredTasks: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const SidebarProfile: FC<SidebarProfileProps> = ({
@@ -34,6 +39,8 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     setselectedTask,
     taskCategories,
     setDropdownVisible,
+    handleResetInputs,
+    setFilteredTasks,
 }) => {
     // Make sure to define userId in props
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -73,8 +80,22 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     useEffect(() => {
         const fetchServers = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 const data = await response.json();
                 const userServers = data.filter(
@@ -95,17 +116,18 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
 
     const handleServerClick = async (server: Server) => {
         if (router.pathname === "/Homepage") {
-            handleTasksClick("All Tasks");
+            setSelectedServerId(server._id);
+            setFilteredTasks([{}]);
+            handleResetInputs();
             setselectedTask(false);
             setDropdownVisible(Array(taskCategories.length).fill(false));
-            setSelectedServerId(server._id);
             onServerSelect &&
                 onServerSelect({
                     serverId: server._id,
                     serverName: server.channelName,
-                    memberList: server.memberList
+                    memberList: server.memberList,
                 });
-            fetchPatientId(selectedServerId && selectedServerId)
+            fetchPatientId(selectedServerId && selectedServerId);
         } else if (router.pathname === "/UserProfile") {
             setSelectedServerId(server._id);
             onServerSelect &&
@@ -118,7 +140,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     };
 
     return (
-        <aside className="w-[7%] flex flex-col items-center space-y-4 bg-white min-h-screen border">
+        <aside className="w-[7%] flex flex-col items-center space-y-4 px-4 sm:px-2 lg:px-3 xl:px-2 bg-white min-h-screen border">
             <div className="text-green-500 text-lg md:text-3xl font-bold"></div>
             <div className="flex flex-col space-y-4">
                 {servers.map((server) => (
@@ -139,7 +161,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
 
             <button
                 onClick={() => setIsPopupOpen(true)}
-                className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 bg-gray-300 rounded-full text-3xl text-white"
+                className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 bg-gray-300 rounded-full text-sm md:text-xl lg:text-3xl text-white"
             >
                 +
             </button>

@@ -14,6 +14,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useRouter } from "next/router";
 import Plus from "../assets/home/icon.png";
+import { getAuth } from 'firebase/auth';
 
 interface Server {
     _id: string;
@@ -50,6 +51,7 @@ type Props = {
     showQuiz: boolean;
     setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
     setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
+    setFilteredTasks: React.Dispatch<React.SetStateAction<any[]>>;
 };
 
 interface TaskSectionProps {
@@ -76,6 +78,7 @@ const TaskSection: React.FC<CombinedProps> = ({
     setShowQuiz,
     setSelectedQuizTaskId,
     setBtnDisble,
+    setFilteredTasks,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -104,6 +107,15 @@ const TaskSection: React.FC<CombinedProps> = ({
             i === index ? !isVisible : isVisible
         );
         setDropdownVisible(newDropdownVisible);
+        if (!newDropdownVisible[index]) {
+            setFilteredTasks((prev) => ({
+                ...prev,
+                [taskCategories[index]]: [],
+            }));
+        }
+        else if (newDropdownVisible[index]) {
+            fetchTasks(taskCategories[index])
+        }
     };
 
     useEffect(() => {
@@ -141,59 +153,90 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     useEffect(() => {
         const fetchAndSearchData = async () => {
-            if (searchTerm.trim() !== "") {
-                try {
-                    // Fetch tasks by server ID
-                    const taskResponse = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${server?.serverId}`,
-                        {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        }
-                    );
+            const trimmedSearchTerm = searchTerm.trim();
 
-                    if (!taskResponse.ok) throw new Error("Failed to fetch tasks");
-                    const tasks = await taskResponse.json();
+            // Case 1: Clear results when input is empty
+            if (!trimmedSearchTerm) {
+                console.log('Clearing results: Empty search term');
+                setFilteredPatientId([]); // Clear previous results
+                setShowResults(false); // Hide dropdown for empty input
+                return;
+            }
 
-                    // Fetch user data
-                    const userDocs = await getDocs(collection(db, "users"));
-                    const users = userDocs.docs.map((doc) => doc.data() as UserData);
+            // Case 2: No server selected
+            if (!server?.serverId) {
+                console.log('No server selected');
+                setFilteredPatientId([]); // Clear results when no server is selected
+                setShowResults(true); // Hide dropdown when no server is selected
+                return;
+            }
 
-                    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            // Determine if it's a user search or patient ID search
+            const isUserSearch = trimmedSearchTerm.startsWith('@');
+            const query = isUserSearch
+                ? trimmedSearchTerm.substring(1) // Remove '@' for user search
+                : trimmedSearchTerm;
 
-                    // Filter users based on search term
-                    const filteredUsers = users.filter((user) => {
-                        const userName = user.userName?.toLowerCase();
-                        const jobRole = user.jobRole?.toLowerCase();
-                        return (
-                            (userName && userName.includes(lowerCaseSearchTerm)) ||
-                            (jobRole && jobRole.includes(lowerCaseSearchTerm))
-                        );
-                    });
+            console.log('Search term:', searchTerm);
+            console.log('Query parameter:', query);
+            console.log('Server ID:', server?.serverId);
 
-                    // Filter patient IDs based on search term
-                    const filteredPatients = tasks.filter((task: any) => {
-                        const patientId = task.patientId?.toLowerCase();
-                        return patientId && patientId.includes(lowerCaseSearchTerm);
-                    });
+            try {
+                // Fetch data from the backend
+                const auth = getAuth();
+                const user = auth.currentUser;
 
-                    setFilteredUsers(filteredUsers);
-                    setFilteredPatientId(filteredPatients);
-                } catch (error) {
-                    console.error("Error fetching data:", error);
-                    setFilteredUsers([]);
-                    setFilteredPatientId([]);
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
                 }
-            } else {
-                setFilteredUsers([]);
-                setFilteredPatientId([]);
+
+                const token = await user.getIdToken();
+                const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
+                    {
+                        params: {
+                            query,
+                            serverId: server.serverId,
+                        },
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                if (response.status === 200) {
+                    console.log('API Response:', response.data); // Debugging log
+                    setFilteredPatientId(response.data); // Populate results
+                    setShowResults(true); // Show dropdown for valid results
+                } else {
+                    console.log('No valid results returned');
+                    setFilteredPatientId([]); // Clear results for invalid responses
+                    setShowResults(false); // Hide dropdown for invalid responses
+                }
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    // Axios-specific error handling
+                    console.error('Axios Error:', error.response?.data || error.message);
+                } else {
+                    // Generic error handling
+                    console.error('Unexpected Error:', error);
+                }
+                setFilteredPatientId([]); // Clear results on error
+                setShowResults(false); // Hide dropdown on error
             }
         };
 
-        fetchAndSearchData();
-    }, [searchTerm, server?.serverId]);
+        // Debounce to avoid rapid API calls
+        const delayDebounce = setTimeout(() => {
+            fetchAndSearchData(); // Call the async function after debounce delay
+        }, 300); // 300ms debounce delay
+
+        return () => {
+            console.log('Clearing debounce timeout');
+            clearTimeout(delayDebounce); // Clear timeout on cleanup
+        };
+    }, [searchTerm, server?.serverId]); // Trigger when searchTerm or serverId changes
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -214,8 +257,22 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     const fetchTaskById = async (taskId: string) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/task/${taskId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
 
             if (response) {
@@ -237,12 +294,22 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     const handleDeleteTask = async (id: String, filter: any) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
                 {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
@@ -271,10 +338,22 @@ const TaskSection: React.FC<CombinedProps> = ({
     };
 
     const handleDeleteQuiz = async (taskId: string) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+            toast.error("User is not authenticated");
+            return;
+        }
+
+        const token = await user.getIdToken();
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/task/${taskId}`,
             {
                 method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             }
         );
 
@@ -287,10 +366,22 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     const handleDeletedTask = async (taskId: string) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error("User is not authenticated");
+                return;
+            }
+
+            const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${taskId}`,
                 {
                     method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
             if (response.ok) {
@@ -315,8 +406,22 @@ const TaskSection: React.FC<CombinedProps> = ({
     useEffect(() => {
         const fetchServer = async () => {
             try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+
+                if (!user) {
+                    toast.error("User is not authenticated");
+                    return;
+                }
+
+                const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${id}`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 const data = await response.json();
                 setServers(data);
@@ -364,16 +469,16 @@ const TaskSection: React.FC<CombinedProps> = ({
             {server ? (
                 <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto mt-5">
                     <div
-                        className="flex items-center justify-between px-4 py-1 cursor-pointer"
+                        className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-10 sm:gap-0"
                         onClick={toggleOpen}
                     >
-                        <span className="text-md font-bold text-black">
+                        <span className="text-md font-bold text-black text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px]">
                             {server.serverName}
                         </span>
                         {isOpen ? (
-                            <HiChevronDown className="w-4 h-4 text-gray-600" />
+                            <HiChevronDown className="h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         ) : (
-                            <HiChevronRight className="w-4 h-4 text-gray-600" />
+                            <HiChevronRight className="h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         )}
                     </div>
                     {isOpen && (
@@ -381,9 +486,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                             onClick={generateInviteLink}
                             className="bg-[#F4F4F4] flex items-center cursor-pointer"
                         >
-                            <div className="px-4 py-6 text-black">Invite Link</div>
-                            <div className="px-5 py-6 ml-auto">
-                                <Image src={Plus} alt="plus" className="w-3 h-3" />
+                            <div className="px-2 py-3 lg:px-4 lg:py-6 text-black text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px] ">Invite Link</div>
+                            <div className="px-3 py-1 sm:px-5 sm:py-6 ml-auto">
+                                <Image src={Plus} alt="plus" className="w-1 h-1 sm:w-2 sm:h-2 lg:w-2 lg:h-2 xl:w-3 xl:h-3" />
                             </div>
                         </div>
                     )}
@@ -432,7 +537,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             ) : (
                 <h1 className="flex items-center justify-between px-4 py-1 text-black"></h1>
             )}
-
             <div ref={searchRef} className="p-2 relative">
                 <input
                     type="text"
@@ -442,32 +546,39 @@ const TaskSection: React.FC<CombinedProps> = ({
                     onFocus={() => setShowResults(true)}
                     className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
                 />
-                {showResults && searchTerm && (
+                {showResults && (
                     <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
-                        {filteredUsers.length > 0 || filteredPatientId.length > 0 ? (
-                            filteredUsers.map((user, index) => {
-                                const patients = filteredPatientId.filter(
-                                    (item) =>
-                                        item.createdBy.trim().toLowerCase() ===
-                                        user.userName.trim().toLowerCase()
-                                );
-
-                                return (
-                                    <div key={index} className="p-2 border-b">
-                                        <p className="font-semibold">{user.userName}</p>
-                                        <p className="text-sm text-gray-500">{user.jobRole}</p>
-                                        <div className="font-semibold">
-                                            {patients.length > 0
-                                                ? patients.map((patient, index) => (
-                                                    <p key={index}>{patient.patientId}</p>
-                                                ))
-                                                : "No patientId"}
-                                        </div>
+                        {!server?.serverId ? (
+                            <div className="p-2 text-gray-500">
+                                You must select a server to search tasks
+                            </div>
+                        ) : filteredPatientId.length > 0 ? (
+                            filteredPatientId.map((task, index) =>
+                                task.message ? ( // Check if it's a message object
+                                    <div key={index} className="p-2 text-gray-500">
+                                        {task.message}
                                     </div>
-                                );
-                            })
+                                ) : (
+                                    <div
+                                        key={index}
+                                        className="p-2 border-b cursor-pointer hover:bg-gray-100"
+                                        onClick={() => {
+                                            fetchTaskById(task._id);
+                                            setShowResults(false);
+                                        }}
+                                    >
+                                        <p className="font-semibold">
+                                            Patient ID : {task.patientId}
+                                        </p>
+                                        <p className="text-sm text-gray-900">
+                                            Created by:{' '}
+                                            <span className="font-semibold"> {task.createdBy} </span>
+                                        </p>
+                                    </div>
+                                )
+                            )
                         ) : (
-                            <div className="p-2 text-gray-500">No result found</div>
+                            <div className="p-2 text-gray-500">No matching tasks found</div>
                         )}
                     </div>
                 )}
@@ -475,7 +586,7 @@ const TaskSection: React.FC<CombinedProps> = ({
 
             {server ? (
                 <div className="mt-2">
-                    <ul className="px-4 space-y-4 ">
+                    <ul className="px-1 space-y-2 sm:px-2 sm:space-y-2 md:px-3 md:space-y-3 lg:px-4 lg:space-y-4">
                         {taskCategories.map((item: any, index: any) => (
                             <>
                                 <li
@@ -484,7 +595,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                         handleTasksClick(item);
                                         handleDropdown(index);
                                     }}
-                                    className="flex justify-between items-center text-black font-bold cursor-pointer"
+                                    className="text-[6px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px] flex justify-between items-center text-black font-bold cursor-pointer"
                                 >
                                     {item}
                                     {dropdownVisible[index] ? (
@@ -502,7 +613,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                                     className={`text-black justify-between flex `}
                                                 >
                                                     <p
-                                                        className={`cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
+                                                        className={`text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px] cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
                                                             ? "text-[#68A86B]"
                                                             : ""
                                                             }`}
@@ -511,7 +622,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                                         {newItem && newItem?.patientId}
                                                     </p>
                                                     <Image
-                                                        className=" object-contain w-[16px] cursor-pointer"
+                                                        className=" object-contain w-[5px] sm:w-[8px] lg:w-[12px] xl:w-[16px] cursor-pointer"
                                                         src={deleteIcon}
                                                         alt="delete"
                                                         onClick={() => handleDelete(newItem, item)}
@@ -525,9 +636,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                     </ul>
                 </div>
             ) : (
-                <div className="flex items-center justify-between px-4 py-1 text-black">
+                <div className="flex items-center justify-center font-bold px-4 py-1 text-black">
                     {" "}
-                    Select a server
+                    Create or Select a server
                 </div>
             )}
         </div>

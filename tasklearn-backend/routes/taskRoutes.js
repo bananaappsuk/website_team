@@ -23,6 +23,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Search
+router.get('/search', async (req, res) => {
+  console.log(req.query);
+  const { query, serverId } = req.query;
+
+  if (!query?.trim() || !serverId) {
+    return res
+      .status(400)
+      .json({ message: 'Query and serverId are required parameters' });
+  }
+
+  try {
+    const escapeRegex = (string) =>
+      string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapeRegex(query.trim()), 'i');
+
+    const tasks = await Task.find({
+      serverId,
+      $or: [{ patientId: regex }, { createdBy: regex }],
+      isDeleted: false,
+    });
+
+    res.status(200).json(tasks); // Always return an array
+  } catch (error) {
+    console.error('Error searching tasks:', error);
+    res.status(500).json({ message: 'Error fetching search results', error });
+  }
+});
+
 //get task by id
 
 router.get("/:id", async (req, res) => {
