@@ -763,7 +763,7 @@ const TaskSharing = () => {
                     </div>
                 </div>
                 {showForm && (
-                    <section className="w-[60%] sm:w-[45%] md:w-[45%] lg:w-[50%] xl:w-[60%] bg-white shadow">
+                    <section className="w-[100%] sm:w-[100%] md:w-[100%] lg:w-[100%] xl:w-[100%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-1 sm:pt-5 px-1 sm:px-4 text-black font-bold items-center flex justify-between">
                                 <div className="flex gap-x-2 items-center">
