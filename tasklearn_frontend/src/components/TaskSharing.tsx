@@ -315,7 +315,11 @@ const TaskSharing = () => {
                 }
             );
             if (response.ok) {
+                setContributingTags([]);
+                setTaggedStaffTags([]);
                 const data = await response.json();
+                setTask(data.task)
+                setSelectedQuizTaskId(data?.task?._id);
 
 
                 updatePatientId(selectedServer?.serverId);
@@ -784,7 +788,7 @@ const TaskSharing = () => {
                                         )}
                                         <div className="flex flex-col sm:flex-row">
                                             <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.userName},</p>
-                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.jobRole}</p>
+                                            <p className="sm:ml-1 text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.jobRole}</p>
                                         </div>
                                     </div>
 

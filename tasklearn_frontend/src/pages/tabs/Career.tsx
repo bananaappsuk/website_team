@@ -128,7 +128,7 @@ const Career: React.FC<Props> = ({ userData }) => {
                                     name="jobs_Descriptions"
                                     value={formData.jobs_Descriptions}
                                     onChange={handleChange}
-                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white"
+                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white resize-none"
                                 ></textarea>
                             </p>
                         </div>
@@ -143,7 +143,7 @@ const Career: React.FC<Props> = ({ userData }) => {
                                     name="careerAspirations"
                                     value={formData.careerAspirations}
                                     onChange={handleChange}
-                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white"
+                                    className="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#67A76B] bg-white resize-none"
                                 ></textarea>
                             </p>
                         </div>

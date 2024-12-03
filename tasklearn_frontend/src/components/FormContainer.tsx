@@ -513,7 +513,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <textarea
                 placeholder=""
                 className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                  }`}
+                  }resize-none`}
                 value={task.history}
                 onChange={(e) => setTask({ ...task, history: e.target.value })}
                 required
@@ -526,7 +526,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <textarea
                   placeholder=""
                   className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                    }`}
+                    }resize-none`}
                   value={task.examination}
                   onChange={(e) =>
                     setTask({ ...task, examination: e.target.value })
@@ -540,7 +540,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <textarea
                   placeholder=""
                   className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                    }`}
+                    }resize-none`}
                   value={task.diagnosis}
                   onChange={(e) =>
                     setTask({ ...task, diagnosis: e.target.value })
@@ -556,7 +556,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <textarea
                 placeholder=""
                 className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                  }`}
+                  }resize-none`}
                 value={task.plan}
                 onChange={(e) => setTask({ ...task, plan: e.target.value })}
                 required
@@ -568,7 +568,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <textarea
                 placeholder=""
                 className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                  }`}
+                  }resize-none`}
                 value={task.followUp}
                 onChange={(e) => setTask({ ...task, followUp: e.target.value })}
                 required
@@ -582,7 +582,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <textarea
                 placeholder=""
                 className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                  }`}
+                  }resize-none`}
                 value={task.postConsultation}
                 onChange={(e) =>
                   setTask({ ...task, postConsultation: e.target.value })
@@ -596,7 +596,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <textarea
                 placeholder=""
                 className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                  }`}
+                  }resize-none`}
                 value={task.feedback}
                 onChange={(e) => setTask({ ...task, feedback: e.target.value })}
                 required
@@ -611,7 +611,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <textarea
                   placeholder="Enter why this task is being done"
                   className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                    }`}
+                    }resize-none`}
                   value={task.keyLearningPoint}
                   onChange={(e) =>
                     setTask({ ...task, keyLearningPoint: e.target.value })
@@ -624,7 +624,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <textarea
                   placeholder="Enter how this task should be done"
                   className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
-                    }`}
+                    }resize-none`}
                   value={task.action}
                   onChange={(e) => setTask({ ...task, action: e.target.value })}
                   readOnly={selectedTask}
@@ -642,7 +642,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="submit"
               onClick={handleShare}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
                 ? "hidden"
                 : "block"
                 } ${selectedTask && "cursor-not-allowed"} ${!task.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
@@ -692,7 +692,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="button"
               onClick={handleComplete}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[25%] md:w-[25%] lg:w-[20%] xl:w-[20%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
                 } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
               disabled={selectedTask && btnDisable}
             >
@@ -703,7 +703,7 @@ const FormContainer: React.FC<combinedProps> = ({
       )}
 
       {!server && (
-        <div className="flex items-center justify-center px-4 py-1 text-black font-bold">
+        <div className="text-[8px] sm:text-[10px] md:text-[12px] xl:text-lg flex items-center justify-center px-4 py-1 text-black font-bold">
           {" "}
           Create or Select a server
         </div>
