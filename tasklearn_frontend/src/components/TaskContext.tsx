@@ -80,7 +80,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -168,7 +167,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -214,7 +212,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 

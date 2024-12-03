@@ -196,7 +196,6 @@ const SignUp: React.FC = () => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

@@ -68,7 +68,6 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -144,7 +143,6 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

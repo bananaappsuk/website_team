@@ -43,7 +43,6 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
