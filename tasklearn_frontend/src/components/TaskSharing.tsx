@@ -148,7 +148,6 @@ const TaskSharing = () => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -294,7 +293,6 @@ const TaskSharing = () => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -334,7 +332,6 @@ const TaskSharing = () => {
                     const user = auth.currentUser;
 
                     if (!user) {
-                        toast.error("User is not authenticated");
                         return;
                     }
 
@@ -359,7 +356,6 @@ const TaskSharing = () => {
                     const user = auth.currentUser;
 
                     if (!user) {
-                        toast.error("User is not authenticated");
                         return;
                     }
 
@@ -394,7 +390,6 @@ const TaskSharing = () => {
                     const user = auth.currentUser;
 
                     if (!user) {
-                        toast.error("User is not authenticated");
                         return;
                     }
 
@@ -455,7 +450,6 @@ const TaskSharing = () => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -486,7 +480,6 @@ const TaskSharing = () => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -535,7 +528,6 @@ const TaskSharing = () => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

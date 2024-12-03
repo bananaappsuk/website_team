@@ -3,7 +3,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
-import { toast } from 'react-toastify';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -12,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

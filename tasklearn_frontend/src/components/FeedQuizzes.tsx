@@ -112,7 +112,6 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -150,7 +149,6 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -311,7 +309,6 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
         const user = auth.currentUser;
 
         if (!user) {
-            toast.error("User is not authenticated");
             return;
         }
 
@@ -501,7 +498,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                 </button>
                             ) : (
                                 <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                                    Answer : <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
+                                    Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                                 </p>
                             )}
                         </div>

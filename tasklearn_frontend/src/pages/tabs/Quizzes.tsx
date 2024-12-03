@@ -81,7 +81,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -144,7 +143,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -253,7 +251,6 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

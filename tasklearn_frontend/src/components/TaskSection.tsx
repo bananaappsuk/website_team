@@ -190,7 +190,6 @@ const TaskSection: React.FC<CombinedProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -261,7 +260,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -298,7 +296,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -342,7 +339,6 @@ const TaskSection: React.FC<CombinedProps> = ({
         const user = auth.currentUser;
 
         if (!user) {
-            toast.error("User is not authenticated");
             return;
         }
 
@@ -370,7 +366,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -410,7 +405,6 @@ const TaskSection: React.FC<CombinedProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 

@@ -84,7 +84,6 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 

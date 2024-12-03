@@ -77,7 +77,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -106,7 +105,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -220,7 +218,6 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 
@@ -366,7 +363,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </button>
                     ) : (
                         <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                            Answer :
+                            Answer:
                             <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                         </p>
                     )}
@@ -392,7 +389,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </span>
                     </button>
                 </div>
-                <div className="mt-4 text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 flex justify-center items-center font-bold lg:ml-4">
+                <div className="mt-4 text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 flex justify-center items-center font-bold lg:ml-4 xl:mr-[92px]">
                     <span className="w-48 text-right">Score:</span>
                     <input
                         className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-2"

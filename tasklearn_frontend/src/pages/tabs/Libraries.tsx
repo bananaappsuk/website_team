@@ -5,7 +5,6 @@ import deleteIcon from "../../assets/Quiz/Vector.png";
 import searchIcon from "../../assets/Quiz/Group 1.png";
 import { Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { toast } from 'react-toastify';
 
 interface Library {
     _id: string;
@@ -46,7 +45,6 @@ const Libraries: React.FC<Props> = ({ userData }) => {
                 const user = auth.currentUser;
 
                 if (!user) {
-                    toast.error("User is not authenticated");
                     return;
                 }
 
@@ -95,7 +93,6 @@ const Libraries: React.FC<Props> = ({ userData }) => {
             const user = auth.currentUser;
 
             if (!user) {
-                toast.error("User is not authenticated");
                 return;
             }
 

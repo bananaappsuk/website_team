@@ -360,7 +360,7 @@ const FormContainer: React.FC<combinedProps> = ({
                   Tag staff for help / Completion:
                 </label>
                 <div className="flex gap-x-3">
-                  <div className=" z-40 ">
+                  <div className="">
                     <div className="flex gap-x-3">
                       {taggedStaffTags?.map((tag, index) => (
                         <div
@@ -512,7 +512,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">History</label>
               <textarea
                 placeholder=""
-                className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
                 value={task.history}
                 onChange={(e) => setTask({ ...task, history: e.target.value })}
@@ -525,7 +525,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Examination</label>
                 <textarea
                   placeholder=""
-                  className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                  className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
                   value={task.examination}
                   onChange={(e) =>
@@ -539,7 +539,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Diagnosis</label>
                 <textarea
                   placeholder=""
-                  className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                  className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
                   value={task.diagnosis}
                   onChange={(e) =>
@@ -555,7 +555,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Plan</label>
               <textarea
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
                 value={task.plan}
                 onChange={(e) => setTask({ ...task, plan: e.target.value })}
@@ -567,7 +567,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Follow Up</label>
               <textarea
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
                 value={task.followUp}
                 onChange={(e) => setTask({ ...task, followUp: e.target.value })}
@@ -581,7 +581,7 @@ const FormContainer: React.FC<combinedProps> = ({
               </label>
               <textarea
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
                 value={task.postConsultation}
                 onChange={(e) =>
@@ -595,7 +595,7 @@ const FormContainer: React.FC<combinedProps> = ({
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Feedback</label>
               <textarea
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
                 value={task.feedback}
                 onChange={(e) => setTask({ ...task, feedback: e.target.value })}
@@ -610,7 +610,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 </label>
                 <textarea
                   placeholder="Enter why this task is being done"
-                  className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                  className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
                   value={task.keyLearningPoint}
                   onChange={(e) =>
@@ -623,7 +623,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Action</label>
                 <textarea
                   placeholder="Enter how this task should be done"
-                  className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                  className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
                   value={task.action}
                   onChange={(e) => setTask({ ...task, action: e.target.value })}

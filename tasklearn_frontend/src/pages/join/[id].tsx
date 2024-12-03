@@ -5,7 +5,6 @@ import { auth, db } from "../../firebase";
 import { getDoc, doc } from "firebase/firestore";
 import { User } from "firebase/auth";
 import { getAuth } from 'firebase/auth';
-import { toast } from "react-toastify";
 
 const JoinServer: FC = () => {
     type UserData = {
@@ -62,7 +61,6 @@ const JoinServer: FC = () => {
                     const user = auth.currentUser;
 
                     if (!user) {
-                        toast.error("User is not authenticated");
                         return;
                     }
 
