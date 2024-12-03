@@ -356,7 +356,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                             </div>
                         )}
                         <div
-                            className="ml-auto"
+                            className="relative group ml-auto"
                             onClick={() =>
                                 handleRemoveSave(filteredQuizzes[currentQuizIndex]._id)
                             }
@@ -364,6 +364,9 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                             <button className="">
                                 <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
                             </button>
+                            <span className="pt-1 absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                Delete Quiz
+                            </span>
                         </div>
                     </div>
 

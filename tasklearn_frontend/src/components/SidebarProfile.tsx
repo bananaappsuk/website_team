@@ -161,7 +161,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
 
             <button
                 onClick={() => setIsPopupOpen(true)}
-                className="flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 bg-gray-300 rounded-full text-sm md:text-xl lg:text-3xl text-white"
+                className="pb-1 flex items-center justify-center h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 bg-gray-300 rounded-full text-sm md:text-xl lg:text-3xl text-white"
             >
                 +
             </button>

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { HiChevronRight } from "react-icons/hi";
 import deleteIcon from "../assets/Quiz/Vector.png";
 import { HiChevronDown, HiX } from "react-icons/hi";
-import { useTask } from "../components/TaskContext";
+import { Task, useTask } from "../components/TaskContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { collection, getDocs } from "firebase/firestore";
@@ -101,7 +101,14 @@ const TaskSection: React.FC<CombinedProps> = ({
         setIsOpen(!isOpen);
     };
     const handleDropdown = (index: any) => {
-        setselectedTask(true);
+        let isAnyFieldEmpty = false;
+        for (const key in task) {
+            if (task[key as keyof Task] === "") {
+                isAnyFieldEmpty = true;
+                break;
+            }
+        }
+        setselectedTask(!isAnyFieldEmpty);
         // setShowQuiz(true);
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
@@ -629,9 +636,15 @@ const TaskSection: React.FC<CombinedProps> = ({
                     </ul>
                 </div>
             ) : (
-                <div className="flex items-center justify-center font-bold px-4 py-1 text-black">
-                    {" "}
-                    Create or Select a server
+                <div>
+                    <div className="text-[8px] flex items-center justify-center font-bold lg:px-4 lg:py-1 text-black block sm:hidden">
+                        {" "}
+                        Select a server
+                    </div>
+                    <div className="text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] flex items-center text-center justify-center font-bold lg:px-4 lg:py-1 text-black hidden sm:block">
+                        {" "}
+                        Create or Select a server
+                    </div>
                 </div>
             )}
         </div>

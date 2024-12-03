@@ -405,7 +405,7 @@ const OtherProfile = () => {
                                 </div>
                             )}
                             <p className="font-bold mt-2 text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-lg">
-                                {otherUser?.userName + "," + otherUser?.jobRole}
+                                {otherUser?.userName + ", " + otherUser?.jobRole}
                             </p>
                         </div>
                         <div className="ml-auto flex items-center">

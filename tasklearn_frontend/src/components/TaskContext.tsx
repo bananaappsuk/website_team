@@ -106,11 +106,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
                         const patientId = firstElement.patientId;
                         if (patientId && userData !== null) {
-                            setTask((prevTask) => ({
-                                ...prevTask,
-                                patientId,
-                                createdBy: userData?.userName,
-                            }));
+                            setTask(() => {
+                                const emptyTask = getEmptyTask();
+                                return {
+                                    ...emptyTask,
+                                    patientId,
+                                    createdBy: userData?.userName,
+                                };
+                            });
                         }
                     }
                 }
@@ -242,6 +245,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     const [task, setTask] = useState<Task>({
         patientId: "",
         createdBy: "",
+        taggedStaff: [""],
+        contributingStaff: [""],
+        serverId: "",
+        taskName: "",
+        history: "",
+        examination: "",
+        diagnosis: "",
+        plan: "",
+        followUp: "",
+        postConsultation: "",
+        feedback: "",
+        keyLearningPoint: "",
+        action: "",
+        Library: false,
+        Learn: false,
+        isShared: false,
+        isCompleted: false,
+        isDeleted: false,
+    });
+
+    const getEmptyTask = () => ({
         taggedStaff: [""],
         contributingStaff: [""],
         serverId: "",
