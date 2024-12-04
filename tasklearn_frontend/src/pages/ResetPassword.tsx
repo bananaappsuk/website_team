@@ -110,7 +110,7 @@ const ResetPassword: React.FC = () => {
                 });
                 toast.success("Password reset successfully.", { autoClose: 2000 });
                 setTimeout(() => {
-                    router.push("/signin");
+                    router.push("/login");
                 }, 2000);
                 return;
             }
@@ -138,7 +138,7 @@ const ResetPassword: React.FC = () => {
             setOobCode(code);
         }
         if (!code) {
-            router.push("/signin");
+            router.push("/login");
         }
     }, []);
 
@@ -160,7 +160,7 @@ const ResetPassword: React.FC = () => {
                         <div className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 w-[50%]">
                             <div
                                 className="flex gap-x-1 items-center text-[#67A76B] mb-4 "
-                                onClick={() => router.push("/signin")}
+                                onClick={() => router.push("/login")}
                             >
                                 <Image
                                     src={backArrow}
@@ -169,7 +169,7 @@ const ResetPassword: React.FC = () => {
                                     height={16}
                                     className=" object-contain -[#67A76B] cursor-pointer"
                                 />
-                                <p className="ml-2 text-[14px] cursor-pointer">Back to Sign in</p>
+                                <p className="ml-2 text-[14px] cursor-pointer">Back to Login</p>
                             </div>
                         </div>
                         <form onSubmit={handleSubmit} className="px-4 md:px-4 lg:px-20 xl:px-40">

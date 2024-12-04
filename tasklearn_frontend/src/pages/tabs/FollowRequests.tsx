@@ -169,7 +169,7 @@ const Requests: React.FC<Props> = ({ userData }) => {
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-center text-[20px]">No follow requests</div>
+                    <div className="text-[20px] text-center items-center font-bold text-black mt-4">No follow requests</div>
                 ) : (
                     reqUsers?.map((user, index) => (
                         <li

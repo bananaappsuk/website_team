@@ -175,7 +175,7 @@ const Followers: React.FC<Props> = ({ userData }) => {
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-center text-[20px]">You don’t have any followers</div>
+                    <div className="text-[20px] text-center items-center font-bold text-black mt-4">You don’t have any followers</div>
                 ) : (
                     reqUsers?.map((user, index) => {
                         const isPending = checkFollowRequest(user.uid);

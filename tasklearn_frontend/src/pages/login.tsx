@@ -10,7 +10,7 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import BgImage from "../../public/assets/Rectangle68.png";
 import { getDocs, collection, query, where } from "firebase/firestore";
 
-const SignIn: React.FC = () => {
+const Login: React.FC = () => {
     const [formData, setFormData] = useState({
         identifier: "",
         password: "",
@@ -203,7 +203,7 @@ const SignIn: React.FC = () => {
                                     // htmlFor="identifier"
                                     className="sm:w-[50%] mb-2 sm:mb-0 text-[#646161]"
                                 >
-                                    Username or email address
+                                    Username or Email address
                                 </label>
                                 <input
                                     type="text"
@@ -283,4 +283,4 @@ const SignIn: React.FC = () => {
     );
 };
 
-export default SignIn;
+export default Login;

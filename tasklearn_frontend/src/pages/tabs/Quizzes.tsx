@@ -287,7 +287,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
     // If there are no quizzes, show a message
     if (quizzes.length === 0) {
-        return <div>No quizzes available</div>;
+        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No quizzes available</div>;
     }
 
 
@@ -372,7 +372,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         <div className="flex justify-start font-bold">
                                             <span className="w-48">Total Questions (Filtered):</span>
                                             <input
-                                                className="w-12 border-2 text-center border-gray-300 rounded-md"
+                                                className="ml-2 w-12 border-2 text-center border-gray-300 rounded-md"
                                                 value={filteredQuizzes.length}
                                                 readOnly />
                                         </div>
@@ -412,7 +412,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                                 Key Learning Points
                                             </h3>
-                                            <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
+                                            <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black break-words">
                                                 {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
                                             </p>
                                         </div>
@@ -421,17 +421,21 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                                 Action
                                             </h3>
-                                            <input
-                                                type="text"
+                                            <textarea
                                                 placeholder="Enter Answer"
                                                 value={currentAnswer}
                                                 onChange={(e) => {
                                                     setCurrentAnswer(e.target.value);
                                                     setIsAnswerSubmitted(false);
                                                 }}
+                                                maxLength={2000}
                                                 className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
                                                     } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
-                                                    }`} />
+                                                    }`}
+                                                style={{
+                                                    resize: 'none',
+                                                    overflowY: 'auto',
+                                                }} />
                                         </div>
                                     </div>
                                 </div>

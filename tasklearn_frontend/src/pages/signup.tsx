@@ -505,7 +505,7 @@ const SignUp: React.FC = () => {
                                     </label>
                                 </div>
                                 <select
-                                    className="w-full py-3 border text-black rounded-lg  "
+                                    className="w-full py-3 border text-black rounded-lg"
                                     name="jobRole"
                                     value={formData.jobRole}
                                     onChange={handleChange}
@@ -584,7 +584,7 @@ const SignUp: React.FC = () => {
                                 Sign Up
                             </button>
                             <div className="mt-2 text-center">
-                                <Link href="/signin"
+                                <Link href="/login"
                                     className="text-black"
                                 >
                                     Already have an account? <span className="underline text-[#68A86B]">Login</span>

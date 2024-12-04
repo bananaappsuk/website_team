@@ -114,7 +114,7 @@ router.patch("/update/:id", async (req, res) => {
         new: true,
       }
     );
-    res.status(200).json({ message: "Task Completed successfully" });
+    res.status(200).json({ message: "Task Completed successfully", updatedItem });
     if (!updatedItem) {
       return res.status(404).send("Task not found");
     }

@@ -59,7 +59,7 @@ const UserProfile = () => {
     const [showLogout, setShowLogout] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState("My Quiz");
+    const [activeTab, setActiveTab] = useState("MyQuiz");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { task, selectedServerId } = useTask();
     const [user, setUser] = useState<User | null>(null);
@@ -179,7 +179,7 @@ const UserProfile = () => {
         if (storedLink) {
             setActiveTab(storedLink);
         } else {
-            setActiveTab("My Quiz");
+            setActiveTab("MyQuiz");
         }
 
     }, [router.pathname]);
@@ -216,7 +216,7 @@ const UserProfile = () => {
         if (!loading && !user) {
             setRedirecting(true);
             const timer = setTimeout(() => {
-                router.push("/signin");
+                router.push("/login");
             }, 1000);
 
             return () => clearTimeout(timer);
@@ -417,7 +417,7 @@ const UserProfile = () => {
                                         {selectedServer ? (
                                             <Tracking selectedServer={selectedServer} currentUserData={userData} />
                                         ) : (
-                                            <div className="flex items-center justify-center px-4 py-1 text-black">
+                                            <div className="text-[20px] text-center items-center font-bold text-black mt-12">
                                                 Create or Select a server
                                             </div>
                                         )}

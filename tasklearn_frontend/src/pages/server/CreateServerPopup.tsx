@@ -354,9 +354,9 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                     <Image src={ImageNext} alt="Img" className="ml-auto mr-6" />
                                 </div>
                             </div>
-                            <div onClick={handleBack} className="mt-8 cursor-pointer">
+                            <button type="button" onClick={handleBack} className="mt-8 cursor-pointer">
                                 Back
-                            </div>
+                            </button>
                         </div>
                     )}
                     {step === 3 && (
@@ -369,22 +369,23 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                 just a few friends or a larger community?
                             </p>
                             <div
-                                className="w-full rounded-md py-8 cursor-pointer"
-                                onClick={handleImageClick}
+                                className="w-full rounded-md py-8"
                             >
                                 {serverImageUpload ? (
                                     <Image
                                         src={serverImageUpload}
+                                        onClick={handleImageClick}
                                         alt="Uploaded Preview"
-                                        className="bg-center bg-no-repeat w-32 h-32 object-cover rounded-md mx-auto"
+                                        className="bg-center bg-no-repeat w-32 h-32 object-cover rounded-md mx-auto cursor-pointer"
                                         width={32}
                                         height={32}
                                     />
                                 ) : (
                                     <Image
                                         src={uploadImage}
+                                        onClick={handleImageClick}
                                         alt="Upload"
-                                        className="bg-center bg-no-repeat w-32 h-32 object-cover rounded-md mx-auto"
+                                        className="bg-center bg-no-repeat w-32 h-32 object-cover rounded-md mx-auto cursor-pointer"
                                     />
                                 )}
                             </div>
