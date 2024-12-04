@@ -345,6 +345,10 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
         return <div >Loading feed quizzes...</div>; // Show loading while fetching data
     }
 
+    if (quizzes.length === 0) {
+        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No feed quizzes available</div>;
+    }
+
 
     return (
         <div className="w-full min-h-screen bg-white">

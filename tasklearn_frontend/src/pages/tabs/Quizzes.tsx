@@ -287,7 +287,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
     // If there are no quizzes, show a message
     if (quizzes.length === 0) {
-        return <div>No quizzes available</div>;
+        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No quizzes available</div>;
     }
 
 
