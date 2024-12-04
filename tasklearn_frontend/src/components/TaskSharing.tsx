@@ -448,9 +448,23 @@ const TaskSharing = () => {
         e.preventDefault();
 
         if (
+            !task.taggedStaff.length || // Check if the array is empty
+            task.taggedStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+        ) {
+            toast.error("Please tag user at tag staff field");
+            return;
+        }
+
+        if (
+            !task.contributingStaff.length || // Check if the array is empty
+            task.contributingStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+        ) {
+            toast.error("Please tag user at contributing staff field");
+            return;
+        }
+
+        if (
             !task.createdBy ||
-            !task.taggedStaff ||
-            !task.contributingStaff ||
             !task.taskName ||
             !task.history ||
             !task.examination ||
@@ -489,7 +503,6 @@ const TaskSharing = () => {
                     toast.success("Task Completed Successfully");
                     const data = await response.json();
                     setTask(data?.updatedItem);
-                    console.log("Data", data?.updatedItem);
                     setselectedTask(true);
                     setShowQuiz(false);
                     setBtnDisble(true);
