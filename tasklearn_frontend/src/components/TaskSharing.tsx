@@ -493,7 +493,7 @@ const TaskSharing = () => {
                     setselectedTask(true);
                     setShowQuiz(false);
                     setBtnDisble(true);
-                    setBtnDisble2(true);
+                    // setBtnDisble2(true);
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 }
             } catch (error: any) {

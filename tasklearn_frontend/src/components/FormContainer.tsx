@@ -654,7 +654,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="submit"
               onClick={handleShare}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted || btnDisable2
+              className={`text-[7px] sm:text-[12px] md:text-[14px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
                 ? "hidden"
                 : "block"
                 } ${selectedTask && "cursor-not-allowed"} ${!task?.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
@@ -704,7 +704,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="button"
               onClick={handleComplete}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted || btnDisable2 ? "hidden" : "block"
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
                 } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
               disabled={selectedTask && btnDisable}
             >
