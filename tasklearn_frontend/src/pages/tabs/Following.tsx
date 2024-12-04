@@ -149,7 +149,7 @@ const Following: React.FC<Props> = ({ userData }) => {
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-center text-[20px]">You haven't followed anyone yet</div>
+                    <div className="text-[20px] text-center items-center font-bold text-black mt-4">You haven't followed anyone yet</div>
                 ) : (
                     reqUsers?.map((user, index) => {
                         const isFollowing = checkFollowingRequest(user.uid);

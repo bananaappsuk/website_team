@@ -505,7 +505,7 @@ const SignUp: React.FC = () => {
                                     </label>
                                 </div>
                                 <select
-                                    className="w-full py-3 border text-black rounded-lg  "
+                                    className="w-full py-3 border text-black rounded-lg"
                                     name="jobRole"
                                     value={formData.jobRole}
                                     onChange={handleChange}

@@ -461,12 +461,12 @@ const TaskSection: React.FC<CombinedProps> = ({
     return (
         <div>
             {server ? (
-                <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto mt-5">
+                <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto">
                     <div
                         className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-10 sm:gap-0"
                         onClick={toggleOpen}
                     >
-                        <span className="text-md font-bold text-black text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px]">
+                        <span className="text-md font-bold text-black text-[6px] sm:text-[7px] lg:text-[14px] xl:text-[16px]">
                             {server.serverName}
                         </span>
                         {isOpen ? (
@@ -541,7 +541,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                     className="w-full p-1 border border-gray-300 bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BEBEBE]"
                 />
                 {showResults && (
-                    <div className="absolute bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 max-h-60 overflow-y-auto">
+                    <div className="absolute w-[78%] sm:w-[85%] md:w-[90%] lg:w-[87%] xl:w-[93%] bg-white text-black shadow-lg rounded-lg mt-2 max-h-60 overflow-y-auto">
                         {!server?.serverId ? (
                             <div className="p-2 text-gray-500">
                                 You must select a server to search tasks
@@ -555,18 +555,19 @@ const TaskSection: React.FC<CombinedProps> = ({
                                 ) : (
                                     <div
                                         key={index}
-                                        className="p-2 border-b cursor-pointer hover:bg-gray-100"
+                                        className="w-full p-1 border-b cursor-pointer hover:bg-gray-100 text-[8px] sm:text-[10px] md:text-[11px] lg:text-[10px] xl:text-[12px] "
                                         onClick={() => {
                                             fetchTaskById(task._id);
                                             setShowResults(false);
                                         }}
                                     >
-                                        <p className="font-semibold">
-                                            Patient ID: {task.patientId}
+                                        <p className="flex font-semibold">
+                                            <span className="hidden lg:block">Patient ID: </span>
+                                            <span className="lg:ml-1">{task.patientId}</span>
                                         </p>
-                                        <p className="text-sm text-gray-900">
-                                            Created by:{' '}
-                                            <span className="font-semibold"> {task.createdBy} </span>
+                                        <p className="flex font-semibold text-gray-900">
+                                            <span className="hidden lg:block">Created by: </span>
+                                            <span className="lg:ml-1">{task.createdBy}</span>
                                         </p>
                                     </div>
                                 )
@@ -589,7 +590,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                         handleTasksClick(item);
                                         handleDropdown(index);
                                     }}
-                                    className="text-[6px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px] flex justify-between items-center text-black font-bold cursor-pointer"
+                                    className="text-[6px] sm:text-[7px] md:text-[10px] lg:text-[12px] xl:text-[16px] flex justify-between items-center text-black font-bold cursor-pointer"
                                 >
                                     {item}
                                     {dropdownVisible[index] ? (
@@ -607,8 +608,8 @@ const TaskSection: React.FC<CombinedProps> = ({
                                                     className={`text-black justify-between flex `}
                                                 >
                                                     <p
-                                                        className={`text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px] cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
-                                                            ? "text-[#68A86B]"
+                                                        className={`text-[6px] sm:text-[7px] lg:text-[12px] xl:text-[16px] cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
+                                                            ? "text-[#68A86B] font-semibold"
                                                             : ""
                                                             }`}
                                                         onClick={() => fetchTaskById(newItem._id)}

@@ -704,10 +704,10 @@ const TaskSharing = () => {
                 <div className="w-[25%] sm:w-[30%] md:w-[40%] lg:w-[30%] w-[25%] flex min-h-screen">
                     <div className="w-full bg-white space-y-2">
                         <div className="text-center">
-                            <h1 className="text-[10px] sm:text-lg md:text-lg lg:text-xl xl:text-3xl font-bold text-[#68A86B]">
+                            <h1 className="text-[10px] sm:text-md md:text-md lg:text-xl xl:text-3xl font-bold text-[#68A86B]">
                                 <a href="/Homepage">T-askLearn</a>
                             </h1>
-                            <p className="text-[3px] sm:text-[5px] md:text-[5px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
+                            <p className="text-[3px] sm:text-[3px] md:text-[3px] lg:text-[6px] xl:text-[8px] text-[#68A86B]">
                                 <a href="/Homepage">
                                     Collaborate to Learn, Learn to Collaborate
                                 </a>
@@ -716,9 +716,9 @@ const TaskSharing = () => {
                         <div className="h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
                             <div
-                                className="p-0 flex justify-center"
+                                className="flex justify-center my-1 md:my-2 lg:my-3"
                             >
-                                <button className="md:w-[35%] lg:w-[50%] xl:w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold px-1 py-1 md:px-2 lg:py-1 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer text-[8px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px]"
+                                <button className="md:w-[60%] lg:w-[50%] xl:w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold px-2 py-1 md:px-2 lg:py-1 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer text-[8px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px]"
                                     onClick={() => {
                                         setDropdownVisible(
                                             Array(taskCategories.length).fill(false)
