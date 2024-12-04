@@ -15,6 +15,7 @@ type Props = {
   setContributingTags: React.Dispatch<React.SetStateAction<string[]>>;
   setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
   btnDisable: boolean;
+  btnDisable2: boolean;
 };
 type UserData = {
   uid: any;
@@ -42,6 +43,7 @@ const FormContainer: React.FC<combinedProps> = ({
   setContributingTags,
   setBtnDisble,
   btnDisable,
+  btnDisable2,
 }) => {
   const { task, setTask, patientIdLoading } = useTask();
   const [searchUserName, setSearchUserName] = useState("");
@@ -344,7 +346,7 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder="@ Username"
                   className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : "cursor-default"
                     }`}
-                  value={`${task.createdBy}`}
+                  value={`${task?.createdBy}`}
                   onChange={(e) =>
                     setTask({ ...task, createdBy: e.target.value })
                   }
@@ -502,10 +504,11 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }`}
-                value={task.taskName}
+                value={task?.taskName}
                 onChange={(e) => setTask({ ...task, taskName: e.target.value })}
                 required
                 readOnly={selectedTask}
+                maxLength={50}
               />
             </div>
             <div className="col-span-2">
@@ -514,10 +517,11 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
-                value={task.history}
+                value={task?.history}
                 onChange={(e) => setTask({ ...task, history: e.target.value })}
                 required
                 readOnly={selectedTask}
+                maxLength={2000}
               />
             </div>
             <div className="flex gap-4 w-full">
@@ -527,12 +531,13 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder=""
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
-                  value={task.examination}
+                  value={task?.examination}
                   onChange={(e) =>
                     setTask({ ...task, examination: e.target.value })
                   }
                   required
                   readOnly={selectedTask}
+                  maxLength={2000}
                 />
               </div>
               <div className="flex-1">
@@ -541,12 +546,13 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder=""
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
-                  value={task.diagnosis}
+                  value={task?.diagnosis}
                   onChange={(e) =>
                     setTask({ ...task, diagnosis: e.target.value })
                   }
                   required
                   readOnly={selectedTask}
+                  maxLength={2000}
                 />
               </div>
             </div>
@@ -557,10 +563,11 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
-                value={task.plan}
+                value={task?.plan}
                 onChange={(e) => setTask({ ...task, plan: e.target.value })}
                 required
                 readOnly={selectedTask}
+                maxLength={2000}
               />
             </div>
             <div className="col-span-2">
@@ -569,10 +576,11 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
-                value={task.followUp}
+                value={task?.followUp}
                 onChange={(e) => setTask({ ...task, followUp: e.target.value })}
                 required
                 readOnly={selectedTask}
+                maxLength={2000}
               />
             </div>
             <div className="col-span-2">
@@ -583,12 +591,13 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
-                value={task.postConsultation}
+                value={task?.postConsultation}
                 onChange={(e) =>
                   setTask({ ...task, postConsultation: e.target.value })
                 }
                 required
                 readOnly={selectedTask}
+                maxLength={2000}
               />
             </div>
             <div className="col-span-2">
@@ -597,10 +606,11 @@ const FormContainer: React.FC<combinedProps> = ({
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                   }resize-none`}
-                value={task.feedback}
+                value={task?.feedback}
                 onChange={(e) => setTask({ ...task, feedback: e.target.value })}
                 required
                 readOnly={selectedTask}
+                maxLength={2000}
               />
             </div>
             <div className="flex gap-4 w-full">
@@ -612,11 +622,12 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder="Enter why this task is being done"
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
-                  value={task.keyLearningPoint}
+                  value={task?.keyLearningPoint}
                   onChange={(e) =>
                     setTask({ ...task, keyLearningPoint: e.target.value })
                   }
                   readOnly={selectedTask}
+                  maxLength={2000}
                 />
               </div>
               <div className="flex-1">
@@ -625,9 +636,10 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder="Enter how this task should be done"
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
                     }resize-none`}
-                  value={task.action}
+                  value={task?.action}
                   onChange={(e) => setTask({ ...task, action: e.target.value })}
                   readOnly={selectedTask}
+                  maxLength={2000}
                 />
               </div>
             </div>
@@ -642,12 +654,12 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="submit"
               onClick={handleShare}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
+              className={`text-[7px] sm:text-[12px] md:text-[14px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted || btnDisable2
                 ? "hidden"
                 : "block"
-                } ${selectedTask && "cursor-not-allowed"} ${!task.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
+                } ${selectedTask && "cursor-not-allowed"} ${!task?.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
                 }`}
-              disabled={selectedTask || !task.Learn}
+              disabled={selectedTask || !task?.Learn}
             >
               Share
             </button>
@@ -657,7 +669,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
                                     sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
                   }`}
-                checked={task.Library}
+                checked={task?.Library}
                 onChange={(e) =>
                   setTask({ ...task, Library: e.target.checked })
                 }
@@ -676,7 +688,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
                                     sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
                   }`}
-                checked={task.Learn}
+                checked={task?.Learn}
                 onChange={(e) => setTask({ ...task, Learn: e.target.checked })}
                 disabled={selectedTask}
               />
@@ -692,7 +704,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="button"
               onClick={handleComplete}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted || btnDisable2 ? "hidden" : "block"
                 } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
               disabled={selectedTask && btnDisable}
             >

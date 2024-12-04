@@ -44,7 +44,7 @@ const JoinServer: FC = () => {
             } else {
                 setUser(null);
                 setUserData(null);
-                router.push("/signin");
+                router.push("/login");
             }
             setLoading(false);
         });

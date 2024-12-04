@@ -305,7 +305,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                             <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                 Key Learning Points
                             </h3>
-                            <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border font-bold text-center shadow-sm text-black">
+                            <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border font-bold text-center shadow-sm text-black break-words">
                                 {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
                             </p>
                         </div>
@@ -314,17 +314,21 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                             <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                 Action
                             </h3>
-                            <input
-                                type="text"
+                            <textarea
                                 placeholder="Enter Answer"
                                 value={currentAnswer}
                                 onChange={(e) => {
                                     setCurrentAnswer(e.target.value);
                                     setIsAnswerSubmitted(false);
                                 }}
+                                maxLength={2000}
                                 className={`text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
                                     } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
                                     }`}
+                                style={{
+                                    resize: 'none',
+                                    overflowY: 'auto',
+                                }}
                             />
                         </div>
                     </div>
@@ -389,27 +393,29 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         </span>
                     </button>
                 </div>
-                <div className="mt-4 text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 flex justify-center items-center font-bold lg:ml-4 xl:mr-[92px]">
-                    <span className="w-48 text-right">Score:</span>
-                    <input
-                        className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                        value={score ?? 0}
-                        readOnly
-                    />{" "}
-                    <p className="ml-2 lg:ml-2">/</p>
-                    <input
-                        className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-2"
-                        value={`${question}`}
-                        readOnly
-                    />
-                </div>
-                <div className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 mt-2 lg:mt-4 flex justify-center items-center font-bold">
-                    <span className="w-48 text-right">Total Questions:</span>
-                    <input
-                        className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-0 lg:ml-2"
-                        value={filteredQuizzes.length}
-                        readOnly
-                    />
+                <div className="flex flex-col justify-center items-center">
+                    <div className="mt-4 text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 flex justify-center items-center font-bold">
+                        <span className="w-full text-right">Score:</span>
+                        <input
+                            className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            value={score ?? 0}
+                            readOnly
+                        />{" "}
+                        <p className="ml-2 lg:ml-2">/</p>
+                        <input
+                            className="w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-2"
+                            value={`${question}`}
+                            readOnly
+                        />
+                    </div>
+                    <div className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] mt-2 lg:mt-12 mt-2 lg:mt-4 flex justify-center items-center font-bold">
+                        <span className="w-full text-right">Total Questions:</span>
+                        <input
+                            className="ml-1 w-4 lg:w-12 text-center border-2 border-gray-300 rounded-md ml-0 lg:ml-2"
+                            value={filteredQuizzes.length}
+                            readOnly
+                        />
+                    </div>
                 </div>
             </main>
         </div>
