@@ -37,6 +37,12 @@ const TaskSharing = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [filter, setFilter] = useState("All Tasks");
     const { task, setTask, fetchPatientId, updatePatientId } = useTask();
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
+
+    const handleRefresh = () => {
+        // Toggle the refresh trigger state
+        setRefreshTrigger((prev) => !prev);
+    };
     const taskCategories = [
         "All Tasks",
         "Pending Tasks",
@@ -86,6 +92,8 @@ const TaskSharing = () => {
     } | null>(null);
 
     const [btnDisable, setBtnDisble] = useState<boolean>(false)
+    const [btnDisable2, setBtnDisble2] = useState<boolean>(false)
+
 
     const handleServerSelect = (server: {
         serverId: string;
@@ -199,7 +207,11 @@ const TaskSharing = () => {
     useEffect(() => {
         if (filteredQuizzes.length === 0) {
             setShowQuiz(false);
-        } else {
+        } else if ((filteredQuizzes[0]?.action === "" || filteredQuizzes[0]?.keyLearningPoint === "")) {
+            setselectedTask(true)
+            setShowQuiz(false)
+        }
+        else {
             setShowQuiz(true);
         }
     }, [filteredQuizzes]);
@@ -214,7 +226,7 @@ const TaskSharing = () => {
         if (!loading && !user) {
             setRedirecting(true);
             const timer = setTimeout(() => {
-                router.push("/signin");
+                router.push("/login");
             }, 1000);
 
             return () => clearTimeout(timer);
@@ -270,11 +282,24 @@ const TaskSharing = () => {
 
     const handleShare = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (
+            !task.taggedStaff.length || // Check if the array is empty
+            task.taggedStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+        ) {
+            toast.error("Please tag user at tag staff field");
+            return;
+        }
+
+        if (
+            !task.contributingStaff.length || // Check if the array is empty
+            task.contributingStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+        ) {
+            toast.error("Please tag user at contributing staff field");
+            return;
+        }
 
         if (
             !task.createdBy ||
-            !task.taggedStaff ||
-            !task.contributingStaff ||
             !task.taskName ||
             !task.history ||
             !task.examination ||
@@ -316,13 +341,11 @@ const TaskSharing = () => {
                 setContributingTags([]);
                 setTaggedStaffTags([]);
                 const data = await response.json();
-                setTask(data.task)
-                setSelectedQuizTaskId(data?.task?._id);
+                setTask(data?.task)
 
 
                 updatePatientId(selectedServer?.serverId);
                 toast.success("Task shared successfully");
-                setSelectedQuizTaskId("");
                 if (!task.Learn && !task.Library) {
                     router.reload();
                 }
@@ -375,8 +398,7 @@ const TaskSharing = () => {
                             taskId: data?.task?._id,
                         }),
                     });
-                    setBtnDisble(true)
-                    setShowQuiz(true);
+                    setSelectedQuizTaskId(data?.task?._id);
                     // handleResetInputs();
                     setselectedTask(true);
 
@@ -410,8 +432,7 @@ const TaskSharing = () => {
                         }),
                     });
                     // handleResetInputs();
-                    setBtnDisble(true)
-                    setShowQuiz(true);
+                    setSelectedQuizTaskId(data?.task?._id);
                     setselectedTask(true);
 
                 }
@@ -466,8 +487,13 @@ const TaskSharing = () => {
                 );
                 if (response.ok) {
                     toast.success("Task Completed Successfully");
+                    const data = await response.json();
+                    setTask(data?.updatedItem);
+                    console.log("Data", data?.updatedItem);
+                    setselectedTask(true);
                     setShowQuiz(false);
-                    handleTasksClick("All Tasks");
+                    setBtnDisble(true);
+                    setBtnDisble2(true);
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 }
             } catch (error: any) {
@@ -502,15 +528,12 @@ const TaskSharing = () => {
 
                 if (response.ok) {
                     toast.success("Task saved successfully");
-                    setShowQuiz(false);
-                    setTask({
-                        ...task,
-                        Library: false,
-                        Learn: false,
-                    });
+                    setContributingTags([]);
+                    setTaggedStaffTags([]);
+                    const data = await response.json();
+                    setTask(data?.task);
+                    setselectedTask(true)
                     updatePatientId(selectedServer?.serverId);
-                    handleTasksClick("All Tasks");
-                    fetchPatientId(selectedServer?.serverId);
                     setDropdownVisible(Array(taskCategories.length).fill(false));
                 } else {
                     throw new Error("Failed to save task");
@@ -702,7 +725,7 @@ const TaskSharing = () => {
                     setFilteredTasks={setFilteredTasks}
                 />
                 <div className="w-[25%] sm:w-[30%] md:w-[40%] lg:w-[30%] w-[25%] flex min-h-screen">
-                    <div className="w-full bg-white space-y-2">
+                    <div className="pt-4 sm:pt-8 lg:pt-6 w-full bg-white space-y-2">
                         <div className="text-center">
                             <h1 className="text-[10px] sm:text-md md:text-md lg:text-xl xl:text-3xl font-bold text-[#68A86B]">
                                 <a href="/Homepage">T-askLearn</a>
@@ -713,7 +736,7 @@ const TaskSharing = () => {
                                 </a>
                             </p>
                         </div>
-                        <div className="h-[1px] w-full bg-gray-300" />
+                        <div className="h-[0.5px] xl:h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
                             <div
                                 className="flex justify-center my-1 md:my-2 lg:my-3"
@@ -724,6 +747,7 @@ const TaskSharing = () => {
                                             Array(taskCategories.length).fill(false)
                                         );
                                         handleResetInputs();
+                                        handleRefresh();
                                         setShowQuiz(false);
                                         setselectedTask(false);
                                     }}>
@@ -753,6 +777,7 @@ const TaskSharing = () => {
                                 setSelectedQuizTaskId={setSelectedQuizTaskId}
                                 setBtnDisble={setBtnDisble}
                                 setFilteredTasks={setFilteredTasks}
+                                refreshTrigger={refreshTrigger}
                             />
                         </div>
                     </div>
@@ -773,7 +798,7 @@ const TaskSharing = () => {
                                             />
                                         ) : (
                                             <div
-                                                className="flex items-center justify-center w-[48.14px] h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold"
+                                                className="flex items-center justify-center w-[18.14px] h-[18.14px] sm:w-[28.14px] sm:h-[28.14px] lg:w-[38.14px] lg:h-[38.14px] xl:w-[48.14px] xl:h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold"
                                             >
                                                 {userData?.userName?.[0]?.toUpperCase() || "?"}
                                             </div>
@@ -818,12 +843,13 @@ const TaskSharing = () => {
                             setContributingTags={setContributingTags}
                             btnDisable={btnDisable}
                             setBtnDisble={setBtnDisble}
+                            btnDisable2={btnDisable2}
                         />
                     </section>
                 )}
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className="text-black w-[35%] sm:w-[25%] md:w-[25%] lg:w-[30%] xl:w-[40%] shadow-lg border-2 bg-white rounded-lg">
+                    <div className="text-black w-[50%] sm:w-[60%] md:w-[50%] lg:w-[60%] xl:w-[60%] shadow-lg border-2 bg-white rounded-lg">
                         <div className="mt-10 sm:mt-14 lg:mt-16 xl:mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>

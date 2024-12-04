@@ -584,7 +584,7 @@ const SignUp: React.FC = () => {
                                 Sign Up
                             </button>
                             <div className="mt-2 text-center">
-                                <Link href="/signin"
+                                <Link href="/login"
                                     className="text-black"
                                 >
                                     Already have an account? <span className="underline text-[#68A86B]">Login</span>

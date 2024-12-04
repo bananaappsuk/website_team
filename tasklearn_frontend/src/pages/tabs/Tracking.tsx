@@ -77,7 +77,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     uid: doc.id,
                 };
             });
-            setAllUsers(users);
+            setAllUsers(users.filter((user) => selectedServer?.memberList.includes(user?.uid)));
         } catch (error) {
             console.error("Error getting user data:", error);
         }
@@ -97,11 +97,15 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
             const contributionCount = tasksList.reduce((count, task: any) => {
                 return (
                     count +
-                    task.contributingStaff.filter((staff: any) => staff === user.userName)
-                        .length
+                    task.contributingStaff.filter(
+                        (staff: any) =>
+                            staff === user.userName &&
+                            !task.isDeleted &&
+                            task.serverId === selectedServer?.serverId
+                    ).length
                 );
             }, 0);
-            if (contributionCount > 0) {
+            if (contributionCount >= 0) {
                 const key = `${user.userName}, ${user.jobRole}`;
                 acc[key] = contributionCount;
             }

@@ -60,7 +60,7 @@ const ForgotPassword: React.FC = () => {
                         <div className="pl-3 sm:pl-3 lg:pl-20 xl:pl-40 w-[50%]">
                             <div
                                 className="flex gap-x-1 items-center text-[#67A76B] mb-4"
-                                onClick={() => router.push("/signin")}
+                                onClick={() => router.push("/login")}
                             >
                                 <Image
                                     src={backArrow}
@@ -69,7 +69,7 @@ const ForgotPassword: React.FC = () => {
                                     height={16}
                                     className=" object-contain text-[#67A76B] cursor-pointer"
                                 />
-                                <p className="ml-2 text-[14px] cursor-pointer" >Back to Sign in</p>
+                                <p className="ml-2 text-[14px] cursor-pointer" >Back to Login</p>
                             </div>
                         </div>
                         <form onSubmit={handleSubmit}>

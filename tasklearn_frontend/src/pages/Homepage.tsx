@@ -56,7 +56,7 @@ const HomePage = () => {
         if (!loading && !user) {
             setRedirecting(true);
             const timer = setTimeout(() => {
-                router.push('/signin');
+                router.push('/login');
             }, 1000);
 
             return () => clearTimeout(timer);

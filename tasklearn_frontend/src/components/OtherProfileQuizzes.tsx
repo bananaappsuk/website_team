@@ -270,10 +270,10 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
         <div className="w-full min-h-screen bg-white">
             <div className="my-4 flex justify-between items-center">
                 {searchTerm && (
-                    <div className="flex justify-start font-bold">
+                    <div className="text-[7px] sm:text-[12px] md:text-[14px] xl:text-[16px] flex justify-start font-bold">
                         <span className="">Total Questions (Filtered):</span>
                         <input
-                            className="w-12 border-2 text-center border-gray-300 rounded-md"
+                            className="ml-2 w-4 sm:w-6 md:w-8 lg:w-10 xl:w-12 border-2 text-center border-gray-300 rounded-md"
                             value={filteredQuizzes.length}
                             readOnly
                         />
@@ -323,7 +323,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                                 <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                     Key Learning Points
                                 </h3>
-                                <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black">
+                                <p className="w-full px-10 py-6 border font-bold text-center shadow-sm text-black break-words">
                                     {filteredQuizzes[currentQuizIndex]?.keyLearningPoint}
                                 </p>
                             </div>
@@ -331,17 +331,21 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                                 <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                     Action
                                 </h3>
-                                <input
-                                    type="text"
+                                <textarea
                                     placeholder="Enter Answer"
                                     value={currentAnswer}
                                     onChange={(e) => {
                                         setCurrentAnswer(e.target.value);
                                         setIsAnswerSubmitted(false);
                                     }}
+                                    maxLength={2000}
                                     className={`w-full px-10 py-6 placeholder:text-[#67A76B] ${scoreError && "placeholder:text-[#b3835c] bg-[#eca794]"
                                         } text-center border shadow-sm text-black ${scoreSuccess && "placeholder:text-[#aedfb5] bg-[#d1f5d9]"
                                         }`}
+                                    style={{
+                                        resize: 'none',
+                                        overflowY: 'auto',
+                                    }}
                                 />
                             </div>
                         </div>

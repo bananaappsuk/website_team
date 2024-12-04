@@ -175,10 +175,10 @@ const Libraries: React.FC<Props> = ({ userData }) => {
                         <div className="h-[1px] w-full bg-gray-300" />
                         <div className="flex justify-between my-2">
                             <div className="flex-1 bg-white rounded-md p-4">
-                                <p className="font-bold text-black">Key Learning Points:</p>
-                                <p className="text-black">{library.keyLearningPoint}</p>
-                                <p className="font-bold text-black mt-4">Action:</p>
-                                <p className="text-black">{library.action}</p>
+                                <p className="font-bold text-black break-words">Key Learning Points:</p>
+                                <p className="text-black break-words">{library.keyLearningPoint}</p>
+                                <p className="font-bold text-black mt-4 break-words">Action:</p>
+                                <p className="text-black break-words">{library.action}</p>
                             </div>
 
                             <div className="flex flex-col items-center justify-center ml-4 p-4">

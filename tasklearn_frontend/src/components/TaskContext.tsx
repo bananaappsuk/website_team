@@ -205,36 +205,36 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
 
 
 
-    useEffect(() => {
-        const fetchTaskByServerId = async (serverId: string) => {
-            try {
-                const auth = getAuth();
-                const user = auth.currentUser;
+    // useEffect(() => {
+    //     const fetchTaskByServerId = async (serverId: string) => {
+    //         try {
+    //             const auth = getAuth();
+    //             const user = auth.currentUser;
 
-                if (!user) {
-                    return;
-                }
+    //             if (!user) {
+    //                 return;
+    //             }
 
-                const token = await user.getIdToken();
-                const response = await axios.get(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${serverId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                if (response) {
-                    setTask(response.data);
-                }
-            } catch (error: any) {
-                toast.error(error.message);
-            }
-        };
-        if (selectedServerId) {
-            fetchTaskByServerId(selectedServerId);
-        }
-    }, [selectedServerId]);
+    //             const token = await user.getIdToken();
+    //             const response = await axios.get(
+    //                 `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${serverId}`,
+    //                 {
+    //                     headers: {
+    //                         Authorization: `Bearer ${token}`,
+    //                     },
+    //                 }
+    //             );
+    //             if (response) {
+    //                 setTask(response.data);
+    //             }
+    //         } catch (error: any) {
+    //             toast.error(error.message);
+    //         }
+    //     };
+    //     if (selectedServerId) {
+    //         fetchTaskByServerId(selectedServerId);
+    //     }
+    // }, [selectedServerId]);
 
 
 

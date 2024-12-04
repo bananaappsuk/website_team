@@ -52,6 +52,7 @@ type Props = {
     setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
     setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
     setFilteredTasks: React.Dispatch<React.SetStateAction<any[]>>;
+    refreshTrigger: boolean;
 };
 
 interface TaskSectionProps {
@@ -61,6 +62,7 @@ interface TaskSectionProps {
 type CombinedProps = ServerDisplayProps & Props & Server & TaskSectionProps;
 
 const TaskSection: React.FC<CombinedProps> = ({
+    refreshTrigger,
     server,
     setselectedTask,
     selectedTask,
@@ -97,6 +99,13 @@ const TaskSection: React.FC<CombinedProps> = ({
     const [filteredSearchTask, setFilteredSearchTask] = useState([]);
     const [filteredPatientId, setFilteredPatientId] = useState<any[]>([]);
 
+    useEffect(() => {
+        // Reset the search term and results whenever refreshTrigger changes
+        setSearchTerm('');
+        setShowResults(false);
+        setFilteredPatientId([]);
+    }, [refreshTrigger]);
+
     const toggleOpen = () => {
         setIsOpen(!isOpen);
     };
@@ -107,8 +116,17 @@ const TaskSection: React.FC<CombinedProps> = ({
                 isAnyFieldEmpty = true;
                 break;
             }
+            setselectedTask(!isAnyFieldEmpty)
         }
-        setselectedTask(!isAnyFieldEmpty);
+        const isActionOrKeyLearningPointEmpty =
+            task.action === "" || task.keyLearningPoint === "";
+        if (isAnyFieldEmpty) {
+            setselectedTask(false);
+        } else {
+            setselectedTask(
+                isActionOrKeyLearningPointEmpty || !isAnyFieldEmpty
+            );
+        }
         // setShowQuiz(true);
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
@@ -454,7 +472,6 @@ const TaskSection: React.FC<CombinedProps> = ({
             });
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
-            toast.warning("Share cancelled");
         }
     };
 
@@ -546,6 +563,8 @@ const TaskSection: React.FC<CombinedProps> = ({
                             <div className="p-2 text-gray-500">
                                 You must select a server to search tasks
                             </div>
+                        ) : searchTerm === "" ? (
+                            <div className=""></div>
                         ) : filteredPatientId.length > 0 ? (
                             filteredPatientId.map((task, index) =>
                                 task.message ? ( // Check if it's a message object
