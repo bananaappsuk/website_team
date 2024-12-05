@@ -103,6 +103,13 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+
+            if (!file.type.startsWith("image/")) {
+                toast.error("Please upload a valid image file.");
+                return;
+            }
+
+
             const imageUrl = URL.createObjectURL(file);
             setServerImageUpload(imageUrl); // Set the image URL for preview
             setServerImage(file); // Set the actual file for server upload

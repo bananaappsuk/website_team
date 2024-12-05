@@ -99,7 +99,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     count +
                     task.contributingStaff.filter(
                         (staff: any) =>
-                            staff === user.userName &&
+                            staff === user.uid &&
                             !task.isDeleted &&
                             task.serverId === selectedServer?.serverId
                     ).length

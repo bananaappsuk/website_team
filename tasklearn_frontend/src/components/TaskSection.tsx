@@ -52,8 +52,15 @@ type Props = {
     setSelectedQuizTaskId: React.Dispatch<React.SetStateAction<string>>;
     setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
     setFilteredTasks: React.Dispatch<React.SetStateAction<any[]>>;
+    fetchUsernames: (uids: string[]) => Promise<UserName[]>;
+    fetchUsername: (uid: string) => Promise<string>;
     refreshTrigger: boolean;
+    quizzes: any[];
 };
+
+interface UserName {
+    userName: string;
+}
 
 interface TaskSectionProps {
     server: { serverId: string; serverName: string } | null;
@@ -81,6 +88,9 @@ const TaskSection: React.FC<CombinedProps> = ({
     setSelectedQuizTaskId,
     setBtnDisble,
     setFilteredTasks,
+    quizzes,
+    fetchUsername,
+    fetchUsernames,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -116,17 +126,14 @@ const TaskSection: React.FC<CombinedProps> = ({
                 isAnyFieldEmpty = true;
                 break;
             }
-            setselectedTask(!isAnyFieldEmpty)
         }
-        const isActionOrKeyLearningPointEmpty =
-            task.action === "" || task.keyLearningPoint === "";
-        if (isAnyFieldEmpty) {
-            setselectedTask(false);
-        } else {
-            setselectedTask(
-                isActionOrKeyLearningPointEmpty || !isAnyFieldEmpty
-            );
+        if (quizzes.length > 0 && isAnyFieldEmpty === true) {
+            setselectedTask(true)
         }
+        else if (quizzes.length === 0 && isAnyFieldEmpty === true) {
+            setselectedTask(false)
+        }
+
         // setShowQuiz(true);
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
@@ -292,8 +299,22 @@ const TaskSection: React.FC<CombinedProps> = ({
             );
 
             if (response) {
-                setTask(response.data);
+                const data = await response.data;
+                // Fetch usernames in parallel
+                const [taggedStaffDetails, contributingStaffDetails, createdByDetails] =
+                    await Promise.all([
+                        fetchUsernames(data.taggedStaff),
+                        fetchUsernames(data.contributingStaff),
+                        fetchUsername(data.createdBy),
+                    ]);
+                const updatedTask = {
+                    ...data,
+                    taggedStaff: taggedStaffDetails,
+                    contributingStaff: contributingStaffDetails,
+                    createdBy: createdByDetails,
+                };
                 if (response.data._id === taskId) {
+                    setTask(updatedTask);
                     setSelectedQuizTaskId(response.data._id);
                     setselectedTask(true);
                     setShowForm(true);

@@ -265,25 +265,26 @@ const FormContainer: React.FC<combinedProps> = ({
     }
   }, [showResults2, searchUserName2]);
 
-  const handleTagClick = (userName: string) => {
+  const handleTagClick = (uid: string, userName: string) => {
     setTaggedStaffTags((prevTags) => [...prevTags, userName]);
+    setTask((prevTask) => ({
+      ...prevTask,
+      taggedStaff: [uid],
+    }));
     setShowResults(false);
     setSearchUserName("");
   };
 
-  const handleTagClick2 = (userName: string) => {
+  const handleTagClick2 = (uid: string, userName: string) => {
     setContributingTags((prevTags) => [...prevTags, userName]);
+    setTask((prevTask) => ({
+      ...prevTask,
+      contributingStaff: [uid],
+    }));
     setShowResults2(false);
     setSearchUserName2("");
   };
 
-  useEffect(() => {
-    setTask((prevTask) => ({
-      ...prevTask,
-      taggedStaff: taggedStaffTags,
-      contributingStaff: contributingTags,
-    }));
-  }, [taggedStaffTags, contributingTags]);
 
 
   const handleRemoveTag = (tag: string) => {
@@ -346,9 +347,9 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder="@ Username"
                   className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : "cursor-default"
                     }`}
-                  value={`${task?.createdBy}`}
+                  value={`@${selectedTask ? task?.createdBy : userData?.userName}`}
                   onChange={(e) =>
-                    setTask({ ...task, createdBy: e.target.value })
+                    setTask({ ...task, createdBy: userData?.uid })
                   }
                   required
                   readOnly
@@ -401,7 +402,7 @@ const FormContainer: React.FC<combinedProps> = ({
                   onFocus={() => setShowResults(true)}
                   readOnly={selectedTask || isReadOnlyTaggStaff}
                 />
-              </div>
+              </div >
               {showResults && serverUsers && !loading && !selectedTask && (
                 <div className="absolute left-[14.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
                   {serverUsers.length > 0
@@ -409,7 +410,7 @@ const FormContainer: React.FC<combinedProps> = ({
                       <div key={user.uid} className="p-2 border-b">
                         <p
                           className="font-medium"
-                          onClick={() => handleTagClick(user.userName)}
+                          onClick={() => handleTagClick(user?.uid, user?.userName)}
                         >
                           {user?.userName}
                         </p>
@@ -424,7 +425,7 @@ const FormContainer: React.FC<combinedProps> = ({
                     )}
                 </div>
               )}
-            </div>
+            </div >
 
             <div className="relative" ref={searchRef2}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
@@ -477,7 +478,7 @@ const FormContainer: React.FC<combinedProps> = ({
                       <div key={user.uid} className="p-2 border-b">
                         <p
                           className="font-medium"
-                          onClick={() => handleTagClick2(user.userName)}
+                          onClick={() => handleTagClick2(user?.uid, user?.userName)}
                         >
                           {user?.userName}
                         </p>
@@ -643,7 +644,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
             </div>
-          </div>
+          </div >
 
           <div
             className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
@@ -711,16 +712,18 @@ const FormContainer: React.FC<combinedProps> = ({
               Complete
             </button>
           </div>
-        </form>
+        </form >
       )}
 
-      {!server && (
-        <div className="text-[8px] sm:text-[10px] md:text-[12px] xl:text-lg flex items-center justify-center px-4 py-1 text-black font-bold">
-          {" "}
-          Create or Select a server
-        </div>
-      )}
-    </div>
+      {
+        !server && (
+          <div className="text-[8px] sm:text-[10px] md:text-[12px] xl:text-lg flex items-center justify-center px-4 py-1 text-black font-bold">
+            {" "}
+            Create or Select a server
+          </div>
+        )
+      }
+    </div >
   );
 };
 

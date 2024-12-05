@@ -57,6 +57,10 @@ const TaskSharing = () => {
         jobRole: string;
         profilePicUrl: string | undefined;
     };
+    interface UserName {
+        userName: string;
+    };
+
     interface Quiz {
         _id: string;
         keyLearningPoint: string;
@@ -241,7 +245,17 @@ const TaskSharing = () => {
         return <p>Loading...</p>;
     }
 
-
+    const fetchUsernames = async (uids: string[]): Promise<UserName[]> => {
+        const promises = uids.map(async (uid) => {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            return userDoc.data()?.userName;
+        });
+        return await Promise.all(promises);
+    };
+    const fetchUsername = async (uid: string): Promise<string> => {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        return userDoc.data()?.userName;
+    };
 
     const userId = userData ? userData.uid : null;
 
@@ -341,9 +355,19 @@ const TaskSharing = () => {
                 setContributingTags([]);
                 setTaggedStaffTags([]);
                 const data = await response.json();
-                setTask(data?.task)
-
-
+                const [taggedStaffDetails, contributingStaffDetails, createdByDetails] =
+                    await Promise.all([
+                        fetchUsernames(data.task.taggedStaff),
+                        fetchUsernames(data.task.contributingStaff),
+                        fetchUsername(data.task.createdBy),
+                    ]);
+                const updatedTask = {
+                    ...data?.task,
+                    taggedStaff: taggedStaffDetails,
+                    contributingStaff: contributingStaffDetails,
+                    createdBy: createdByDetails,
+                };
+                setTask(updatedTask);
                 updatePatientId(selectedServer?.serverId);
                 toast.success("Task shared successfully");
                 if (!task.Learn && !task.Library) {
@@ -502,7 +526,22 @@ const TaskSharing = () => {
                 if (response.ok) {
                     toast.success("Task Completed Successfully");
                     const data = await response.json();
-                    setTask(data?.updatedItem);
+                    const [
+                        taggedStaffDetails,
+                        contributingStaffDetails,
+                        createdByDetails,
+                    ] = await Promise.all([
+                        fetchUsernames(data.updatedItem.taggedStaff),
+                        fetchUsernames(data.updatedItem.contributingStaff),
+                        fetchUsername(data.updatedItem.createdBy),
+                    ]);
+                    const updatedTask = {
+                        ...data?.updatedItem,
+                        taggedStaff: taggedStaffDetails,
+                        contributingStaff: contributingStaffDetails,
+                        createdBy: createdByDetails,
+                    };
+                    setTask(updatedTask);
                     setselectedTask(true);
                     setShowQuiz(false);
                     setBtnDisble(true);
@@ -544,7 +583,22 @@ const TaskSharing = () => {
                     setContributingTags([]);
                     setTaggedStaffTags([]);
                     const data = await response.json();
-                    setTask(data?.task);
+                    const [
+                        taggedStaffDetails,
+                        contributingStaffDetails,
+                        createdByDetails,
+                    ] = await Promise.all([
+                        fetchUsernames(data.task.taggedStaff),
+                        fetchUsernames(data.task.contributingStaff),
+                        fetchUsername(data.task.createdBy),
+                    ]);
+                    const updatedTask = {
+                        ...data?.task,
+                        taggedStaff: taggedStaffDetails,
+                        contributingStaff: contributingStaffDetails,
+                        createdBy: createdByDetails,
+                    };
+                    setTask(updatedTask);
                     setselectedTask(true)
                     updatePatientId(selectedServer?.serverId);
                     setDropdownVisible(Array(taskCategories.length).fill(false));
@@ -709,7 +763,6 @@ const TaskSharing = () => {
     };
 
     const handleTasksClick = (item: string) => {
-        setSelectedQuizTaskId("");
         // handleResetInputs();
         setselectedTask(true);
         if (filteredQuizzes.length > 0) {
@@ -721,6 +774,8 @@ const TaskSharing = () => {
         setFilter(item);
         setShowForm(true);
     };
+
+    console.log("Task", task);
 
 
     return (
@@ -791,6 +846,9 @@ const TaskSharing = () => {
                                 setBtnDisble={setBtnDisble}
                                 setFilteredTasks={setFilteredTasks}
                                 refreshTrigger={refreshTrigger}
+                                quizzes={quizzes}
+                                fetchUsername={fetchUsername}
+                                fetchUsernames={fetchUsernames}
                             />
                         </div>
                     </div>
@@ -876,6 +934,8 @@ const TaskSharing = () => {
                                 setShowQuiz={setShowQuiz}
                                 showQuiz={showQuiz}
                                 setSelectedQuizTaskId={setSelectedQuizTaskId}
+                                fetchUsername={fetchUsername}
+                                fetchUsernames={fetchUsernames}
                             />
                         </div>
                     </div>

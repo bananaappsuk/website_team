@@ -104,13 +104,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                         setPatientId(firstElement.patientId);
 
                         const patientId = firstElement.patientId;
-                        if (patientId && userData !== null) {
+                        if (patientId && userData && userData?.userName !== undefined) {
                             setTask(() => {
                                 const emptyTask = getEmptyTask();
                                 return {
                                     ...emptyTask,
                                     patientId,
-                                    createdBy: userData?.userName,
+                                    createdBy: userData?.uid,
                                 };
                             });
                         }

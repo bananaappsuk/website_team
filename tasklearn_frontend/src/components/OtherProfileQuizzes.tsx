@@ -381,7 +381,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                                 CLICK TO REVEAL ANSWER
                             </button>
                         ) : (
-                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
+                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
                                 Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                             </p>
                         )}
