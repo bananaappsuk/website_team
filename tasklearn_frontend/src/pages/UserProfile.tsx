@@ -535,10 +535,21 @@ const UserProfile = () => {
                                         <form className="flex-col space-y-2 space-x-2">
                                             <input
                                                 type="text"
-                                                className="py-1 w-[23%] border"
+                                                className="p-1 w-[23%] border"
                                                 value={updatedProfileData?.userName}
                                                 autoFocus
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    // This regex allows either only letters or a combination of letters and numbers, but not just numbers or special characters
+                                                    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])|^[a-zA-Z]+$/;
+                                                    const value = e.target.value;
+
+                                                    // Check for allowed characters (letters and numbers only)
+                                                    if (/^[a-zA-Z0-9]*$/.test(value) && (regex.test(value) || value === '')) {
+                                                        handleChange(e); // Update form data if it meets the criteria
+                                                    }
+                                                }}
+                                                minLength={3}
+                                                maxLength={12}
                                                 name="userName"
                                             />
                                             <select
@@ -560,7 +571,7 @@ const UserProfile = () => {
                                         </form>
                                     ) : (
                                         <div className="flex items-center">
-                                            <p className="mt-2 font-semibold">
+                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg mt-2 font-bold">
                                                 {userData?.userName}, <span>{userData?.jobRole}</span>
                                             </p>
                                             <div

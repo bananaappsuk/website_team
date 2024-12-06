@@ -419,7 +419,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
                                         <div className="bg-white rounded-md mb-4">
                                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                                Action
+                                                Your Action
                                             </h3>
                                             <textarea
                                                 placeholder="Enter Answer"
@@ -438,6 +438,24 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                                 }} />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="bg-white rounded-md my-6">
+                                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                                        Expected Action
+                                    </h3>
+                                    {!showAnswer ? (
+                                        <button
+                                            className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                            onClick={handleRevealAnswer}
+                                        >
+                                            CLICK TO REVEAL ANSWER
+                                        </button>
+                                    ) : (
+                                        <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
+                                            Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-center mt-4 gap-8">
@@ -460,24 +478,14 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     </button>
                                 </div>
 
-                                <div className="bg-white rounded-md my-6">
-                                    <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                        Action
-                                    </h3>
-                                    {!showAnswer ? (
-                                        <button
-                                            className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
-                                            onClick={handleRevealAnswer}
-                                        >
-                                            CLICK TO REVEAL ANSWER
-                                        </button>
-                                    ) : (
-                                        <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
-                                            Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
-                                        </p>
-                                    )}
+                                <div className="my-8 flex justify-center">
+                                    <button className="bg-[#67A76B] px-4 py-2 rounded-lg text-white">
+                                        Reset
+                                    </button>
                                 </div>
-                                <div className="flex justify-center mt-8 gap-40">
+
+
+                                <div className="flex justify-center gap-40">
                                     <button onClick={() => {
                                         handlePrevQuiz();
                                         setIsAnswerSubmitted(false); // Re-enable submit for the previous question
@@ -495,6 +503,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         <FaArrowRight size={24} />
                                     </button>
                                 </div>
+
 
                                 <div className="mt-12 text-black flex flex-col">
                                     <div className="flex justify-center items-center font-bold mr-[140px]">
