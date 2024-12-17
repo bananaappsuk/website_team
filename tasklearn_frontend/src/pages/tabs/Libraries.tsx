@@ -49,38 +49,38 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [user, setUser] = useState<UserData | null>(null);
 
+    const fetchLibraries = async () => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                return;
+            }
+
+            const token = await user.getIdToken();
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${selectedServer?.serverId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (!response.ok) {
+                throw new Error("Failed to fetch Libraries");
+            }
+            const data = await response.json();
+            setFilteredLibraries(data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching Libraries:", error);
+            setError((error as Error).message);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchLibraries = async () => {
-            try {
-                const auth = getAuth();
-                const user = auth.currentUser;
-
-                if (!user) {
-                    return;
-                }
-
-                const token = await user.getIdToken();
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${selectedServer?.serverId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                if (!response.ok) {
-                    throw new Error("Failed to fetch Libraries");
-                }
-                const data = await response.json();
-                setFilteredLibraries(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching Libraries:", error);
-                setError((error as Error).message);
-                setLoading(false);
-            }
-        };
         fetchLibraries();
     }, [selectedServer?.serverId]);
 
@@ -127,6 +127,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
             );
             setLibraries(updatedLibraries);
             setFilteredLibraries(updatedLibraries);
+            fetchLibraries();
 
             if (currentLibraryIndex >= updatedLibraries.length) {
                 setCurrentLibraryIndex(updatedLibraries.length - 1);
