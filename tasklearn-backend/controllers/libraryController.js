@@ -42,8 +42,6 @@ const getLibraries = async (req, res) => {
     const { id } = req.params;
     try {
       const library = await Library.findOneAndDelete({ taskId: id });
-      const quiz = await Quiz.findOneAndDelete({ taskId: id });
-      const task = await Task.findOneAndDelete({ _id: id });
       res.status(200).json({ message: "Library deleted successfully" });
     } catch (error) {
       console.error("Error deleting library:", error); // Log the error for debugging
