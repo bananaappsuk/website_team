@@ -34,18 +34,18 @@ const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
     const [userId, setUserId] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {
-        const fetchAllFollowRequests = async () => {
+        const fetchAllFollowRequests = async (otherUserId: string) => {
             try {
                 const q = query(
                     collection(db, "followRequests"),
                     where("status", "==", "accept"),
-                    where("followeeId", "==", otherUser?.uid),
+                    where("followeeId", "==", otherUserId),
                 );
                 const AllDocs = await getDocs(q);
                 const followeeIds = AllDocs.docs.map((doc) => ({
                     followeeId: doc.data().followeeId,
                 }));
-                setFolloweeId(followeeIds);
+                setFolloweeId(followeeIds.map((item) => item.followeeId));
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error("Error fetching follow requests:", error);
@@ -53,12 +53,12 @@ const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
             }
         };
         if (otherUser?.uid) {
-            fetchAllFollowRequests();
+            fetchAllFollowRequests(otherUser.uid);
         }
     }, [otherUser?.uid]);
     return (
         <div>
-            <OtherProfileQuizzes fetchId={followeeId} otherUser={otherUser} />
+            <OtherProfileQuizzes fetchId={followeeId} otherUser={otherUser} userDataCurrent={userData} />
         </div>
     );
 };

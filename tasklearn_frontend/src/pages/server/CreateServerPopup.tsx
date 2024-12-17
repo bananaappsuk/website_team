@@ -34,6 +34,7 @@ interface SidebarProfileProps {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     }) => void;
 }
 
@@ -103,6 +104,13 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+
+            if (!file.type.startsWith("image/")) {
+                toast.error("Please upload a valid image file.");
+                return;
+            }
+
+
             const imageUrl = URL.createObjectURL(file);
             setServerImageUpload(imageUrl); // Set the image URL for preview
             setServerImage(file); // Set the actual file for server upload
@@ -213,7 +221,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
         <>
             <ToastContainer />
             <div className="fixed inset-[-60px] bg-gray-800 bg-opacity-75 flex justify-center items-center z-10 text-black">
-                <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-xl">
+                <div className="relative bg-white p-6 rounded-lg shadow-lg w-[70%] sm:w-full max-w-xl">
                     <button
                         className="absolute top-2 right-2 text-black hover:text-gray-700 cursor-pointer"
                         onClick={onClose}
@@ -235,10 +243,10 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                     </button>
                     {step === 1 && (
                         <div className="">
-                            <h2 className="text-xl font-bold mb-4 text-center">
+                            <h2 className="text-sm sm:text-xl font-bold mb-4 text-center">
                                 Create your server
                             </h2>
-                            <p className="mb-4 text-center">
+                            <p className="mb-4 text-center text-xs sm:text-lg">
                                 Your server is where you and your friends hang out.
                             </p>
                             <div
@@ -254,61 +262,69 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                         alt="Img"
                                         className="float-left ml-5"
                                     />
-                                    <div className="font-bold ml-5">Create My Own</div>
+                                    <div className="font-bold ml-5 text-sm sm:text-md">Create My Own</div>
                                     <Image src={ImageNext} alt="Img" className="ml-auto mr-6" />
                                 </div>
                             </div>
-                            <div className="mt-6">Recently added</div>
-
-                            {servers.map((server) => (
-                                <div
-                                    key={server._id}
-                                    className="mt-2 cursor-pointer"
-                                    onClick={() =>
-                                        onServerSelect &&
-                                        onServerSelect({
-                                            serverId: server._id,
-                                            serverName: server.channelName,
-                                            memberList: server.memberList,
-                                        })
-                                    }
-                                >
+                            <div className="mt-6 font-bold">Recently added</div>
+                            {servers.length > 0 ? (
+                                servers.map((server) => (
                                     <div
-                                        className={`w-full rounded-md py-4 items-center mb-4 flex ${server.channelName === "SpecialChannel"
-                                            ? "bg-blue-200"
-                                            : "bg-gray-100"
-                                            }`}
-                                        onClick={() => {
-                                            onClose();
-                                            setselectedTask(false);
-                                            setSelectedServerId(server._id);
+                                        key={server._id}
+                                        className="mt-2 cursor-pointer"
+                                        onClick={() =>
                                             onServerSelect &&
-                                                onServerSelect({
-                                                    serverId: server._id,
-                                                    serverName: server.channelName,
-                                                    memberList: server.memberList,
-                                                });
-                                        }}
+                                            onServerSelect({
+                                                serverId: server._id,
+                                                serverName: server.channelName,
+                                                memberList: server.memberList,
+                                                createdByUserId: server.createdByUserId,
+                                            })
+                                        }
                                     >
-                                        <Image
-                                            src={ImageServer}
-                                            alt="Img"
-                                            className="float-left ml-5"
-                                        />
-                                        <div className="font-bold ml-5">
-                                            <h2
-                                                className={`text-lg font-bold ${server.channelName === "SpecialChannel"
-                                                    ? "text-blue-700"
-                                                    : "text-black"
-                                                    }`}
-                                            >
-                                                {server.channelName}
-                                            </h2>
+                                        <div
+                                            className={`w-full rounded-md py-4 items-center mb-4 flex ${server.channelName === "SpecialChannel"
+                                                ? "bg-blue-200"
+                                                : "bg-gray-100"
+                                                }`}
+                                            onClick={() => {
+                                                onClose();
+                                                setselectedTask(false);
+                                                setSelectedServerId(server._id);
+                                                onServerSelect &&
+                                                    onServerSelect({
+                                                        serverId: server._id,
+                                                        serverName: server.channelName,
+                                                        memberList: server.memberList,
+                                                        createdByUserId: server.createdByUserId,
+                                                    });
+                                            }}
+                                        >
+                                            <Image
+                                                src={ImageServer}
+                                                alt="Img"
+                                                className="float-left ml-5"
+                                            />
+                                            <div className="font-bold ml-5">
+                                                <h2
+                                                    className={`text-md font-bold ${server.channelName === "SpecialChannel"
+                                                        ? "text-blue-700"
+                                                        : "text-black"
+                                                        }`}
+                                                >
+                                                    {server.channelName}
+                                                </h2>
+                                            </div>
+                                            <Image src={ImageNext} alt="Img" className="ml-auto mr-6" />
                                         </div>
-                                        <Image src={ImageNext} alt="Img" className="ml-auto mr-6" />
                                     </div>
+                                ))
+                            ) : (
+                                <div className="mt-4 text-center text-black font-semibold text-sm sm:text-md">
+                                    No recently added servers available
                                 </div>
-                            ))}
+                            )}
+
                         </div>
                     )}
                     {step === 2 && (

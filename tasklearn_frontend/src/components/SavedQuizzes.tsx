@@ -279,6 +279,38 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
         }
     };
 
+    const handleReset = () => {
+        // Check if the current question was answered correctly
+        const isCorrect =
+            currentAnswer.trim().toLowerCase() ===
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        // Reset answered state for the current question
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: false, // Mark the current question as unanswered
+        }));
+
+        setCurrentAnswer(""); // Clear the current answer
+        setIsAnswerSubmitted(false); // Allow submission again
+        setShowAnswer(false); // Hide the revealed answer
+
+        // Adjust the score and question count conditionally
+        if (isCorrect) {
+            setScore((prevScore) => {
+                if (answeredQuestions[currentQuizIndex]) {
+                    return Math.max(prevScore - 1, 0); // Ensure the score doesn't go below 0
+                }
+                return prevScore;
+            });
+            setQuestion((prevQuestion) => Math.max(prevQuestion - 1, 0)); // Ensure the question count doesn't go below 0
+        }
+
+        else {
+            setQuestion((prevQuestion) => (answeredQuestions[currentQuizIndex] ? prevQuestion - 1 : prevQuestion));
+        }
+    };
+
     if (loading) {
         return <div >Loading saved quizzes...</div>; // Show loading while fetching data
     }
@@ -408,6 +440,24 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                         </div>
                     </div>
 
+                    <div className="bg-white rounded-md my-6">
+                        <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                            Action
+                        </h3>
+                        {!showAnswer ? (
+                            <button
+                                className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                onClick={handleRevealAnswer}
+                            >
+                                CLICK TO REVEAL ANSWER
+                            </button>
+                        ) : (
+                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
+                                Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
+                            </p>
+                        )}
+                    </div>
+
                     <div className="flex justify-center mt-4 gap-8">
                         <button
                             className="text-red-600 flex items-center"
@@ -428,29 +478,22 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                         </button>
                     </div>
 
-                    <div className="bg-white rounded-md my-6">
-                        <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                            Action
-                        </h3>
-                        {!showAnswer ? (
-                            <button
-                                className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
-                                onClick={handleRevealAnswer}
-                            >
-                                CLICK TO REVEAL ANSWER
-                            </button>
-                        ) : (
-                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm">
-                                Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
-                            </p>
-                        )}
+
+
+                    <div className="my-8 flex justify-center">
+                        <button className="bg-[#67A76B] px-4 py-1 rounded-lg text-white font-bold"
+                            onClick={handleReset}
+                        >
+                            Reset
+                        </button>
                     </div>
                     <div className="flex justify-center mt-8 gap-40">
                         <button onClick={() => {
                             handlePrevQuiz();
                             setIsAnswerSubmitted(false); // Re-enable submit for the previous question
                         }} disabled={currentQuizIndex === 0}>
-                            <FaArrowLeft size={24} />
+                            <FaArrowLeft size={24} className={`${currentQuizIndex === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-black'
+                                }`} />
                         </button>
                         <button
                             onClick={() => {
@@ -462,7 +505,11 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                                 currentQuizIndex === filteredQuizzes.length - 1
                             }
                         >
-                            <FaArrowRight size={24} />
+                            <FaArrowRight size={24} className={`${currentQuizIndex === quizzes.length - 1 ||
+                                currentQuizIndex === filteredQuizzes.length - 1
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-black'
+                                } `} />
                         </button>
                     </div>
 

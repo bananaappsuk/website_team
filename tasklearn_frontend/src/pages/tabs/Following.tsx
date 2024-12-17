@@ -10,6 +10,8 @@ import {
     addDoc,
     deleteDoc,
     getDocs,
+    where,
+    query,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { toast } from "react-toastify";
@@ -38,6 +40,19 @@ const Following: React.FC<Props> = ({ userData }) => {
     const [followerIds, setFollowerIds] = useState<string[]>([]);
     const [isloading, setIsLoading] = useState(true);
     const [followDocs, setFollowDocs] = useState<Follow[]>([]);
+    const [pendingDeleteReq, setPendingDeleteReq] = useState<string | null>(null);
+    const [processingRequest, setProcessingRequest] = useState<string | null>(
+        null
+    );
+    const [deleteReqArray, setDeleteReqArray] = useState<boolean[]>([]);
+    const [sendReqArray, setSendReqArray] = useState<boolean[]>([]);
+    const [currentIndex, setCurrentIndex] = useState<number>(0)
+    const [isRequestInProgress, setIsRequestInProgress] =
+        useState<boolean>(false);
+    useEffect(() => {
+        setDeleteReqArray(Array(reqUsers.length).fill(false));
+        setSendReqArray(Array(reqUsers.length).fill(false));
+    }, [reqUsers]);
 
     useEffect(() => {
         const fetchAllFollowRequests = async () => {
@@ -110,7 +125,7 @@ const Following: React.FC<Props> = ({ userData }) => {
         updateReqUsers();
     }, [followerIds]);
 
-    const handleFollowingRequest = async (followeeId: string) => {
+    const handleFollowingRequest = async (followeeId: string, index: number) => {
         try {
             const checkReq = followDocs.filter(
                 (req) =>
@@ -118,7 +133,10 @@ const Following: React.FC<Props> = ({ userData }) => {
                     req.followerId === userData?.uid &&
                     req.status === "accept"
             );
-
+            if (deleteReqArray[index]) {
+                setCurrentIndex(index);
+                setPendingDeleteReq(followeeId);
+            }
             if (checkReq.length > 0) {
                 const deleteId = checkReq
                     .filter((doc) => doc.followeeId === followeeId)
@@ -126,15 +144,72 @@ const Following: React.FC<Props> = ({ userData }) => {
                 if (deleteId.length > 0) {
                     const deleteReq = doc(db, "followRequests", deleteId[0]);
                     await deleteDoc(deleteReq);
-                    setFollowDocs((prevFollowDocs) =>
-                        prevFollowDocs.filter((doc) => doc.uid !== deleteId[0])
-                    );
+                    setDeleteReqArray((prev) => {
+                        const newArr = [...prev];
+                        newArr[index] = true;
+                        return newArr;
+                    });
+                    setCurrentIndex(index)
+                    setProcessingRequest(followeeId);
                 }
             }
         } catch (error: any) {
             toast.error(error.message);
         }
     };
+
+    const checkFollowRequest = (followeeId: string, followerId: string) => {
+        return followDocs?.some(
+            (request) =>
+                request.followeeId === followeeId &&
+                request.followerId === followerId &&
+                request.status === "pending"
+        );
+    };
+    const sendFollowRequest = async (followeeId: string) => {
+        if (isRequestInProgress) {
+            return;
+        }
+        setIsRequestInProgress(true);
+        // Check for existing follow request
+        const existingRequest = await getDocs(
+            query(
+                collection(db, "followRequests"),
+                where("followerId", "==", userData?.uid),
+                where("followeeId", "==", followeeId),
+                where("status", "==", "pending")
+            )
+        );
+        // Delete existing follow request if it exists
+        if (!existingRequest.empty) {
+            const deletePromises = existingRequest.docs.map(async (doc) => {
+                await deleteDoc(doc.ref);
+            });
+            await Promise.all(deletePromises);
+        }
+        // Send new follow request
+        const newFollowRequest = await addDoc(collection(db, "followRequests"), {
+            followerId: userData?.uid,
+            followeeId,
+            status: "pending",
+        });
+        if (newFollowRequest) {
+            setSendReqArray((prev) => {
+                const newArr = [...prev];
+                newArr[currentIndex] = true;
+                return newArr;
+            });
+            // Refresh or check the follow request status
+            // checkFollowRequest(followeeId, userData?.uid);
+            // fetchAllFollowRequests();
+        }
+        setIsRequestInProgress(false);
+    };
+    useEffect(() => {
+        if (deleteReqArray[currentIndex] && pendingDeleteReq) {
+            sendFollowRequest(pendingDeleteReq);
+        }
+    }, [deleteReqArray, pendingDeleteReq]);
 
     const checkFollowingRequest = (uid: string) => {
         return followDocs?.some(
@@ -153,10 +228,20 @@ const Following: React.FC<Props> = ({ userData }) => {
                 ) : (
                     reqUsers?.map((user, index) => {
                         const isFollowing = checkFollowingRequest(user.uid);
+                        const isRequest = checkFollowRequest(user.uid, userData?.uid);
                         const css = {
                             buttonStyle:
-                                isFollowing && "bg-[#67A76B] text-white hover:bg-green-600",
-                            buttonText: isFollowing && "Following",
+                                isFollowing && !deleteReqArray[index]
+                                    ? "bg-[#67A76B] text-white hover:bg-green-600"
+                                    : deleteReqArray[index] && sendReqArray[index]
+                                        ? "bg-gray-400 text-white hover:bg-gray-600"
+                                        : "bg-[#67A76B] text-white hover:bg-green-600",
+                            buttonText:
+                                isFollowing && !deleteReqArray[index]
+                                    ? "Following"
+                                    : sendReqArray[index]
+                                        ? "Requested"
+                                        : "Follow",
                         };
                         return (
                             <li
@@ -170,7 +255,8 @@ const Following: React.FC<Props> = ({ userData }) => {
                                 </div>
                                 <button
                                     className={`mr1 py-1 px-4 rounded-md font-semibold transition duration-300 ${css.buttonStyle}`}
-                                    onClick={() => handleFollowingRequest(user.uid)}
+                                    onClick={() => handleFollowingRequest(user.uid, index)}
+                                    disabled={sendReqArray[index]}
                                 >
                                     {css.buttonText}
                                 </button>

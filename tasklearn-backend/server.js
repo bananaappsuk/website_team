@@ -29,7 +29,9 @@ mongoose.connect(process.env.DB, {
 // Define routes
 const taskRoutes = require('./routes/taskRoutes');
 const quizRoutes = require('./routes/quizRoutes'); // New quiz routes
+const convertQuizRoutes = require('./routes/convertQuizRoutes');
 const libraryRoutes = require('./routes/libraryRoutes'); // New library routes
+const convertLibraryRoutes = require('./routes/convertLibraryRoutes');
 const profileRoutes = require("./routes/profileRoutes");
 const serverRoutes = require('./routes/serverRoutes');
 const patientRoutes = require('./routes/patientIdRoutes');
@@ -38,7 +40,9 @@ const patientRoutes = require('./routes/patientIdRoutes');
 app.use('/api/tasks', verifyToken, taskRoutes);
 app.use("/api/task", verifyToken, taskRoutes); 
 app.use('/api/quizzes', verifyToken, quizRoutes); // Use quiz routes
+app.use('/api/convertQuizzes', verifyToken, convertQuizRoutes);
 app.use('/api/libraries', verifyToken, libraryRoutes); // Use library routes
+app.use('/api/convertLibraries', verifyToken, convertLibraryRoutes);
 app.use("/api/upload", verifyToken, profileRoutes);
 app.use('/api/servers', verifyToken, serverRoutes);
 app.use('/api/patientId', verifyToken, patientRoutes);
@@ -46,7 +50,7 @@ app.use('/api/patientId', verifyToken, patientRoutes);
 
 // Root route for testing the API
 app.get('/', (req, res) => {
-  res.send('<h1>Welcome to the Task!!!! </h1>');
+  res.send('<h1>Welcome to the task!!!! </h1>');
 });
 
 // Error handling middleware

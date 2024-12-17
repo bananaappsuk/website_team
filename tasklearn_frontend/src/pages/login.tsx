@@ -69,35 +69,37 @@ const Login: React.FC = () => {
     };
 
 
-    const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Update the form data
-        const { name, value } = e.target;
-        // Store cursor position
+    const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
         const cursorPosition = e.currentTarget.selectionStart;
 
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            identifier: value,
         }));
 
-        if (name === "identifier") {
-            setEmailError(false);
-            setIsUsername(!value.includes("@"));
-            if (value.includes("@") && !value.split("@")[1]) {
-                setEmailError(true);
-                return;
-            }
-            else {
-                setUserNameExists(false)
-            }
+        setEmailError(false);
+        setIsUsername(!value.includes("@"));
+        if (value.includes("@") && !value.split("@")[1]) {
+            setEmailError(true);
+            return;
+        } else {
+            setUserNameExists(false);
         }
 
-        // Restore cursor position
         requestAnimationFrame(() => {
             if (identifierRef.current) {
                 identifierRef.current.setSelectionRange(cursorPosition, cursorPosition);
             }
         });
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            password: value,
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -211,7 +213,7 @@ const Login: React.FC = () => {
                                     // id="identifier"
                                     ref={identifierRef}
                                     value={formData.identifier}
-                                    onChange={handleChange}
+                                    onChange={handleIdentifierChange}
                                     required
                                     className="w-full px-4 py-2 mt-2 border border-black rounded-lg text-black"
                                 />
@@ -231,7 +233,7 @@ const Login: React.FC = () => {
                                             // id="password"
                                             value={formData.password}
                                             required={!emailError && !userNameExists}
-                                            onChange={handleChange}
+                                            onChange={handlePasswordChange}
                                             className="w-full px-4 py-2 mt-2 border border-black rounded-lg text-black"
                                         />
                                         <div
