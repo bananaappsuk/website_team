@@ -10,11 +10,12 @@ import { HiChevronDown, HiX } from "react-icons/hi";
 import { Task, useTask } from "../components/TaskContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { auth, db } from "../firebase";
 import { useRouter } from "next/router";
 import Plus from "../assets/home/icon.png";
-import { getAuth } from 'firebase/auth';
+import { getAuth } from "firebase/auth";
+import { Router } from "react-router-dom";
 
 interface Server {
     _id: string;
@@ -23,7 +24,7 @@ interface Server {
 }
 
 interface ServerDisplayProps {
-    server: { serverId: string; serverName: string } | null;
+    server: { serverId: string; serverName: string; createdByUserId: string } | null;
 }
 
 type UserData = {
@@ -56,6 +57,9 @@ type Props = {
     fetchUsername: (uid: string) => Promise<string>;
     refreshTrigger: boolean;
     quizzes: any[];
+    userData: UserData | null;
+    setTaggedStaffTags: React.Dispatch<React.SetStateAction<string[]>>;
+    setContributingTags: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 interface UserName {
@@ -63,7 +67,7 @@ interface UserName {
 }
 
 interface TaskSectionProps {
-    server: { serverId: string; serverName: string } | null;
+    server: { serverId: string; serverName: string; createdByUserId: string } | null;
 }
 
 type CombinedProps = ServerDisplayProps & Props & Server & TaskSectionProps;
@@ -91,6 +95,9 @@ const TaskSection: React.FC<CombinedProps> = ({
     quizzes,
     fetchUsername,
     fetchUsernames,
+    userData,
+    setTaggedStaffTags,
+    setContributingTags,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -108,33 +115,54 @@ const TaskSection: React.FC<CombinedProps> = ({
     const [buttonText, setButtonText] = useState("Copy");
     const [filteredSearchTask, setFilteredSearchTask] = useState([]);
     const [filteredPatientId, setFilteredPatientId] = useState<any[]>([]);
+    const [createdByDetails, setCreatedByDetails] = useState<
+        Record<string, string>
+    >({});
+    const [deletePopupOpen, setDeletePopupOpen] = useState<boolean>(false);
+    const [deleteMsgText, setDeleteMsgText] = useState<string>(
+        "Are you sure you want to delete this task and move it to the deleted tasks?"
+    );
+    const [taskToDelete, setTaskToDelete] = useState<{
+        id: string;
+        filter: any;
+    } | null>(null);
+    const [taskToDeleted, setTaskToDeleted] = useState<{
+        id: string;
+    } | null>(null);
+    const [serverToDelete, setServerToDelete] = useState<{
+        serverId: string;
+        serverName: string;
+    } | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
+
+
 
     useEffect(() => {
         // Reset the search term and results whenever refreshTrigger changes
-        setSearchTerm('');
+        setSearchTerm("");
         setShowResults(false);
         setFilteredPatientId([]);
     }, [refreshTrigger]);
+
+    const fetchUsernames2 = async (uids: string[]): Promise<UserName[]> => {
+        const promises = uids.map(async (uid) => {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            return userDoc.data()?.userName;
+        });
+        return await Promise.all(promises);
+    };
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
     };
     const handleDropdown = (index: any) => {
-        let isAnyFieldEmpty = false;
-        for (const key in task) {
-            if (task[key as keyof Task] === "") {
-                isAnyFieldEmpty = true;
-                break;
-            }
-        }
-        if (quizzes.length > 0 && isAnyFieldEmpty === true) {
+
+
+        if (task.isCompleted) {
             setselectedTask(true)
         }
-        else if (quizzes.length === 0 && isAnyFieldEmpty === true) {
-            setselectedTask(false)
-        }
 
-        // setShowQuiz(true);
+
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
         );
@@ -144,11 +172,12 @@ const TaskSection: React.FC<CombinedProps> = ({
                 ...prev,
                 [taskCategories[index]]: [],
             }));
-        }
-        else if (newDropdownVisible[index]) {
-            fetchTasks(taskCategories[index])
+        } else if (newDropdownVisible[index]) {
+            fetchTasks(taskCategories[index]);
         }
     };
+
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -202,15 +231,12 @@ const TaskSection: React.FC<CombinedProps> = ({
             }
 
             // Determine if it's a user search or patient ID search
-            const isUserSearch = trimmedSearchTerm.startsWith('@');
+            const isUserSearch = trimmedSearchTerm.startsWith("@");
             const query = isUserSearch
                 ? trimmedSearchTerm.substring(1) // Remove '@' for user search
                 : trimmedSearchTerm;
 
-
-
-            try {
-                // Fetch data from the backend
+            if (isUserSearch && query.length > 0) {
                 const auth = getAuth();
                 const user = auth.currentUser;
 
@@ -219,43 +245,101 @@ const TaskSection: React.FC<CombinedProps> = ({
                 }
 
                 const token = await user.getIdToken();
-                const response = await axios.get(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
-                    {
-                        params: {
-                            query,
-                            serverId: server.serverId,
-                        },
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                try {
+                    const taskResponse = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/server/${server?.serverId}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
 
-                if (response.status === 200) {
-                    setFilteredPatientId(response.data); // Populate results
-                    setShowResults(true); // Show dropdown for valid results
-                } else {
-                    setFilteredPatientId([]); // Clear results for invalid responses
-                    setShowResults(false); // Hide dropdown for invalid responses
+                    const data = await taskResponse.json();
+                    const filterDeletedData = data.filter((task: any) => !task.isDeleted);
+                    const uids = filterDeletedData.map((task: any) => task.createdBy);
+                    const userDetails = await fetchUsernames2(uids);
+                    const updatedPatientIdTask = filterDeletedData.map(
+                        (task: any, index: number) => ({
+                            ...task,
+                            createdBy: userDetails[index],
+                        })
+                    );
+
+                    const regex = new RegExp(query, "i"); // Case-insensitive regex
+                    const newSets = updatedPatientIdTask.filter((task: any) =>
+                        regex.test(task.createdBy)
+                    );
+
+                    setFilteredPatientId(newSets);
+                    setShowResults(true);
+                } catch (error) {
+                    console.error("Error fetching tasks:", error);
+                    setFilteredPatientId([]);
+                    setShowResults(false);
                 }
-            } catch (error) {
-                if (axios.isAxiosError(error)) {
-                    // Axios-specific error handling
-                    console.error('Axios Error:', error.response?.data || error.message);
-                } else {
-                    // Generic error handling
-                    console.error('Unexpected Error:', error);
+            } else {
+                try {
+                    // Fetch data from the backend
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
+                    const response = await axios.get(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/search`,
+                        {
+                            params: {
+                                query,
+                                serverId: server.serverId,
+                            },
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
+
+                    if (response.status === 200 && response.data) {
+                        const tasks = response.data;
+                        const uids = tasks.map((task: any) => task.createdBy);
+                        const userDetails = await fetchUsernames2(uids);
+                        const updatedPatientIdTask = tasks.map(
+                            (task: any, index: number) => ({
+                                ...task,
+                                createdBy: userDetails[index],
+                            })
+                        );
+                        setFilteredPatientId(updatedPatientIdTask);
+                        setShowResults(true);
+                    } else {
+                        setFilteredPatientId([]); // Clear results for invalid responses
+                        setShowResults(false); // Hide dropdown for invalid responses
+                    }
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        // Axios-specific error handling
+                        console.error(
+                            "Axios Error:",
+                            error.response?.data || error.message
+                        );
+                    } else {
+                        // Generic error handling
+                        console.error("Unexpected Error:", error);
+                    }
+                    setFilteredPatientId([]); // Clear results on error
+                    setShowResults(false); // Hide dropdown on error
                 }
-                setFilteredPatientId([]); // Clear results on error
-                setShowResults(false); // Hide dropdown on error
             }
         };
 
         // Debounce to avoid rapid API calls
         const delayDebounce = setTimeout(() => {
             fetchAndSearchData(); // Call the async function after debounce delay
-        }, 300); // 300ms debounce delay
+        }, 50); // 300ms debounce delay
 
         return () => {
             clearTimeout(delayDebounce); // Clear timeout on cleanup
@@ -314,11 +398,35 @@ const TaskSection: React.FC<CombinedProps> = ({
                     createdBy: createdByDetails,
                 };
                 if (response.data._id === taskId) {
-                    setTask(updatedTask);
+
                     setSelectedQuizTaskId(response.data._id);
-                    setselectedTask(true);
+                    if (
+                        (updatedTask.taggedStaff.includes(userData?.userName) &&
+                            !updatedTask.isCompleted) ||
+                        (updatedTask.contributingStaff.includes(userData?.userName) &&
+                            !updatedTask.isCompleted)
+                    ) {
+                        setContributingTags([...updatedTask.contributingStaff]);
+                        setTask({
+                            ...data,
+                            taggedStaff: taggedStaffDetails,
+                            contributingStaff: data.contributingStaff,
+                            createdBy: createdByDetails,
+                        });
+                        setselectedTask(false);
+                    } else {
+                        const updatedTask = {
+                            ...data,
+                            taggedStaff: taggedStaffDetails,
+                            contributingStaff: contributingStaffDetails,
+                            createdBy: createdByDetails,
+                        };
+                        setContributingTags([]);
+                        setTask(updatedTask);
+                        setselectedTask(true);
+                    }
                     setShowForm(true);
-                    setBtnDisble(false)
+                    setBtnDisble(false);
                 } else {
                     setselectedTask(false);
                     setSelectedQuizTaskId("");
@@ -329,49 +437,57 @@ const TaskSection: React.FC<CombinedProps> = ({
         }
     };
 
-    const handleDeleteTask = async (id: String, filter: any) => {
-        try {
-            const auth = getAuth();
-            const user = auth.currentUser;
+    const handleDeleteTask = async () => {
 
-            if (!user) {
-                return;
-            }
+        const auth = getAuth();
+        const user = auth.currentUser;
 
-            const token = await user.getIdToken();
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            if (response.ok) {
-                setFilter((prevFilter) => {
-                    if (prevFilter === "Pending Tasks") {
-                        return "Pending Tasks";
-                    } else if (prevFilter === "Completed Tasks") {
-                        return "Completed Tasks";
-                    } else if (prevFilter === "Learning") {
-                        return "Learning";
-                    } else {
-                        return "All Tasks";
+        if (!user) {
+            return;
+        }
+
+        const token = await user.getIdToken();
+        if (taskToDelete) {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${taskToDelete.id}`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
                     }
-                });
-                fetchTasks(filter);
-                fetchTasks("Deleted Tasks");
-                fetchTasks("All Tasks");
-                fetchTasks("Learning");
-                fetchTasks("Pending Tasks");
-                fetchTasks("Completed Tasks");
+                );
+                if (response.ok) {
+                    setFilter((prevFilter) => {
+                        if (prevFilter === "Pending Tasks") {
+                            return "Pending Tasks";
+                        } else if (prevFilter === "Completed Tasks") {
+                            return "Completed Tasks";
+                        } else if (prevFilter === "Learning") {
+                            return "Learning";
+                        } else {
+                            return "All Tasks";
+                        }
+                    });
+                    fetchTasks(taskToDelete.filter);
+                    fetchTasks("Deleted Tasks");
+                    fetchTasks("All Tasks");
+                    fetchTasks("Learning");
+                    fetchTasks("Pending Tasks");
+                    fetchTasks("Completed Tasks");
+                    setDeletePopupOpen(false);
+                    setTaskToDelete(null);
+                }
+            } catch (error: any) {
+                toast.error(error.message);
             }
-        } catch (error: any) {
-            toast.error(error.message);
         }
     };
+
+
+
 
     const handleDeleteQuiz = async (taskId: string) => {
         const auth = getAuth();
@@ -383,7 +499,7 @@ const TaskSection: React.FC<CombinedProps> = ({
 
         const token = await user.getIdToken();
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/task/${taskId}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes/task/${taskId}`,
             {
                 method: "DELETE",
                 headers: {
@@ -422,6 +538,9 @@ const TaskSection: React.FC<CombinedProps> = ({
                 handleDeleteQuiz(taskId);
                 fetchTasks(filter);
                 fetchTasks("Deleted Tasks");
+                setDeletePopupOpen(false);
+                setTaskToDeleted(null);
+
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -430,12 +549,69 @@ const TaskSection: React.FC<CombinedProps> = ({
 
     const handleDelete = (newItem: any, filter: any) => {
         if (!newItem.isDeleted) {
-            handleDeleteTask(newItem._id, filter);
+            setDeleteMsgText(
+                "Are you sure you want to delete this task and move it to the deleted tasks?"
+            );
+            setDeletePopupOpen(true);
+            setTaskToDelete({ id: newItem._id, filter });
         }
         if (newItem.isDeleted) {
-            handleDeletedTask(newItem._id);
+            setDeleteMsgText(
+                "Are you sure you want to permanently delete this task? Can't recover the task again!"
+            );
+            setDeletePopupOpen(true);
+            setTaskToDeleted({ id: newItem._id });
         }
     };
+
+    const handleDeleteServer = (server: { serverId: string; serverName: string }) => {
+        setDeleteMsgText(
+            `Are you sure you want to delete the server "${server.serverName}"? This action cannot be undone.`
+        );
+        setDeletePopupOpen(true);
+        setServerToDelete(server);
+    };
+
+    const handleConfirmClick = () => {
+        if (taskToDelete) {
+            handleDeleteTask();
+        }
+        if (taskToDeleted) {
+            handleDeletedTask(taskToDeleted.id);
+        }
+        if (serverToDelete) {
+            handleDeletedServer(serverToDelete.serverId);
+        }
+    };
+
+    const handleDeletedServer = async (serverId: string) => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                return;
+            }
+
+            const token = await user.getIdToken();
+            const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            toast.success(response.data.message || 'Server deleted successfully!');
+            window.location.reload();
+        } catch (error: any) {
+
+        }
+        setDeletePopupOpen(false);
+        setServerToDelete(null);
+    };
+
+
 
     useEffect(() => {
         const fetchServer = async () => {
@@ -492,37 +668,110 @@ const TaskSection: React.FC<CombinedProps> = ({
                 text: inviteLink, // Only the URL, no extra text
             });
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
-        }
+        } catch (err) { }
     };
+
+    useEffect(() => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            setUser({
+                uid: currentUser.uid,
+                email: currentUser.email || "",
+                userName: currentUser.displayName || "",
+                jobRole: "", // Add appropriate logic to fetch the job role if needed
+                profilePicUrl: currentUser.photoURL || undefined,
+            });
+        }
+    }, []);
+
 
     return (
         <div>
+            {deletePopupOpen && (
+                <div className="fixed inset-[-60px] bg-gray-800 bg-opacity-75 flex justify-center items-center z-10 text-black">
+                    <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+                        <h1 className="text-center font-bold">{deleteMsgText}</h1>
+                        <div className="mt-5 flex justify-center gap-x-6">
+                            <button
+                                className=" text-white py-1 px-5 rounded-md hover:bg-red-600 bg-[#D26767] font-semibold transition duration-300"
+                                onClick={handleConfirmClick}
+                            >
+                                Yes
+                            </button>
+                            <button
+                                className={` text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300`}
+                                onClick={() => {
+                                    setTaskToDelete(null);
+                                    setTaskToDeleted(null);
+                                    setDeletePopupOpen(false);
+                                    setServerToDelete(null);
+                                }}
+                            >
+                                No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {server ? (
                 <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto">
                     <div
-                        className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-10 sm:gap-0"
+                        className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10 sm:gap-0"
                         onClick={toggleOpen}
                     >
-                        <span className="text-md font-bold text-black text-[6px] sm:text-[7px] lg:text-[14px] xl:text-[16px]">
+                        <span className="mt-2 sm:mt-0 text-md font-bold text-black text-[6px] sm:text-[7px] md:text-[10px] lg:text-[14px] xl:text-[16px]">
                             {server.serverName}
                         </span>
+                        {server && user?.uid === server.createdByUserId && (
+                            <>
+                                <div className="sm:hidden relative group">
+                                    <button
+                                        className="h-1 w-1"
+                                        onClick={() => handleDeleteServer({ serverId: server.serverId, serverName: server.serverName })}
+                                    >
+                                        <Image src={deleteIcon} alt="Delete" className="" />
+                                    </button>
+                                    <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        Delete Server
+                                    </span>
+                                </div>
+                                <div className="hidden sm:block ml-auto relative group">
+                                    <button
+                                        className="h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
+                                        onClick={() => handleDeleteServer({ serverId: server.serverId, serverName: server.serverName })}
+                                    >
+                                        <Image src={deleteIcon} alt="Delete" className="ml-8" />
+                                    </button>
+                                    <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        Delete Server
+                                    </span>
+                                </div>
+                            </>
+                        )}
                         {isOpen ? (
-                            <HiChevronDown className="h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
+                            <HiChevronDown className="mt-2 sm:mt-0 h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         ) : (
-                            <HiChevronRight className="h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
+                            <HiChevronRight className="mt-2 sm:mt-0 h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         )}
                     </div>
                     {isOpen && (
-                        <div
-                            onClick={generateInviteLink}
-                            className="bg-[#F4F4F4] flex items-center cursor-pointer"
-                        >
-                            <div className="px-2 py-3 lg:px-4 lg:py-6 text-black text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px] ">Invite Link</div>
-                            <div className="px-3 py-1 sm:px-5 sm:py-6 ml-auto">
-                                <Image src={Plus} alt="plus" className="w-1 h-1 sm:w-2 sm:h-2 lg:w-2 lg:h-2 xl:w-3 xl:h-3" />
+                        <>
+                            <div
+                                onClick={generateInviteLink}
+                                className="bg-[#F4F4F4] flex items-center cursor-pointer"
+                            >
+                                <div className="px-2 py-3 lg:px-4 lg:py-6 text-black text-[6px] sm:text-[10px] lg:text-[14px] xl:text-[16px] ">
+                                    Invite Link
+                                </div>
+                                <div className="px-3 py-1 sm:px-5 sm:py-6 ml-auto">
+                                    <Image
+                                        src={Plus}
+                                        alt="plus"
+                                        className="w-1 h-1 sm:w-2 sm:h-2 lg:w-2 lg:h-2 xl:w-3 xl:h-3"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        </>
                     )}
 
                     {showPopup && (
@@ -602,12 +851,20 @@ const TaskSection: React.FC<CombinedProps> = ({
                                         }}
                                     >
                                         <p className="flex font-semibold">
-                                            <span className="hidden lg:block">Patient ID: </span>
+                                            <span className="hidden lg:block">Task Code: </span>
                                             <span className="lg:ml-1">{task.patientId}</span>
                                         </p>
                                         <p className="flex font-semibold text-gray-900">
                                             <span className="hidden lg:block">Created by: </span>
-                                            <span className="lg:ml-1">{task.createdBy}</span>
+                                            <span className="lg:ml-1">
+                                                {task.createdBy || "Loading..."}
+                                            </span>
+                                        </p>
+                                        <p className="flex font-semibold text-gray-900">
+                                            <span className="hidden lg:block">Task Name: </span>
+                                            <span className="lg:ml-1">
+                                                {task.taskName || "Loading..."}
+                                            </span>
                                         </p>
                                     </div>
                                 )
@@ -648,7 +905,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                                     className={`text-black justify-between flex `}
                                                 >
                                                     <p
-                                                        className={`text-[6px] sm:text-[7px] lg:text-[12px] xl:text-[16px] cursor-pointer hover:text-[#68A86B] ${selectedTask && newItem._id === task?._id
+                                                        className={`text-[6px] sm:text-[7px] lg:text-[12px] xl:text-[16px] cursor-pointer hover:text-[#68A86B] ${newItem._id === task?._id
                                                             ? "text-[#68A86B] font-semibold"
                                                             : ""
                                                             }`}

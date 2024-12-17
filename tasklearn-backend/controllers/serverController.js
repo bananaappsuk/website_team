@@ -100,5 +100,40 @@ const getServerById = async (req, res) => {
     }
 };
 
+const deleteServer = async (req, res) => {
+    const { id } = req.params; // Server ID from the route parameters
+
+    try {
+        // Find the server by ID
+        const server = await Server.findById(id);
+
+        if (!server) {
+            return res.status(404).json({ message: 'Server not found.' });
+        }
+
+        // Delete the server image from S3
+        const deleteParams = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: server.channelId, // The S3 object key stored in the database
+        };
+
+        try {
+            await s3.deleteObject(deleteParams).promise();
+        } catch (s3Error) {
+            console.error("Error deleting file from S3:", s3Error);
+            return res.status(500).json({ message: 'Error deleting server image from S3.', error: s3Error.message });
+        }
+
+        // Delete the server from the database
+        await Server.findByIdAndDelete(id);
+
+        res.status(200).json({ message: 'Server successfully deleted.' });
+    } catch (error) {
+        console.error("Error deleting server:", error);
+        res.status(500).json({ message: 'Error deleting server.', error: error.message });
+    }
+};
+
+
 // Don't forget to export the new function
-module.exports = { createServer, getServers, joinServer, getServerById };
+module.exports = { createServer, getServers, joinServer, getServerById, deleteServer };

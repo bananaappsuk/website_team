@@ -16,6 +16,7 @@ type Props = {
   setBtnDisble: React.Dispatch<React.SetStateAction<boolean>>;
   btnDisable: boolean;
   btnDisable2: boolean;
+  fetchUsername: (uid: string) => Promise<string>;
 };
 type UserData = {
   uid: any;
@@ -44,6 +45,7 @@ const FormContainer: React.FC<combinedProps> = ({
   setBtnDisble,
   btnDisable,
   btnDisable2,
+  fetchUsername
 }) => {
   const { task, setTask, patientIdLoading } = useTask();
   const [searchUserName, setSearchUserName] = useState("");
@@ -57,6 +59,7 @@ const FormContainer: React.FC<combinedProps> = ({
   const [loading, setLoading] = useState(true);
   const [loading2, setLoading2] = useState(true);
   const [userCheck, setUserCheck] = useState<boolean | undefined>(undefined);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,7 +77,6 @@ const FormContainer: React.FC<combinedProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -192,8 +194,8 @@ const FormContainer: React.FC<combinedProps> = ({
             ...(doc.data() as UserData),
             uid: doc.id,
           }));
-          const filteredUsers = allUsers?.filter(
-            (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+          const filteredUsers = allUsers?.filter((user) =>
+            uids.includes(user.uid)
           );
           if (filteredUsers && filteredUsers.length > 0) {
             if (contributingTags.length > 0) {
@@ -217,8 +219,8 @@ const FormContainer: React.FC<combinedProps> = ({
             uid: doc.id,
           }));
 
-          const filteredUsers = allUsers?.filter(
-            (user) => uids.includes(user.uid) && userData?.uid !== user.uid
+          const filteredUsers = allUsers?.filter((user) =>
+            uids.includes(user.uid)
           );
 
           const lowerCaseSearchTerm = searchUserName2.toLowerCase();
@@ -265,38 +267,99 @@ const FormContainer: React.FC<combinedProps> = ({
     }
   }, [showResults2, searchUserName2]);
 
-  const handleTagClick = (uid: string, userName: string) => {
-    setTaggedStaffTags((prevTags) => [...prevTags, userName]);
-    setTask((prevTask) => ({
-      ...prevTask,
-      taggedStaff: [uid],
-    }));
+  const fetchUIDsAndUsernames = async (
+    userNames: string[]
+  ): Promise<string[]> => {
+    try {
+      // Create a reference to the users collection
+      const usersRef = collection(db, "users"); // Create an array of query promises for each username
+      const queries = userNames.map((userName) => {
+        const q = query(usersRef, where("userName", "==", userName));
+        return getDocs(q);
+      }); // Execute all queries in parallel
+      const querySnapshots = await Promise.all(queries); // Process the results
+      const userIds = querySnapshots.flatMap((querySnapshot) =>
+        querySnapshot.docs.map((doc) => doc.id)
+      );
+      return userIds;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+  };
+  const handleTagClick = async (uid: string, userName: string) => {
+    const updatedTags = [...taggedStaffTags, userName];
+    setTaggedStaffTags(updatedTags);
     setShowResults(false);
     setSearchUserName("");
+    // Step 2: Fetch UIDs only if there are updated tags
+    if (updatedTags.length > 0) {
+      const uids = await fetchUIDsAndUsernames(updatedTags);
+
+      // Step 3: Update task with new taggedStaff  UIDs
+      setTask((prevTask) => ({
+        ...prevTask,
+        taggedStaff: uids,
+      }));
+    }
   };
 
-  const handleTagClick2 = (uid: string, userName: string) => {
-    setContributingTags((prevTags) => [...prevTags, userName]);
-    setTask((prevTask) => ({
-      ...prevTask,
-      contributingStaff: [uid],
-    }));
-    setShowResults2(false);
+  const handleTagClick2 = async (uid: string, userName: string) => {
+    const updatedTags = [...contributingTags, userName];
+    setContributingTags(updatedTags);
     setSearchUserName2("");
+    setShowResults2(false);
+    // Fetch UIDs only if there are updated tags
+    if (updatedTags.length >= 0) {
+      const uids = await fetchUIDsAndUsernames(updatedTags || contributingTags.map((item) => item));
+
+      // Update task with new contributingStaff UIDs
+      setTask((prevTask) => ({
+        ...prevTask,
+        contributingStaff: uids,
+      }));
+    }
   };
 
-
-
-  const handleRemoveTag = (tag: string) => {
+  const handleRemoveTag = async (tag: string) => {
     const newTagas = taggedStaffTags.filter((item) => item !== tag);
     setTaggedStaffTags(newTagas);
     setShowResults(false);
+    if (newTagas.length > 0) {
+      const uids = await fetchUIDsAndUsernames(newTagas);
+
+      //  Update task with new taggedStaff  UIDs
+      setTask((prevTask) => ({
+        ...prevTask,
+        taggedStaff: uids,
+      }));
+    } else {
+      setTask((prevTask) => ({
+        ...prevTask,
+        taggedStaff: [],
+      }));
+    }
   };
 
-  const handleRemoveTag2 = (tag: string) => {
+  const handleRemoveTag2 = async (tag: string) => {
     const newTagas = contributingTags.filter((item) => item !== tag);
     setContributingTags(newTagas);
     setShowResults2(false);
+    //  Fetch UIDs only if there are updated tags
+    if (newTagas.length > 0) {
+      const uids = await fetchUIDsAndUsernames(newTagas);
+
+      //  Update task with new contributingStaff UIDs
+      setTask((prevTask) => ({
+        ...prevTask,
+        contributingStaff: uids,
+      }));
+    } else {
+      setTask((prevTask) => ({
+        ...prevTask,
+        contributingStaff: [],
+      }));
+    }
   };
 
   const userCheckFn = async () => {
@@ -304,17 +367,29 @@ const FormContainer: React.FC<combinedProps> = ({
       (item) => item === userData?.uid && server?.memberList.length > 0
     );
   };
-  // reset tags
 
-  const isReadOnlyTaggStaff = taggedStaffTags.length === 1;
+  // const fetchCreatedByDetails = async (uid: string) => {
 
-  const isReadOnlyContributing = contributingTags.length === 1;
+  //   const createdByDetails = await fetchUsername(uid);
+
+  //   const detailsToSet = createdByDetails || task?.createdBy;
+  //   setCreatedByDetails(detailsToSet);
+  //   return createdByDetails;
+  // };
+  // useEffect(() => {
+
+  //   if (task?.createdBy) {
+  //     fetchCreatedByDetails(task?.createdBy);
+  //   }
+
+
+  // }, [task?.createdBy])
+
 
 
   if (patientIdLoading && server) {
     return <p className=" text-center ">Loading...</p>;
   }
-
 
 
 
@@ -326,7 +401,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className=" relative">
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Patient ID:
+                  Task Code:
                 </label>
                 <input
                   type="text"
@@ -347,7 +422,8 @@ const FormContainer: React.FC<combinedProps> = ({
                   placeholder="@ Username"
                   className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : "cursor-default"
                     }`}
-                  value={`@${selectedTask ? task?.createdBy : userData?.userName}`}
+                  value={`@${task?.createdBy
+                    }`}
                   onChange={(e) =>
                     setTask({ ...task, createdBy: userData?.uid })
                   }
@@ -387,10 +463,12 @@ const FormContainer: React.FC<combinedProps> = ({
                   type="text"
                   placeholder={`${taggedStaffTags.length === 0 ? "@ Username" : ""
                     }`}
-                  className={`flex-1 outline-none text-black ${selectedTask ? "cursor-default" : ""
+                  className={`flex-1 outline-none text-black ml-1 ${selectedTask ? "cursor-default" : ""
                     }`}
-                  value={`${selectedTask && taggedStaffTags.length === 0
-                    ? task?.taggedStaff?.map((item: any) => `@${item}`).join(" ")
+                  value={`${selectedTask || task.isShared && taggedStaffTags.length === 0
+                    ? task?.taggedStaff
+                      ?.map((item: any) => `@${item}`)
+                      .join(" ")
                     : searchUserName
                     }`}
                   onChange={(e) => {
@@ -400,9 +478,9 @@ const FormContainer: React.FC<combinedProps> = ({
                     }
                   }}
                   onFocus={() => setShowResults(true)}
-                  readOnly={selectedTask || isReadOnlyTaggStaff}
+                  readOnly={selectedTask || task.isShared}
                 />
-              </div >
+              </div>
               {showResults && serverUsers && !loading && !selectedTask && (
                 <div className="absolute left-[14.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
                   {serverUsers.length > 0
@@ -410,7 +488,9 @@ const FormContainer: React.FC<combinedProps> = ({
                       <div key={user.uid} className="p-2 border-b">
                         <p
                           className="font-medium"
-                          onClick={() => handleTagClick(user?.uid, user?.userName)}
+                          onClick={() =>
+                            handleTagClick(user?.uid, user?.userName)
+                          }
                         >
                           {user?.userName}
                         </p>
@@ -425,7 +505,7 @@ const FormContainer: React.FC<combinedProps> = ({
                     )}
                 </div>
               )}
-            </div >
+            </div>
 
             <div className="relative" ref={searchRef2}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
@@ -453,7 +533,7 @@ const FormContainer: React.FC<combinedProps> = ({
                   type="text"
                   placeholder={`${contributingTags.length === 0 ? "@ Username" : ""
                     }`}
-                  className={`flex-1 outline-none  text-black ${selectedTask ? "cursor-default" : ""
+                  className={`flex-1 outline-none  text-black ml-1 ${selectedTask ? "cursor-default" : ""
                     }`}
                   value={`${selectedTask && contributingTags.length === 0
                     ? task?.contributingStaff
@@ -463,12 +543,14 @@ const FormContainer: React.FC<combinedProps> = ({
                     }`}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value === "" || /^@\w*$/.test(value)) { // Allow empty input or valid "@username" format
+                    if (value === "" || /^@\w*$/.test(value)) {
+                      // Allow empty input or valid "@username" format
                       setSearchUserName2(value);
                     }
                   }}
                   onFocus={() => setShowResults2(true)}
-                  readOnly={selectedTask || isReadOnlyContributing}
+                  readOnly={selectedTask}
+                  required
                 />
               </div>
               {showResults2 && serverUsers2 && !loading2 && !selectedTask && (
@@ -478,7 +560,9 @@ const FormContainer: React.FC<combinedProps> = ({
                       <div key={user.uid} className="p-2 border-b">
                         <p
                           className="font-medium"
-                          onClick={() => handleTagClick2(user?.uid, user?.userName)}
+                          onClick={() =>
+                            handleTagClick2(user?.uid, user?.userName)
+                          }
                         >
                           {user?.userName}
                         </p>
@@ -498,22 +582,26 @@ const FormContainer: React.FC<combinedProps> = ({
             <div>
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
                 {" "}
-                Task Name/Instructions
+                Patient ID/Task Name/Instructions
               </label>
               <input
                 type="text"
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
+                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask || task.isShared || task.isCompleted
+                  ? "outline-none cursor-default"
+                  : ""
                   }`}
                 value={task?.taskName}
                 onChange={(e) => setTask({ ...task, taskName: e.target.value })}
                 required
-                readOnly={selectedTask}
-                maxLength={50}
+                readOnly={selectedTask || task.isShared || task.isCompleted}
+                maxLength={2000}
               />
             </div>
             <div className="col-span-2">
-              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">History</label>
+              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                History
+              </label>
               <textarea
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -527,7 +615,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
             <div className="flex gap-4 w-full">
               <div className="flex-1">
-                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Examination</label>
+                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                  Examination
+                </label>
                 <textarea
                   placeholder=""
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -542,7 +632,9 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
               <div className="flex-1">
-                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Diagnosis</label>
+                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                  Diagnosis
+                </label>
                 <textarea
                   placeholder=""
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -559,7 +651,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
 
             <div className="col-span-2">
-              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Plan</label>
+              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                Plan
+              </label>
               <textarea
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -572,7 +666,9 @@ const FormContainer: React.FC<combinedProps> = ({
               />
             </div>
             <div className="col-span-2">
-              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Follow Up</label>
+              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                Follow Up
+              </label>
               <textarea
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -602,7 +698,9 @@ const FormContainer: React.FC<combinedProps> = ({
               />
             </div>
             <div className="col-span-2">
-              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Feedback</label>
+              <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                Feedback
+              </label>
               <textarea
                 placeholder=""
                 className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -632,7 +730,9 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
               <div className="flex-1">
-                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">Action</label>
+                <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
+                  Action
+                </label>
                 <textarea
                   placeholder="Enter how this task should be done"
                   className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full border border-gray py-5 lg:py-10 px-2 text-center rounded-md text-black ${selectedTask ? "outline-none cursor-default" : ""
@@ -644,7 +744,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
             </div>
-          </div >
+          </div>
 
           <div
             className={`flex mt-4 relative ${task?.isShared || task?.isCompleted || task?.isDeleted
@@ -658,23 +758,32 @@ const FormContainer: React.FC<combinedProps> = ({
               className={`text-[7px] sm:text-[12px] md:text-[14px] w-[15%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[10%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white  py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isShared || task?.isCompleted || task?.isDeleted
                 ? "hidden"
                 : "block"
-                } ${selectedTask && "cursor-not-allowed"} ${!task?.Learn && "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
-                }`}
-              disabled={selectedTask || !task?.Learn}
+                } ${selectedTask ||
+                btnDisable ||
+                (task.taggedStaff.length === 0 || !task.taskName) &&
+                "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
+                } `}
+              disabled={
+                selectedTask || task.taggedStaff.length === 0 || btnDisable || !task.taskName
+              }
             >
               Share
             </button>
-            <label className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] block mb-2 text-black font-bold">
+            <label
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] block mb-2 text-black font-bold 
+              }`}
+            >
               <input
                 type="checkbox"
                 className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
-                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
+                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask && "cursor-default"
+                  } ${!task.isShared && "cursor-not-allowed"
                   }`}
                 checked={task?.Library}
                 onChange={(e) =>
                   setTask({ ...task, Library: e.target.checked })
                 }
-                disabled={selectedTask}
+                disabled={selectedTask || !task.isShared}
               />
               Library
             </label>
@@ -687,11 +796,12 @@ const FormContainer: React.FC<combinedProps> = ({
               <input
                 type="checkbox"
                 className={`mr-1 lg:mr-2 appearance-none h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 border rounded-sm checked:bg-[#68A86B] checked:border-transparent focus:outline-none transition duration-200 relative checked:before:content-['✔'] checked:before:text-white checked:before:text-[8px] checked:before:top-[-3px] checked:before:left-[-2px]
-                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask ? "cursor-default" : "cursor-pointer "
-                  }`}
+                                    sm:checked:before:text-[10px] lg:checked:before:text-[14px] checked:before:absolute ${selectedTask && "cursor-default"
+                  }  ${!task.isShared && "cursor-not-allowed"
+                  } `}
                 checked={task?.Learn}
                 onChange={(e) => setTask({ ...task, Learn: e.target.checked })}
-                disabled={selectedTask}
+                disabled={selectedTask || !task.isShared}
               />
               Learn
             </label>
@@ -706,24 +816,31 @@ const FormContainer: React.FC<combinedProps> = ({
               type="button"
               onClick={handleComplete}
               className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
-                } ${selectedTask && btnDisable && "cursor-not-allowed"}`}
-              disabled={selectedTask && btnDisable}
+                } ${(selectedTask && btnDisable) ||
+                (!task.isShared && "cursor-not-allowed")
+                }  ${(!task?.isShared ||
+                  (userData?.userName &&
+                    !task?.taggedStaff?.includes(userData?.userName)) ||
+                  !task.Learn) &&
+                "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
+                }`}
+              disabled={
+                (selectedTask && btnDisable) || !task.isShared || !task.Learn
+              }
             >
               Complete
             </button>
           </div>
-        </form >
+        </form>
       )}
 
-      {
-        !server && (
-          <div className="text-[8px] sm:text-[10px] md:text-[12px] xl:text-lg flex items-center justify-center px-4 py-1 text-black font-bold">
-            {" "}
-            Create or Select a server
-          </div>
-        )
-      }
-    </div >
+      {!server && (
+        <div className="text-[8px] sm:text-[10px] md:text-[12px] xl:text-lg flex items-center justify-center px-4 py-1 text-black font-bold">
+          {" "}
+          Create or Select a server
+        </div>
+      )}
+    </div>
   );
 };
 

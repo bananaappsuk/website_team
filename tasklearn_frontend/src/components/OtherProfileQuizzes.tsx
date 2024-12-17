@@ -39,8 +39,9 @@ interface Follow {
 interface Props {
     fetchId: Follow[];
     otherUser: UserData | null;
+    userDataCurrent: UserData | null;
 }
-const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
+const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurrent }) => {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
@@ -84,7 +85,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                 const combinedQuizzes: any[] = [];
                 for (let idObj of fetchId) {
                     const response = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/followers/${idObj.followeeId}`,
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/feed/followers/${idObj}`,
                         {
                             method: "GET", headers: {
                                 Authorization: `Bearer ${token}`,
@@ -113,7 +114,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
             fetchQuizzes();
         }
     }, [fetchId]);
-    const fetchPublicQuizzes = async () => {
+    const fetchPublicQuizzes = async (fetchId: Follow[]) => {
         try {
             const auth = getAuth();
             const user = auth.currentUser;
@@ -124,7 +125,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
 
             const token = await user.getIdToken();
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/all/feed/public`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/all/feed/public?uids=${otherUser?.uid},${userDataCurrent?.uid}&fetchId=${fetchId.map((id) => id)}`,
                 {
                     method: "GET", headers: {
                         Authorization: `Bearer ${token}`,
@@ -150,8 +151,8 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
     };
     useEffect(() => {
         setLoading(true);
-        fetchPublicQuizzes();
-    }, []);
+        fetchPublicQuizzes(fetchId);
+    }, [fetchId]);
     useEffect(() => {
         const fetchUserDetails = async (userIds: string[]): Promise<UserData[]> => {
             if (userIds.length === 0) {
@@ -258,6 +259,37 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
         }
         setCurrentAnswer("");
     };
+    const handleReset = () => {
+        // Check if the current question was answered correctly
+        const isCorrect =
+            currentAnswer.trim().toLowerCase() ===
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        // Reset answered state for the current question
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: false, // Mark the current question as unanswered
+        }));
+
+        setCurrentAnswer(""); // Clear the current answer
+        setIsAnswerSubmitted(false); // Allow submission again
+        setShowAnswer(false); // Hide the revealed answer
+
+        // Adjust the score and question count conditionally
+        if (isCorrect) {
+            setScore((prevScore) => {
+                if (answeredQuestions[currentQuizIndex]) {
+                    return Math.max(prevScore - 1, 0); // Ensure the score doesn't go below 0
+                }
+                return prevScore;
+            });
+            setQuestion((prevQuestion) => Math.max(prevQuestion - 1, 0)); // Ensure the question count doesn't go below 0
+        }
+
+        else {
+            setQuestion((prevQuestion) => (answeredQuestions[currentQuizIndex] ? prevQuestion - 1 : prevQuestion));
+        }
+    };
     if (loading) {
         return <div className="text-[20px] text-center font-bold items-center mt-40 text-black">Loading quizzes...</div>;
     }
@@ -350,6 +382,24 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="bg-white rounded-md my-6">
+                        <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                            Action
+                        </h3>
+                        {!showAnswer ? (
+                            <button
+                                className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                onClick={handleRevealAnswer}
+                            >
+                                CLICK TO REVEAL ANSWER
+                            </button>
+                        ) : (
+                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
+                                Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
+                            </p>
+                        )}
+                    </div>
                     <div className="flex justify-center mt-4 gap-8">
                         <button
                             className="text-red-600 flex items-center"
@@ -369,22 +419,14 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                             </span>
                         </button>
                     </div>
-                    <div className="bg-white rounded-md my-6">
-                        <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                            Action
-                        </h3>
-                        {!showAnswer ? (
-                            <button
-                                className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
-                                onClick={handleRevealAnswer}
-                            >
-                                CLICK TO REVEAL ANSWER
-                            </button>
-                        ) : (
-                            <p className="text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
-                                Answer: <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
-                            </p>
-                        )}
+
+
+                    <div className="my-8 flex justify-center">
+                        <button className="bg-[#67A76B] px-4 py-1 rounded-lg text-white font-bold"
+                            onClick={handleReset}
+                        >
+                            Reset
+                        </button>
                     </div>
                     <div className="flex justify-center mt-8 gap-8 lg:gap-40">
                         <button onClick={() => {
@@ -392,8 +434,10 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                             setIsAnswerSubmitted(false); // Re-enable submit for the previous question
                         }} disabled={currentQuizIndex === 0}>
                             <span className="">
-                                <Image src={left} alt="leftArrow" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
+                                <Image src={left} alt="leftArrow" className={`${currentQuizIndex === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-black'
+                                    } h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 xl:h-7 xl:w-7`} />
                             </span>
+
                         </button>
                         <button
                             onClick={() => {
@@ -406,7 +450,11 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser }) => {
                             }
                         >
                             <span className="">
-                                <Image src={right} alt="rightArrow" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
+                                <Image src={right} alt="rightArrow" className={`${currentQuizIndex === quizzes.length - 1 ||
+                                    currentQuizIndex === filteredQuizzes.length - 1
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-black'
+                                    } h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 xl:h-7 xl:w-7`} />
                             </span>
                         </button>
                     </div>

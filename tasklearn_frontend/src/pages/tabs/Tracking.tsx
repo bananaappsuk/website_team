@@ -102,6 +102,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                             staff === user.uid &&
                             !task.isDeleted &&
                             task.serverId === selectedServer?.serverId
+                            && task.isCompleted
                     ).length
                 );
             }, 0);

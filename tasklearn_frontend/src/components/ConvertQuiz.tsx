@@ -90,7 +90,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
                 const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes/server/${server?.serverId}`,
                     {
                         method: "GET",
                         headers: {
@@ -118,7 +118,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
                 const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${server?.serverId}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes/server/${server?.serverId}`,
                     {
                         method: "GET",
                         headers: {
@@ -142,6 +142,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
             fetchQuizzes2();
         }
     }, []);
+
 
     useEffect(() => {
         if (selectedQuizTaskId && showQuiz) {
@@ -288,6 +289,38 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
     };
 
+    const handleReset = () => {
+        // Check if the current question was answered correctly
+        const isCorrect =
+            currentAnswer.trim().toLowerCase() ===
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        // Reset answered state for the current question
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: false, // Mark the current question as unanswered
+        }));
+
+        setCurrentAnswer(""); // Clear the current answer
+        setIsAnswerSubmitted(false); // Allow submission again
+        setShowAnswer(false); // Hide the revealed answer
+
+        // Adjust the score and question count conditionally
+        if (isCorrect) {
+            setScore((prevScore) => {
+                if (answeredQuestions[currentQuizIndex]) {
+                    return Math.max(prevScore - 1, 0); // Ensure the score doesn't go below 0
+                }
+                return prevScore;
+            });
+            setQuestion((prevQuestion) => Math.max(prevQuestion - 1, 0)); // Ensure the question count doesn't go below 0
+        }
+
+        else {
+            setQuestion((prevQuestion) => (answeredQuestions[currentQuizIndex] ? prevQuestion - 1 : prevQuestion));
+        }
+    };
+
     if (loading) {
         return <div>Loading quizzes...</div>;
     }
@@ -356,6 +389,25 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     </div>
                 </div>
 
+                <div className="bg-white rounded-md my-2 lg:my-6">
+                    <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
+                        Action
+                    </h3>
+                    {!showAnswer ? (
+                        <button
+                            className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-[#67A76B] font-bold underline w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm"
+                            onClick={handleRevealAnswer}
+                        >
+                            CLICK TO REVEAL ANSWER
+                        </button>
+                    ) : (
+                        <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
+                            Answer:
+                            <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
+                        </p>
+                    )}
+                </div>
+
                 <div className="flex justify-center mt-1 lg:mt-4 gap-8">
                     <button
                         className="text-red-600 flex items-center"
@@ -376,31 +428,23 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                     </button>
                 </div>
 
-                <div className="bg-white rounded-md my-2 lg:my-6">
-                    <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                        Action
-                    </h3>
-                    {!showAnswer ? (
-                        <button
-                            className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-[#67A76B] font-bold underline w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm"
-                            onClick={handleRevealAnswer}
-                        >
-                            CLICK TO REVEAL ANSWER
-                        </button>
-                    ) : (
-                        <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
-                            Answer:
-                            <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
-                        </p>
-                    )}
+                <div className="my-8 flex justify-center">
+                    <button className="bg-[#67A76B] px-4 py-1 rounded-lg text-white font-bold"
+                        onClick={handleReset}
+                    >
+                        Reset
+                    </button>
                 </div>
+
+
                 <div className="flex justify-center mt-4 lg:mt-8 gap-8 lg:gap-40">
                     <button onClick={() => {
                         handlePrevQuiz();
                         setIsAnswerSubmitted(false); // Re-enable submit for the previous question
                     }} disabled={currentQuizIndex === 0}>
                         <span className="">
-                            <Image src={left} alt="leftArrow" className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-5 lg:w-5 xl:h-7 xl:w-7" />
+                            <Image src={left} alt="leftArrow" className={`${currentQuizIndex === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-black'
+                                } h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-5 lg:w-5 xl:h-7 xl:w-7`} />
                         </span>
                     </button>
                     <button
@@ -411,7 +455,11 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                         disabled={currentQuizIndex === filteredQuizzes.length - 1}
                     >
                         <span className="">
-                            <Image src={right} alt="rightArrow" className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-5 lg:w-5 xl:h-7 xl:w-7" />
+                            <Image src={right} alt="rightArrow" className={`${currentQuizIndex === quizzes.length - 1 ||
+                                currentQuizIndex === filteredQuizzes.length - 1
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-black'
+                                } h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-5 lg:w-5 xl:h-7 xl:w-7`} />
                         </span>
                     </button>
                 </div>

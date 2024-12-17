@@ -241,6 +241,39 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
         setCurrentAnswer("");
     };
 
+    const handleReset = () => {
+        // Check if the current question was answered correctly
+        const isCorrect =
+            currentAnswer.trim().toLowerCase() ===
+            filteredQuizzes[currentQuizIndex]?.action.trim().toLowerCase();
+
+        // Reset answered state for the current question
+        setAnsweredQuestions((prev) => ({
+            ...prev,
+            [currentQuizIndex]: false, // Mark the current question as unanswered
+        }));
+
+        setCurrentAnswer(""); // Clear the current answer
+        setIsAnswerSubmitted(false); // Allow submission again
+        setShowAnswer(false); // Hide the revealed answer
+
+        // Adjust the score and question count conditionally
+        if (isCorrect) {
+            setScore((prevScore) => {
+                if (answeredQuestions[currentQuizIndex]) {
+                    return Math.max(prevScore - 1, 0); // Ensure the score doesn't go below 0
+                }
+                return prevScore;
+            });
+            setQuestion((prevQuestion) => Math.max(prevQuestion - 1, 0)); // Ensure the question count doesn't go below 0
+        }
+
+        else {
+            setQuestion((prevQuestion) => (answeredQuestions[currentQuizIndex] ? prevQuestion - 1 : prevQuestion));
+        }
+    };
+
+
     const handleVisibilityChange = async (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -479,7 +512,9 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                 </div>
 
                                 <div className="my-8 flex justify-center">
-                                    <button className="bg-[#67A76B] px-4 py-2 rounded-lg text-white">
+                                    <button className="bg-[#67A76B] px-4 py-1 rounded-lg text-white font-bold"
+                                        onClick={handleReset}
+                                    >
                                         Reset
                                     </button>
                                 </div>
@@ -489,8 +524,10 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     <button onClick={() => {
                                         handlePrevQuiz();
                                         setIsAnswerSubmitted(false); // Re-enable submit for the previous question
-                                    }} disabled={currentQuizIndex === 0}>
-                                        <FaArrowLeft size={24} />
+                                    }} disabled={currentQuizIndex === 0}
+                                    >
+                                        <FaArrowLeft size={24} className={`${currentQuizIndex === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-black'
+                                            }`} />
                                     </button>
                                     <button
                                         onClick={() => {
@@ -499,8 +536,17 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         }}
                                         disabled={currentQuizIndex === quizzes.length - 1 ||
                                             currentQuizIndex === filteredQuizzes.length - 1}
+                                        className={`${currentQuizIndex === quizzes.length - 1 ||
+                                            currentQuizIndex === filteredQuizzes.length - 1
+                                            ? 'text-gray cursor-not-allowed'
+                                            : 'text-blue'
+                                            }`}
                                     >
-                                        <FaArrowRight size={24} />
+                                        <FaArrowRight size={24} className={`${currentQuizIndex === quizzes.length - 1 ||
+                                            currentQuizIndex === filteredQuizzes.length - 1
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : 'text-black'
+                                            } `} />
                                     </button>
                                 </div>
 

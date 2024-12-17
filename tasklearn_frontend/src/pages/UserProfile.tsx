@@ -83,6 +83,7 @@ const UserProfile = () => {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     } | null>(null);
     const { jobRoleLists } = useTask();
     const [edit, setEdit] = useState<boolean>(false);
@@ -273,6 +274,7 @@ const UserProfile = () => {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     }) => {
         setSelectedServer(server); // Update with selected server's ID and name
     };
@@ -294,7 +296,6 @@ const UserProfile = () => {
                 newData.jobRole !== userData?.jobRole;
             const isEmpty =
                 newData.userName.trim() === "" || newData.jobRole.trim() === "";
-            console.log("changed", hasChanges);
             setIsButtonDisabled(!hasChanges || isEmpty);
             if (!hasChanges || isEmpty) {
                 setButtonText("Save"); // Reset to "Save" if both fields are empty
@@ -442,7 +443,7 @@ const UserProfile = () => {
                 }} setFilteredTasks={function (value: React.SetStateAction<any[]>): void {
                     throw new Error("Function not implemented.");
                 }} />
-                <div className="lg:w-full bg-white shadow-md rounded-lg text-black">
+                <div className="md:w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
                             <h1 className="text-[12px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
@@ -659,11 +660,11 @@ const UserProfile = () => {
                     </div>
 
                     <div className="w-full">
-                        <div className="px-8 flex space-x-4 border-b justify-between">
+                        <div className="w-full px-1 md:px-2 lg:px-8 lg:space-x-4 md:space-x-0.5 space-x-1 flex border-b justify-between">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.name}
-                                    className={`px-4 py-2 ${activeTab === tab.name
+                                    className={`px-3 lg:px-4 py-2 ${activeTab === tab.name
                                         ? "rounded-md border-b-2 border-[#68A86B] bg-[#68A86B] text-white"
                                         : "text-gray-500"
                                         }`}
@@ -699,7 +700,13 @@ const UserProfile = () => {
                             ) : activeTab === "Library" ? (
                                 <div className="flex justify-center">
                                     <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
-                                        <Libraries userData={userData} />
+                                        {selectedServer ? (
+                                            <Libraries selectedServer={selectedServer} userData={userData} />
+                                        ) : (
+                                            <div className="text-[20px] text-center items-center font-bold text-black mt-12">
+                                                Create or Select a server
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ) : activeTab === "Tracking" ? (

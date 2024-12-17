@@ -22,7 +22,7 @@ interface Server {
 interface SidebarProfileProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userId: any;
-    onServerSelect?: (server: { serverId: string; serverName: string; memberList: string[] }) => void;
+    onServerSelect?: (server: { serverId: string; serverName: string; memberList: string[]; createdByUserId: string; }) => void;
     handleTasksClick: (arg: string) => void;
     setselectedTask: React.Dispatch<React.SetStateAction<boolean>>;
     taskCategories: string[];
@@ -49,7 +49,7 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     const [loading, setLoading] = useState(true);
     const [isOpenServer, setIsOpenServer] = useState<boolean>(false);
     const { openServer } = router.query;
-    const { selectedServerId, setSelectedServerId, fetchPatientId } = useTask();
+    const { selectedServerId, setSelectedServerId, fetchPatientId, patientIdLoading, } = useTask();
 
     useEffect(() => {
         if (openServer !== undefined) {
@@ -114,29 +114,36 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
     }, [userId]);
 
     const handleServerClick = async (server: Server) => {
-        if (router.pathname === "/Homepage") {
+        if (!patientIdLoading) {
+            if (router.pathname === "/Homepage") {
+                setSelectedServerId(server._id);
+                setFilteredTasks([]);
+                handleResetInputs();
+                setselectedTask(false);
+                setDropdownVisible(Array(taskCategories.length).fill(false));
+                onServerSelect &&
+                    onServerSelect({
+                        serverId: server._id,
+                        serverName: server.channelName,
+                        memberList: server.memberList,
+                        createdByUserId: server.createdByUserId,
+                    });
+                fetchPatientId(selectedServerId && selectedServerId);
+            }
+        }
+        if (router.pathname === "/UserProfile") {
             setSelectedServerId(server._id);
-            setFilteredTasks([{}]);
-            handleResetInputs();
-            setselectedTask(false);
-            setDropdownVisible(Array(taskCategories.length).fill(false));
             onServerSelect &&
                 onServerSelect({
                     serverId: server._id,
                     serverName: server.channelName,
                     memberList: server.memberList,
-                });
-            fetchPatientId(selectedServerId && selectedServerId);
-        } else if (router.pathname === "/UserProfile") {
-            setSelectedServerId(server._id);
-            onServerSelect &&
-                onServerSelect({
-                    serverId: server._id,
-                    serverName: server.channelName,
-                    memberList: server.memberList,
+                    createdByUserId: server.createdByUserId,
                 });
         }
     };
+
+
 
     return (
         <aside className="w-[7%] flex flex-col items-center space-y-4 px-4 sm:px-2 lg:px-3 xl:px-2 bg-white min-h-screen border">
@@ -146,7 +153,10 @@ const SidebarProfile: FC<SidebarProfileProps> = ({
                     <div
                         key={server._id}
                         onClick={() => handleServerClick(server)}
-                        className={`rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 cursor-pointer ${selectedServerId === server._id ? "border-2 border-[#67A76B]" : ""
+                        className={`rounded-full overflow-hidden h-6 w-6 md:w-10 md:h-10 lg:w-16 lg:h-16 ${selectedServerId === server._id ? "border-2 border-[#67A76B]" : ""
+                            } ${patientIdLoading && router.pathname === "/Homepage"
+                                ? "cursor-not-allowed"
+                                : "cursor-pointer"
                             }`}
                     >
                         <img

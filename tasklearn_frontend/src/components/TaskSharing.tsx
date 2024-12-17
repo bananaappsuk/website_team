@@ -93,6 +93,7 @@ const TaskSharing = () => {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     } | null>(null);
 
     const [btnDisable, setBtnDisble] = useState<boolean>(false)
@@ -103,6 +104,7 @@ const TaskSharing = () => {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     }) => {
         setSelectedServer(server); // Update with selected server's ID and name
     };
@@ -153,38 +155,39 @@ const TaskSharing = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            try {
-                const auth = getAuth();
-                const user = auth.currentUser;
+    const fetchQuizzes = async () => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
 
-                if (!user) {
-                    return;
-                }
-
-                const token = await user.getIdToken();
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/server/${selectedServer?.serverId}`,
-                    {
-                        method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setQuizzes(data);
-                } else {
-                    console.error("Fetched data is not an array:", data);
-                }
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching quizzes:", error);
-                setLoading(false);
+            if (!user) {
+                return;
             }
-        };
+
+            const token = await user.getIdToken();
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes/server/${selectedServer?.serverId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                setQuizzes(data);
+            } else {
+                console.error("Fetched data is not an array:", data);
+            }
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching quizzes:", error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         if (selectedQuizTaskId.length > 0) {
             fetchQuizzes();
         }
@@ -194,26 +197,26 @@ const TaskSharing = () => {
     }, [selectedQuizTaskId]);
 
     useEffect(() => {
-        if (selectedQuizTaskId) {
+        if (selectedQuizTaskId !== "" && quizzes) {
             const filtered = quizzes.filter(
                 (quiz) => quiz.taskId === selectedQuizTaskId
             );
+
             setFilteredQuizzes(filtered);
             if (filtered.length > 0) {
-                const Newfiltered = quizzes.filter(
+                const newFiltered = quizzes.filter(
                     (quiz) => quiz.taskId !== selectedQuizTaskId
                 );
-                setFilteredQuizzes([...filtered, ...Newfiltered]);
+                setFilteredQuizzes([...filtered, ...newFiltered]);
             }
         }
     }, [selectedQuizTaskId, quizzes]);
 
+
+
     useEffect(() => {
         if (filteredQuizzes.length === 0) {
             setShowQuiz(false);
-        } else if ((filteredQuizzes[0]?.action === "" || filteredQuizzes[0]?.keyLearningPoint === "")) {
-            setselectedTask(true)
-            setShowQuiz(false)
         }
         else {
             setShowQuiz(true);
@@ -245,6 +248,7 @@ const TaskSharing = () => {
         return <p>Loading...</p>;
     }
 
+
     const fetchUsernames = async (uids: string[]): Promise<UserName[]> => {
         const promises = uids.map(async (uid) => {
             const userDoc = await getDoc(doc(db, "users", uid));
@@ -272,9 +276,9 @@ const TaskSharing = () => {
             ...newTask,
             patientId: task?.patientId,
             createdBy: userData?.userName,
-            taggedStaff: [""],
+            taggedStaff: [],
             serverId: "",
-            contributingStaff: [""],
+            contributingStaff: [],
             taskName: "",
             history: "",
             examination: "",
@@ -305,25 +309,9 @@ const TaskSharing = () => {
         }
 
         if (
-            !task.contributingStaff.length || // Check if the array is empty
-            task.contributingStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+            !task.taskName
         ) {
-            toast.error("Please tag user at contributing staff field");
-            return;
-        }
-
-        if (
-            !task.createdBy ||
-            !task.taskName ||
-            !task.history ||
-            !task.examination ||
-            !task.diagnosis ||
-            !task.plan ||
-            !task.followUp ||
-            !task.postConsultation ||
-            !task.feedback
-        ) {
-            toast.error("Please fill in all required fields.");
+            toast.error("Please fill in the required fields.");
             return;
         }
 
@@ -348,13 +336,13 @@ const TaskSharing = () => {
                         ...task,
                         isShared: true,
                         serverId: selectedServer?.serverId,
+                        createdBy: userData?.uid
                     }),
                 }
             );
             if (response.ok) {
-                setContributingTags([]);
-                setTaggedStaffTags([]);
                 const data = await response.json();
+                setTaggedStaffTags([])
                 const [taggedStaffDetails, contributingStaffDetails, createdByDetails] =
                     await Promise.all([
                         fetchUsernames(data.task.taggedStaff),
@@ -370,96 +358,96 @@ const TaskSharing = () => {
                 setTask(updatedTask);
                 updatePatientId(selectedServer?.serverId);
                 toast.success("Task shared successfully");
-                if (!task.Learn && !task.Library) {
-                    router.reload();
-                }
-                if (task.Library) {
-                    // Create Library
-                    const auth = getAuth();
-                    const user = auth.currentUser;
+                setBtnDisble(true)
+                setselectedTask(true)
 
-                    if (!user) {
-                        return;
-                    }
+                // if (task.Library) {
+                //     // Create Library
+                //     const auth = getAuth();
+                //     const user = auth.currentUser;
 
-                    const token = await user.getIdToken();
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            keyLearningPoint: task.keyLearningPoint,
-                            action: task.action,
-                            createdBy: userId,
-                            serverId: selectedServer?.serverId,
-                            taskId: data?.task?._id,
-                        }),
-                    });
-                }
-                if (task.Library && task.Learn) {
-                    const auth = getAuth();
-                    const user = auth.currentUser;
+                //     if (!user) {
+                //         return;
+                //     }
 
-                    if (!user) {
-                        return;
-                    }
+                //     const token = await user.getIdToken();
+                //     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
+                //         method: "POST",
+                //         headers: {
+                //             "Content-Type": "application/json",
+                //             Authorization: `Bearer ${token}`,
+                //         },
+                //         body: JSON.stringify({
+                //             keyLearningPoint: task.keyLearningPoint,
+                //             action: task.action,
+                //             createdBy: userId,
+                //             serverId: selectedServer?.serverId,
+                //             taskId: data?.task?._id,
+                //         }),
+                //     });
+                // }
+                // if (task.Library && task.Learn) {
+                //     const auth = getAuth();
+                //     const user = auth.currentUser;
 
-                    const token = await user.getIdToken();
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            keyLearningPoint: task.keyLearningPoint,
-                            action: task.action,
-                            Library: true,
-                            createdBy: userId,
-                            serverId: selectedServer?.serverId,
-                            taskId: data?.task?._id,
-                        }),
-                    });
-                    setSelectedQuizTaskId(data?.task?._id);
-                    // handleResetInputs();
-                    setselectedTask(true);
+                //     if (!user) {
+                //         return;
+                //     }
+
+                //     const token = await user.getIdToken();
+                //     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+                //         method: "POST",
+                //         headers: {
+                //             "Content-Type": "application/json",
+                //             Authorization: `Bearer ${token}`,
+                //         },
+                //         body: JSON.stringify({
+                //             keyLearningPoint: task.keyLearningPoint,
+                //             action: task.action,
+                //             Library: true,
+                //             createdBy: userId,
+                //             serverId: selectedServer?.serverId,
+                //             taskId: data?.task?._id,
+                //         }),
+                //     });
+                //     setSelectedQuizTaskId(data?.task?._id);
+                //     // handleResetInputs();
+                //     setselectedTask(true);
 
 
-                }
+                // }
 
-                // Check if Learn is selected
-                else if (task.Learn && !task.Library) {
-                    // Create quiz
-                    const auth = getAuth();
-                    const user = auth.currentUser;
+                // // Check if Learn is selected
+                // else if (task.Learn && !task.Library) {
+                //     // Create quiz
+                //     const auth = getAuth();
+                //     const user = auth.currentUser;
 
-                    if (!user) {
-                        return;
-                    }
+                //     if (!user) {
+                //         return;
+                //     }
 
-                    const token = await user.getIdToken();
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            keyLearningPoint: task.keyLearningPoint,
-                            action: task.action,
-                            Library: false,
-                            createdBy: userId,
-                            serverId: selectedServer?.serverId,
-                            taskId: data?.task?._id,
-                        }),
-                    });
-                    // handleResetInputs();
-                    setSelectedQuizTaskId(data?.task?._id);
-                    setselectedTask(true);
+                //     const token = await user.getIdToken();
+                //     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+                //         method: "POST",
+                //         headers: {
+                //             "Content-Type": "application/json",
+                //             Authorization: `Bearer ${token}`,
+                //         },
+                //         body: JSON.stringify({
+                //             keyLearningPoint: task.keyLearningPoint,
+                //             action: task.action,
+                //             Library: false,
+                //             createdBy: userId,
+                //             serverId: selectedServer?.serverId,
+                //             taskId: data?.task?._id,
+                //         }),
+                //     });
+                //     // handleResetInputs();
+                //     setSelectedQuizTaskId(data?.task?._id);
+                //     setselectedTask(true);
 
-                }
+                // }
             } else {
                 throw new Error("Failed to share task");
             }
@@ -470,14 +458,6 @@ const TaskSharing = () => {
 
     const handleComplete = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (
-            !task.taggedStaff.length || // Check if the array is empty
-            task.taggedStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
-        ) {
-            toast.error("Please tag user at tag staff field");
-            return;
-        }
 
         if (
             !task.contributingStaff.length || // Check if the array is empty
@@ -496,120 +476,227 @@ const TaskSharing = () => {
             !task.plan ||
             !task.followUp ||
             !task.postConsultation ||
-            !task.feedback
+            !task.feedback ||
+            !task.keyLearningPoint ||
+            !task.action
         ) {
             toast.error("Please fill in all required fields.");
             return;
         }
 
         //complete task
-        if (selectedTask) {
-            try {
-                const auth = getAuth();
-                const user = auth.currentUser;
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
 
-                if (!user) {
-                    return;
-                }
-
-                const token = await user.getIdToken();
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/task/update/${task?._id}`,
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                if (response.ok) {
-                    toast.success("Task Completed Successfully");
-                    const data = await response.json();
-                    const [
-                        taggedStaffDetails,
-                        contributingStaffDetails,
-                        createdByDetails,
-                    ] = await Promise.all([
-                        fetchUsernames(data.updatedItem.taggedStaff),
-                        fetchUsernames(data.updatedItem.contributingStaff),
-                        fetchUsername(data.updatedItem.createdBy),
-                    ]);
-                    const updatedTask = {
-                        ...data?.updatedItem,
-                        taggedStaff: taggedStaffDetails,
-                        contributingStaff: contributingStaffDetails,
-                        createdBy: createdByDetails,
-                    };
-                    setTask(updatedTask);
-                    setselectedTask(true);
-                    setShowQuiz(false);
-                    setBtnDisble(true);
-                    // setBtnDisble2(true);
-                    setDropdownVisible(Array(taskCategories.length).fill(false));
-                }
-            } catch (error: any) {
-                toast.error(error.message);
+            if (!user) {
+                return;
             }
-        }
-        if (!selectedTask) {
-            try {
-                const auth = getAuth();
-                const user = auth.currentUser;
 
-                if (!user) {
-                    return;
+            const token = await user.getIdToken();
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/task/update/${task?._id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ task })
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                const [
+                    taggedStaffDetails,
+                    contributingStaffDetails,
+                    createdByDetails,
+                ] = await Promise.all([
+                    fetchUsernames(data.updatedItem.taggedStaff),
+                    fetchUsernames(data.updatedItem.contributingStaff),
+                    fetchUsername(data.updatedItem.createdBy),
+                ]);
+                const updatedTask = {
+                    ...data?.updatedItem,
+                    taggedStaff: taggedStaffDetails,
+                    contributingStaff: contributingStaffDetails,
+                    createdBy: createdByDetails,
+                };
+                setTask(updatedTask);
+                toast.success("Task Completed Successfully");
+                setSelectedQuizTaskId(task._id);
+                setContributingTags([])
+                setShowQuiz(true)
+                if (task.Library) {
+                    // Create Library
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
+                    await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
+                    await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertLibraries`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
                 }
 
-                const token = await user.getIdToken();
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            ...task,
-                            isCompleted: true,
-                            serverId: selectedServer?.serverId,
-                        }),
-                    }
-                );
+                if (task.Library && task.Learn) {
+                    const auth = getAuth();
+                    const user = auth.currentUser;
 
-                if (response.ok) {
-                    toast.success("Task saved successfully");
-                    setContributingTags([]);
-                    setTaggedStaffTags([]);
-                    const data = await response.json();
-                    const [
-                        taggedStaffDetails,
-                        contributingStaffDetails,
-                        createdByDetails,
-                    ] = await Promise.all([
-                        fetchUsernames(data.task.taggedStaff),
-                        fetchUsernames(data.task.contributingStaff),
-                        fetchUsername(data.task.createdBy),
-                    ]);
-                    const updatedTask = {
-                        ...data?.task,
-                        taggedStaff: taggedStaffDetails,
-                        contributingStaff: contributingStaffDetails,
-                        createdBy: createdByDetails,
-                    };
-                    setTask(updatedTask);
-                    setselectedTask(true)
-                    updatePatientId(selectedServer?.serverId);
-                    setDropdownVisible(Array(taskCategories.length).fill(false));
+                    if (!user) {
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
+
+                    const ResponseQuiz = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                Library: true,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
+                    if (ResponseQuiz.ok) {
+                        setSelectedQuizTaskId(task._id);
+                        fetchQuizzes();
+                        setselectedTask(true);
+                    }
+                    await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                Library: true,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
+                    if (response.ok) {
+                        setSelectedQuizTaskId(task._id);
+                        fetchQuizzes();
+                        setselectedTask(true);
+                    }
+                } else if (task.Learn && !task.Library) {
+                    // Create quiz
+                    const auth = getAuth();
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        return;
+                    }
+
+                    const token = await user.getIdToken();
+                    await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                Library: false,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
+                    await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                Library: false,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        }
+                    );
+
+                    if (response.ok) {
+                        setSelectedQuizTaskId(task._id);
+                        fetchQuizzes();
+                        setselectedTask(true);
+                    }
                 } else {
-                    throw new Error("Failed to save task");
+                    throw new Error("Failed to share task");
                 }
-            } catch (error) {
-                toast.error("Error saving task: " + (error as Error).message);
+
+
+                setBtnDisble(true);
+                setDropdownVisible(Array(taskCategories.length).fill(false));
             }
+
+        } catch (error: any) {
+            toast.error(error.message);
         }
+
     };
+
+
 
     const fetchTasks = async (filter: any) => {
         setTaskLoading(true);
@@ -639,7 +726,20 @@ const TaskSharing = () => {
                                 isShared: Boolean;
                                 isDeleted: Boolean;
                                 serverId: string;
-                            }) => task.isShared && !task.isDeleted && selectedServer?.serverId
+                                taggedStaff: string[];
+                                contributingStaff: string[]
+                                isCompleted: boolean
+                            }) =>
+                                task.isShared &&
+                                !task.isDeleted &&
+                                selectedServer?.serverId &&
+                                userData &&
+                                task.taggedStaff?.includes(userData.uid) ||
+                                userData &&
+                                task.contributingStaff?.includes(userData.uid) &&
+                                !task.isCompleted
+
+
                         )
                     );
                     const pendingTasks = response.data.filter(
@@ -647,10 +747,18 @@ const TaskSharing = () => {
                             isShared: boolean;
                             isDeleted: boolean;
                             serverId: string;
+                            taggedStaff: string[];
+                            contributingStaff: string[];
+                            isCompleted: boolean;
                         }) =>
-                            task?.isShared &&
-                            !task?.isDeleted &&
-                            task.serverId === selectedServer?.serverId
+                            (task?.isShared &&
+                                !task?.isDeleted &&
+                                task.serverId === selectedServer?.serverId &&
+                                userData &&
+                                task.taggedStaff?.includes(userData.uid)) ||
+                            (userData &&
+                                task.contributingStaff?.includes(userData.uid)) &&
+                            !task.isCompleted
                     );
                     setFilteredTasks((prev) => {
                         return {
@@ -762,9 +870,10 @@ const TaskSharing = () => {
         }
     };
 
+
     const handleTasksClick = (item: string) => {
         // handleResetInputs();
-        setselectedTask(true);
+        // setselectedTask(true);
         if (filteredQuizzes.length > 0) {
             setShowQuiz(true)
         }
@@ -774,8 +883,6 @@ const TaskSharing = () => {
         setFilter(item);
         setShowForm(true);
     };
-
-    console.log("Task", task);
 
 
     return (
@@ -806,10 +913,9 @@ const TaskSharing = () => {
                         </div>
                         <div className="h-[0.5px] xl:h-[1px] w-full bg-gray-300" />
                         <div className="overflow-y-auto max-h-screen">
-                            <div
-                                className="flex justify-center my-1 md:my-2 lg:my-3"
-                            >
-                                <button className="md:w-[60%] lg:w-[50%] xl:w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold px-2 py-1 md:px-2 lg:py-1 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer text-[8px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px]"
+                            <div className="flex justify-center my-1 md:my-2 lg:my-3">
+                                <button
+                                    className="md:w-[60%] lg:w-[50%] xl:w-[40%] border hover:border-[#BFBFBF] bg-[#68A86B] hover:bg-white text-white hover:text-[#68A86B] font-bold px-2 py-1 md:px-2 lg:py-1 lg:px-2 rounded-lg flex justify-center items-center cursor-pointer text-[8px] sm:text-[10px] md:text-[10px] lg:text-[14px] xl:text-[16px]"
                                     onClick={() => {
                                         setDropdownVisible(
                                             Array(taskCategories.length).fill(false)
@@ -818,8 +924,10 @@ const TaskSharing = () => {
                                         handleRefresh();
                                         setShowQuiz(false);
                                         setselectedTask(false);
-                                    }}>
-                                    Task <FiPlus className="font-bold ml-1 h-2 w-2 sm:h-2 sm:w-2 lg:h-3 lg:w-3 xl:h-4 xl:w-4" />
+                                    }}
+                                >
+                                    Task{" "}
+                                    <FiPlus className="font-bold ml-1 h-2 w-2 sm:h-2 sm:w-2 lg:h-3 lg:w-3 xl:h-4 xl:w-4" />
                                 </button>
                             </div>
 
@@ -849,6 +957,9 @@ const TaskSharing = () => {
                                 quizzes={quizzes}
                                 fetchUsername={fetchUsername}
                                 fetchUsernames={fetchUsernames}
+                                userData={userData}
+                                setTaggedStaffTags={setTaggedStaffTags}
+                                setContributingTags={setContributingTags}
                             />
                         </div>
                     </div>
@@ -858,9 +969,7 @@ const TaskSharing = () => {
                         <div className="pt-1">
                             <div className="pt-1 sm:pt-5 px-1 sm:px-4 text-black font-bold items-center flex justify-between">
                                 <div className="flex gap-x-2 items-center">
-                                    <div
-                                        className="flex items-center gap-1"
-                                    >
+                                    <div className="flex items-center gap-1">
                                         {userData?.profilePicUrl ? (
                                             <img
                                                 src={userData?.profilePicUrl}
@@ -868,19 +977,19 @@ const TaskSharing = () => {
                                                 className="bg-cover object-cover w-[18.14px] h-[18.14px] sm:w-[28.14px] sm:h-[28.14px] lg:w-[38.14px] lg:h-[38.14px] xl:w-[48.14px] xl:h-[48.14px] rounded-full"
                                             />
                                         ) : (
-                                            <div
-                                                className="flex items-center justify-center w-[18.14px] h-[18.14px] sm:w-[28.14px] sm:h-[28.14px] lg:w-[38.14px] lg:h-[38.14px] xl:w-[48.14px] xl:h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold"
-                                            >
+                                            <div className="flex items-center justify-center w-[18.14px] h-[18.14px] sm:w-[28.14px] sm:h-[28.14px] lg:w-[38.14px] lg:h-[38.14px] xl:w-[48.14px] xl:h-[48.14px] rounded-full bg-[#68A86B] text-white font-bold">
                                                 {userData?.userName?.[0]?.toUpperCase() || "?"}
                                             </div>
                                         )}
                                         <div className="flex flex-col sm:flex-row">
-                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.userName},</p>
-                                            <p className="sm:ml-1 text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">{userData?.jobRole}</p>
+                                            <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">
+                                                {userData?.userName},
+                                            </p>
+                                            <p className="sm:ml-1 text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg">
+                                                {userData?.jobRole}
+                                            </p>
                                         </div>
                                     </div>
-
-
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-0 sm:gap-4 items-center">
                                     <div className="text-[6px] sm:text-[7px] md:text-[10px] lg:text-[12px] xl:text-lg flex gap-1 md:gap-2 justify-center">
@@ -915,6 +1024,7 @@ const TaskSharing = () => {
                             btnDisable={btnDisable}
                             setBtnDisble={setBtnDisble}
                             btnDisable2={btnDisable2}
+                            fetchUsername={fetchUsername}
                         />
                     </section>
                 )}

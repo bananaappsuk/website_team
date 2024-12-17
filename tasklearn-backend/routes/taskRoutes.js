@@ -24,30 +24,26 @@ router.get("/", async (req, res) => {
 });
 
 // Search
-router.get('/search', async (req, res) => {
+router.get("/search", async (req, res) => {
   const { query, serverId } = req.query;
-
   if (!query?.trim() || !serverId) {
     return res
       .status(400)
-      .json({ message: 'Query and serverId are required parameters' });
+      .json({ message: "Query and serverId are required parameters" });
   }
-
   try {
     const escapeRegex = (string) =>
-      string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapeRegex(query.trim()), 'i');
-
+      string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapeRegex(query.trim()), "i");
     const tasks = await Task.find({
       serverId,
-      $or: [{ patientId: regex }, { createdBy: regex }],
+      $or: [{ patientId: regex},{taskName:regex }],
       isDeleted: false,
     });
-
     res.status(200).json(tasks); // Always return an array
   } catch (error) {
-    console.error('Error searching tasks:', error);
-    res.status(500).json({ message: 'Error fetching search results', error });
+    console.error("Error searching tasks:", error);
+    res.status(500).json({ message: "Error fetching search results", error });
   }
 });
 
@@ -106,15 +102,33 @@ router.patch("/:id", async (req, res) => {
 // update task for complete
 router.patch("/update/:id", async (req, res) => {
   const { id } = req.params;
+  const { task } = req.body;
   try {
     const updatedItem = await Task.findByIdAndUpdate(
       id,
-      { isCompleted: true,isShared:false },
+      {
+        isCompleted: true,
+        isShared: false,
+        contributingStaff: task.contributingStaff,
+        history: task.history,
+        examination: task.examination,
+        diagnosis: task.diagnosis,
+        plan: task.plan,
+        followUp: task.followUp,
+        postConsultation: task.postConsultation,
+        feedback: task.feedback,
+        keyLearningPoint: task.keyLearningPoint,
+        action: task.action,
+        Library: task.Library,
+        Learn: task.Learn,
+      },
       {
         new: true,
       }
     );
-    res.status(200).json({ message: "Task Completed successfully", updatedItem });
+    res
+      .status(200)
+      .json({ message: "Task Completed successfully", updatedItem });
     if (!updatedItem) {
       return res.status(404).send("Task not found");
     }

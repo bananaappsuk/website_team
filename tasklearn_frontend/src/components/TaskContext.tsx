@@ -110,7 +110,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
                                 return {
                                     ...emptyTask,
                                     patientId,
-                                    createdBy: userData?.uid,
+                                    createdBy: userData?.userName,
                                 };
                             });
                         }
@@ -242,8 +242,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     const [task, setTask] = useState<Task>({
         patientId: "",
         createdBy: "",
-        taggedStaff: [""],
-        contributingStaff: [""],
+        taggedStaff: [],
+        contributingStaff: [],
         serverId: "",
         taskName: "",
         history: "",
@@ -263,8 +263,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     const getEmptyTask = () => ({
-        taggedStaff: [""],
-        contributingStaff: [""],
+        taggedStaff: [],
+        contributingStaff: [],
         serverId: "",
         taskName: "",
         history: "",
@@ -308,6 +308,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
         "Social prescriber",
         "Specialist mental health practitioner",
         "Healthcare Student",
+        "Doctor",
     ];
 
     return (

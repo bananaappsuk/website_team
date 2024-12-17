@@ -34,6 +34,7 @@ interface SidebarProfileProps {
         serverId: string;
         serverName: string;
         memberList: string[];
+        createdByUserId: string;
     }) => void;
 }
 
@@ -277,6 +278,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                                 serverId: server._id,
                                                 serverName: server.channelName,
                                                 memberList: server.memberList,
+                                                createdByUserId: server.createdByUserId,
                                             })
                                         }
                                     >
@@ -294,6 +296,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                                         serverId: server._id,
                                                         serverName: server.channelName,
                                                         memberList: server.memberList,
+                                                        createdByUserId: server.createdByUserId,
                                                     });
                                             }}
                                         >
@@ -317,7 +320,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                     </div>
                                 ))
                             ) : (
-                                <div className="mt-4 text-center text-black text-sm sm:text-md">
+                                <div className="mt-4 text-center text-black font-semibold text-sm sm:text-md">
                                     No recently added servers available
                                 </div>
                             )}
