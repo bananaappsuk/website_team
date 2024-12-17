@@ -51,7 +51,10 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
 
 
     useEffect(() => {
-        const fetchLibraries = async () => {
+        fetchLibraries();
+    }, [selectedServer?.serverId]);
+
+    const fetchLibraries = async () => {
             try {
                 const auth = getAuth();
                 const user = auth.currentUser;
@@ -81,9 +84,6 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
                 setLoading(false);
             }
         };
-        fetchLibraries();
-    }, [selectedServer?.serverId]);
-
 
     useEffect(() => {
         const filtered = libraries.filter(
@@ -127,6 +127,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
             );
             setLibraries(updatedLibraries);
             setFilteredLibraries(updatedLibraries);
+            fetchLibraries();
 
             if (currentLibraryIndex >= updatedLibraries.length) {
                 setCurrentLibraryIndex(updatedLibraries.length - 1);
