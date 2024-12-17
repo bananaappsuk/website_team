@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -5,6 +7,7 @@ import deleteIcon from "../../assets/Quiz/Vector.png";
 import searchIcon from "../../assets/Quiz/Group 1.png";
 import { Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { auth } from '@/firebase';
 
 interface Library {
     _id: string;
@@ -14,6 +17,7 @@ interface Library {
     Learn: boolean;
     createdAt: Timestamp;
     taskId: string;
+    createdBy: string;
 }
 
 type UserData = {
@@ -26,17 +30,25 @@ type UserData = {
 
 type Props = {
     userData: UserData | null;
+    selectedServer: Server | null;
 };
 
+interface Server {
+    serverId: string;
+    serverName: string;
+    memberList: string[];
+    createdByUserId: string;
+}
 
-
-const Libraries: React.FC<Props> = ({ userData }) => {
+const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
     const [libraries, setLibraries] = useState<Library[]>([]);
     const [filteredLibraries, setFilteredLibraries] = useState<Library[]>([]);
     const [currentLibraryIndex, setCurrentLibraryIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>("");
+    const [user, setUser] = useState<UserData | null>(null);
+
 
     useEffect(() => {
         const fetchLibraries = async () => {
@@ -50,7 +62,7 @@ const Libraries: React.FC<Props> = ({ userData }) => {
 
                 const token = await user.getIdToken();
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/libraries/${selectedServer?.serverId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -61,10 +73,7 @@ const Libraries: React.FC<Props> = ({ userData }) => {
                     throw new Error("Failed to fetch Libraries");
                 }
                 const data = await response.json();
-                setLibraries(data.filter((item: any) => item.createdBy === userData?.uid));
-                setFilteredLibraries(
-                    data.filter((item: any) => item.createdBy === userData?.uid)
-                );
+                setFilteredLibraries(data);
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching Libraries:", error);
@@ -73,7 +82,8 @@ const Libraries: React.FC<Props> = ({ userData }) => {
             }
         };
         fetchLibraries();
-    }, []);
+    }, [selectedServer?.serverId]);
+
 
     useEffect(() => {
         const filtered = libraries.filter(
@@ -128,6 +138,19 @@ const Libraries: React.FC<Props> = ({ userData }) => {
         }
     };
 
+    useEffect(() => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            setUser({
+                uid: currentUser.uid,
+                email: currentUser.email || "",
+                userName: currentUser.displayName || "",
+                jobRole: "", // Add appropriate logic to fetch the job role if needed
+                profilePicUrl: currentUser.photoURL || undefined,
+            });
+        }
+    }, []);
+
     if (loading) {
         return <div>Loading Libraries...</div>;
     }
@@ -136,7 +159,7 @@ const Libraries: React.FC<Props> = ({ userData }) => {
         return <div>Error: {error}</div>;
     }
 
-    if (libraries.length === 0) {
+    if (filteredLibraries.length === 0) {
         return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No Library quizzes available</div>;
     }
 
@@ -189,17 +212,19 @@ const Libraries: React.FC<Props> = ({ userData }) => {
                                         : new Date(library?.createdAt).toLocaleDateString()}
                                     ]
                                 </p>
-                                <div className="relative group">
-                                    <button
-                                        className="p-2"
-                                        onClick={() => handleDeleteLibrary(library.taskId)}
-                                    >
-                                        <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
-                                    </button>
-                                    <span className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                        Delete Library
-                                    </span>
-                                </div>
+                                {library && user?.uid === library?.createdBy && (
+                                    <div className="relative group">
+                                        <button
+                                            className="p-2"
+                                            onClick={() => handleDeleteLibrary(library.taskId)}
+                                        >
+                                            <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
+                                        </button>
+                                        <span className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                            Delete Library
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="h-[1px] w-full bg-gray-300" />

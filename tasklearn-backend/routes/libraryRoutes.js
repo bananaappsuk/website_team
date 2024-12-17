@@ -5,7 +5,7 @@ const { createLibrary, getLibraries, deleteLibrary } = require('../controllers/l
 const router = express.Router();
 
 router.post('/', createLibrary);
-router.get('/', getLibraries);
+router.get('/:id', getLibraries);
 router.delete('/:id', deleteLibrary);
 
 module.exports = router;

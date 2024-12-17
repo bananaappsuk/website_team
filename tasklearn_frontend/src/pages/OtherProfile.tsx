@@ -368,7 +368,7 @@ const OtherProfile = () => {
 
     return (
         <div className="w-full flex gap-2 bg-gray-100">
-            <div className="flex flex-col xl:flex-row w-full">
+            <div className="flex flex-col 2xl:flex-row w-full">
                 <div className="w-full lg:w-[100%] bg-white shadow-md p-4">
                     {/* Header */}
                     <div className="p-4 flex justify-between">

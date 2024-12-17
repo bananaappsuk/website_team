@@ -27,9 +27,12 @@ const createLibrary = async (req, res) => {
 };
 
 const getLibraries = async (req, res) => {
+  const { id } = req.params;
     try {
-      const libraries = await Library.find();
-      res.status(200).json(libraries);
+      const libraries = await Library.find({
+        serverId:id
+      });
+            res.status(200).json(libraries);
     } catch (error) {
       res.status(500).json({ message: 'Failed to retrieve libraries', error });
     }

@@ -2,6 +2,8 @@
 const Quiz = require("../models/quizModel");
 const Task = require("../models/Task");
 const Library = require("../models/libraryModel");
+const Server = require("../models/serverModel");
+
 
 // Create a new quiz
 const createQuiz = async (req, res) => {
@@ -130,20 +132,42 @@ const getFollowerQuizzes = async (req, res) => {
 };
 
 const getPublicQuizzes = async (req, res) => {
-  const { id } = req.params;
-
+  const { id } = req.params; // Current user ID
+  const fetchId = req.query.fetchId ? req.query.fetchId.split(",") : []; // Handle fetchId as an array
   try {
-    const quiz = await Quiz.find({
-      createdBy: { $ne: id },
-      visibility: "public",
+    // Fetch servers where memberList includes id
+    const servers = await Server.find({
+      memberList: { $elemMatch: { $eq: id } },
     });
-    
-    res.status(200).json(quiz);
+    const serverIds = servers.map((server) => server._id);
+    let allQuizzes = [];
+    // Loop through each serverId and fetch the public quizzes
+    let quiz1 = [];
+    for (const serverId of serverIds) {
+      const quizzes2 = await Quiz.find({
+        serverId: serverId,
+        visibility: "public",
+        $or: [
+          { createdBy: { $ne: id } }, // Exclude current user
+        ],
+      });
+      quiz1 = quiz1.concat(quizzes2);
+    }
+    let quiz2 = [];
+    for (const followee of fetchId) {
+      const quizzes = await Quiz.find({
+        visibility: "public",
+        // Exclude current user
+        createdBy: followee, // Include each followerId one by one
+      });
+      quiz2 = quiz2.concat(quizzes);
+    }
+    // Combine quiz1 and quiz2
+    allQuizzes = quiz1.concat(quiz2); // Send the combined quizzes as response
+    res.status(200).json(allQuizzes);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve quizzes", error });
   }
-  
-
 };
 
 const saveQuizzes = async (req, res) => {
@@ -226,18 +250,68 @@ const getFollowerQuizzesOtherProfile = async (req, res) => {
 };
 
 const getPublicQuizzesOtherProfile = async (req, res) => {
-
+  const uids = req?.query?.uids;
+  const fetchId = req.query.fetchId ? req.query.fetchId.split(",") : [];
+  const uidArray = uids.split(",");
   try {
-    const quiz = await Quiz.find({
+    const [otherUid, userUid] = uidArray;
+    // Find quizzes created by the other user
+    const quizzess = await Quiz.find({
+      createdBy: otherUid,
       visibility: "public",
     });
-    
+    const serverIds = quizzess.map((quiz) => quiz.serverId);
+    // Find new server IDs where the user is a member
+    let newServerIds = [];
+    for (const serverId of serverIds) {
+      try {
+        const servers = await Server.find({
+          _id: serverId,
+          memberList: { $elemMatch: { $eq: userUid } },
+        });
+        newServerIds = newServerIds.concat(servers.map((server) => server._id));
+      } catch (err) {
+        console.error(`Error finding server with id ${serverId}:`, err);
+      }
+    }
+    let allQuizzes = [];
+    for (const serverId of newServerIds) {
+      try {
+        const quiz = await Quiz.find({
+          serverId: serverId,
+          visibility: "public",
+          createdBy: otherUid,
+        });
+        allQuizzes = allQuizzes.concat(quiz);
+      } catch (err) {
+        console.error(`Error finding quizzes with serverId ${serverId}:`, err);
+      }
+    }
+    let additionalQuizzes = [];
+    for (const followeeId of fetchId) {
+      try {
+        const quiz2 = await Quiz.find({
+          visibility: "public",
+          $or: [
+            { createdBy: { $ne: otherUid } }, // Exclude current user
+            { createdBy: followeeId }, // Include each followerId one by one
+          ],
+        });
+        additionalQuizzes = additionalQuizzes.concat(quiz2);
+      } catch (err) {
+        console.error(
+          `Error finding quizzes for followeeId ${followeeId}:`,
+          err
+        );
+      }
+    }
+    // Combine all quizzes
+    const quiz = allQuizzes.concat(additionalQuizzes);
     res.status(200).json(quiz);
   } catch (error) {
+    console.error("Failed to retrieve quizzes:", error);
     res.status(500).json({ message: "Failed to retrieve quizzes", error });
   }
-  
-
 };
 
 

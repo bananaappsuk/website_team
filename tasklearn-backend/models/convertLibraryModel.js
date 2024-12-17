@@ -1,7 +1,7 @@
-// models/libraryModel.js
+// models/convertLibraryModel.js
 const mongoose = require("mongoose");
 
-const librarySchema = new mongoose.Schema({
+const convertLibrarySchema = new mongoose.Schema({
   keyLearningPoint: {
     type: String,
     required: true,
@@ -30,5 +30,5 @@ const librarySchema = new mongoose.Schema({
   },
 });
 
-const Library = mongoose.model("Library", librarySchema);
-module.exports = Library;
+const convertLibrary = mongoose.model("convertLibrary", convertLibrarySchema);
+module.exports = convertLibrary;

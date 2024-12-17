@@ -1,7 +1,7 @@
-// models/libraryModel.js
-const mongoose = require("mongoose");
+// models/convertQuizModel.js
+const mongoose = require('mongoose');
 
-const librarySchema = new mongoose.Schema({
+const convertQuizSchema = new mongoose.Schema({
   keyLearningPoint: {
     type: String,
     required: true,
@@ -18,6 +18,10 @@ const librarySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  Library: {
+    type: Boolean,
+    required: true,
+  },
   serverId: {
     type: mongoose.Types.ObjectId,
     ref: "Server",
@@ -28,7 +32,13 @@ const librarySchema = new mongoose.Schema({
     ref: "Task",
     required: true,
   },
+  visibility: {
+    type: String,
+    enum: ["onlyMe", "followers", "public"],
+    default: "onlyMe",
+  },
+  savedBy: { type: [String], default: [] },
 });
 
-const Library = mongoose.model("Library", librarySchema);
-module.exports = Library;
+const convertQuiz = mongoose.model('convertQuiz', convertQuizSchema);
+module.exports = convertQuiz;
