@@ -69,8 +69,6 @@ const deleteQuiz = async (req, res) => {
 
   try {
     const quiz = await Quiz.findOneAndDelete({ taskId: id });
-    const library = await Library.findOneAndDelete({ taskId: id });
-    const task = await Task.findOneAndDelete({ _id: id });
 
     res.status(200).json({ message: "Quiz deleted successfully" });
   } catch (error) {
