@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task"); // Make sure your Task model is correctly referenced
+const convertQuiz = require("../models/convertQuizModel");
+const convertLibrary = require("../models/convertLibraryModel");
 
 // Create a new task
 router.post("/", async (req, res) => {
@@ -143,6 +145,9 @@ router.delete("/:id", async (req, res) => {
 
   try {
     const task = await Task.findByIdAndDelete(id);
+    const Quiz = await convertQuiz.findOneAndDelete({ taskId: id });
+    const Library = await convertLibrary.findOneAndDelete({ taskId: id });
+
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }

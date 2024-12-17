@@ -960,6 +960,7 @@ const TaskSharing = () => {
                                 userData={userData}
                                 setTaggedStaffTags={setTaggedStaffTags}
                                 setContributingTags={setContributingTags}
+                                handleResetInputs={handleResetInputs}
                             />
                         </div>
                     </div>
