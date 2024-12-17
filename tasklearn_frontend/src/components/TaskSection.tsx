@@ -60,6 +60,7 @@ type Props = {
     userData: UserData | null;
     setTaggedStaffTags: React.Dispatch<React.SetStateAction<string[]>>;
     setContributingTags: React.Dispatch<React.SetStateAction<string[]>>;
+    handleResetInputs: () => void;
 };
 
 interface UserName {
@@ -98,6 +99,7 @@ const TaskSection: React.FC<CombinedProps> = ({
     userData,
     setTaggedStaffTags,
     setContributingTags,
+    handleResetInputs,
 }) => {
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
@@ -540,7 +542,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                 fetchTasks("Deleted Tasks");
                 setDeletePopupOpen(false);
                 setTaskToDeleted(null);
-
+                handleResetInputs();
             }
         } catch (error: any) {
             toast.error(error.message);
