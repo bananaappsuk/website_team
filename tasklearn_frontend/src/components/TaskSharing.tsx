@@ -476,9 +476,7 @@ const TaskSharing = () => {
             !task.plan ||
             !task.followUp ||
             !task.postConsultation ||
-            !task.feedback ||
-            !task.keyLearningPoint ||
-            !task.action
+            !task.feedback
         ) {
             toast.error("Please fill in all required fields.");
             return;
