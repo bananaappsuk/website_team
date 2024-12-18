@@ -49,6 +49,11 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [user, setUser] = useState<UserData | null>(null);
 
+
+    useEffect(() => {
+        fetchLibraries();
+    }, [selectedServer?.serverId]);
+
     const fetchLibraries = async () => {
         try {
             const auth = getAuth();
@@ -79,11 +84,6 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchLibraries();
-    }, [selectedServer?.serverId]);
-
 
     useEffect(() => {
         const filtered = libraries.filter(

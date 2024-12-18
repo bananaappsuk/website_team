@@ -197,7 +197,7 @@ const TaskSharing = () => {
     }, [selectedQuizTaskId]);
 
     useEffect(() => {
-        if (selectedQuizTaskId !== "" && quizzes) {
+        if (selectedQuizTaskId && quizzes) {
             const filtered = quizzes.filter(
                 (quiz) => quiz.taskId === selectedQuizTaskId
             );
@@ -458,15 +458,15 @@ const TaskSharing = () => {
 
     const handleComplete = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (
             !task.contributingStaff.length || // Check if the array is empty
-            task.contributingStaff.some((tag) => tag.trim() === "@" || tag.trim() === "")
+            task.contributingStaff.some(
+                (tag) => tag.trim() === "@" || tag.trim() === ""
+            )
         ) {
             toast.error("Please tag user at contributing staff field");
             return;
         }
-
         if (
             !task.createdBy ||
             !task.taskName ||
@@ -483,16 +483,13 @@ const TaskSharing = () => {
             toast.error("Please fill in all required fields.");
             return;
         }
-
-        //complete task
+        // Complete task
         try {
             const auth = getAuth();
             const user = auth.currentUser;
-
             if (!user) {
                 return;
             }
-
             const token = await user.getIdToken();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/task/update/${task?._id}`,
@@ -502,20 +499,17 @@ const TaskSharing = () => {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({ task })
+                    body: JSON.stringify({ task }),
                 }
             );
             if (response.ok) {
                 const data = await response.json();
-                const [
-                    taggedStaffDetails,
-                    contributingStaffDetails,
-                    createdByDetails,
-                ] = await Promise.all([
-                    fetchUsernames(data.updatedItem.taggedStaff),
-                    fetchUsernames(data.updatedItem.contributingStaff),
-                    fetchUsername(data.updatedItem.createdBy),
-                ]);
+                const [taggedStaffDetails, contributingStaffDetails, createdByDetails] =
+                    await Promise.all([
+                        fetchUsernames(data.updatedItem.taggedStaff),
+                        fetchUsernames(data.updatedItem.contributingStaff),
+                        fetchUsername(data.updatedItem.createdBy),
+                    ]);
                 const updatedTask = {
                     ...data?.updatedItem,
                     taggedStaff: taggedStaffDetails,
@@ -524,176 +518,101 @@ const TaskSharing = () => {
                 };
                 setTask(updatedTask);
                 toast.success("Task Completed Successfully");
-                setSelectedQuizTaskId(task._id);
-                setContributingTags([])
-                setShowQuiz(true)
-                if (task.Library) {
-                    // Create Library
-                    const auth = getAuth();
-                    const user = auth.currentUser;
-
-                    if (!user) {
-                        return;
-                    }
-
-                    const token = await user.getIdToken();
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertLibraries`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-                }
-
-                if (task.Library && task.Learn) {
-                    const auth = getAuth();
-                    const user = auth.currentUser;
-
-                    if (!user) {
-                        return;
-                    }
-
-                    const token = await user.getIdToken();
-
-                    const ResponseQuiz = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: true,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-                    if (ResponseQuiz.ok) {
-                        setSelectedQuizTaskId(task._id);
-                        fetchQuizzes();
-                        setselectedTask(true);
-                    }
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: true,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-                    if (response.ok) {
-                        setSelectedQuizTaskId(task._id);
-                        fetchQuizzes();
-                        setselectedTask(true);
-                    }
-                } else if (task.Learn && !task.Library) {
-                    // Create quiz
-                    const auth = getAuth();
-                    const user = auth.currentUser;
-
-                    if (!user) {
-                        return;
-                    }
-
-                    const token = await user.getIdToken();
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: false,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-                    await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                keyLearningPoint: task.keyLearningPoint,
-                                action: task.action,
-                                Library: false,
-                                createdBy: userId,
-                                serverId: selectedServer?.serverId,
-                                taskId: data?.updatedItem?._id,
-                            }),
-                        }
-                    );
-
-                    if (response.ok) {
-                        setSelectedQuizTaskId(task._id);
-                        fetchQuizzes();
-                        setselectedTask(true);
-                    }
-                } else {
-                    throw new Error("Failed to share task");
-                }
-
-
+                setContributingTags([]);
                 setBtnDisble(true);
                 setDropdownVisible(Array(taskCategories.length).fill(false));
+                // Create Libraries and Quizzes
+                if (task.Library || task.Learn) {
+                    const createLibrary = async () => {
+                        if (!user) return;
+                        const token = await user.getIdToken();
+                        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Libraries`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        });
+                        await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/api/convertLibraries`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({
+                                    keyLearningPoint: task.keyLearningPoint,
+                                    action: task.action,
+                                    createdBy: userId,
+                                    serverId: selectedServer?.serverId,
+                                    taskId: data?.updatedItem?._id,
+                                }),
+                            }
+                        );
+                    };
+                    const createQuiz = async (library: boolean) => {
+                        if (!user) return;
+                        const token = await user.getIdToken();
+                        await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/api/convertQuizzes`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({
+                                    keyLearningPoint: task.keyLearningPoint,
+                                    action: task.action,
+                                    Library: library,
+                                    createdBy: userId,
+                                    serverId: selectedServer?.serverId,
+                                    taskId: data?.updatedItem?._id,
+                                }),
+                            }
+                        );
+                        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quizzes`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                keyLearningPoint: task.keyLearningPoint,
+                                action: task.action,
+                                Library: library,
+                                createdBy: userId,
+                                serverId: selectedServer?.serverId,
+                                taskId: data?.updatedItem?._id,
+                            }),
+                        });
+                    };
+                    if (task.Library) {
+                        await createLibrary();
+                    }
+                    if (task.Library && task.Learn) {
+                        await createQuiz(true);
+                    } else if (task.Learn && !task.Library) {
+                        await createQuiz(false);
+                    }
+                }
+                // Fetch updated quizzes and set states
+                setSelectedQuizTaskId(task._id);
+                await fetchQuizzes();
+                setselectedTask(true);
+                setShowQuiz(true);
             }
-
         } catch (error: any) {
             toast.error(error.message);
         }
-
     };
 
 
