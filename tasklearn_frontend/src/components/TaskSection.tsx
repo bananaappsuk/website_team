@@ -733,20 +733,20 @@ const TaskSection: React.FC<CombinedProps> = ({
                                     >
                                         <Image src={deleteIcon} alt="Delete" className="" />
                                     </button>
-                                    <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    {/* <span className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-[4px] rounded px-1 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                         Delete Server
-                                    </span>
+                                    </span> */}
                                 </div>
                                 <div className="hidden sm:block ml-auto relative group">
                                     <button
-                                        className="h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
+                                        className="flex items-center h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
                                         onClick={() => handleDeleteServer({ serverId: server.serverId, serverName: server.serverName })}
                                     >
                                         <Image src={deleteIcon} alt="Delete" className="ml-8" />
                                     </button>
-                                    <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    {/* <span className="absolute bottom-3 md:bottom-4 lg:bottom-5 xl:bottom-8 left-0 bg-gray-600 text-white text-[8px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                         Delete Server
-                                    </span>
+                                    </span> */}
                                 </div>
                             </>
                         )}
