@@ -336,9 +336,9 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
             <div className="w-full min-h-screen bg-white">
                 {!showQuiz && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-end items-center">
                         {filteredQuizzes.length > 0 && (
-                            <div className="ml-60 lg:ml-64 text-center font-bold flex-1 text-[14px] xl:text-[20px]">Quiz Visible to</div>
+                            <div className="ml-20 lg:ml-60 text-center font-bold flex-1 text-[14px] xl:text-[20px]">Quiz Visible to</div>
                         )}
                         <div className="flex justify-end ml-auto relative">
                             <input
@@ -365,7 +365,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                         </div>
                     ) : (
                         <>
-                            <div className="px-28 pt-8 pb-4 flex justify-between items-center">
+                            <div className="px-8 lg:px-28 pt-8 pb-4 flex justify-between items-center">
                                 <div>
                                     <input
                                         type="radio"
