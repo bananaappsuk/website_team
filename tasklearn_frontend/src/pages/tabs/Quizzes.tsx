@@ -75,7 +75,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
         }, 4000);
     };
 
-    const fetchQuizzes = async () => {
+    const fetchQuizzes = async (preserveIndex = false) => {
         try {
             const auth = getAuth();
             const user = auth.currentUser;
@@ -102,6 +102,9 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             setLoading(false);
             if (data.slice().reverse()[currentQuizIndex]?.visibility) {
                 setVisibilityData({ visibility: data.slice().reverse()[currentQuizIndex].visibility });
+            }
+            if (!preserveIndex) {
+                setCurrentQuizIndex(0);
             }
         } catch (error) {
             console.error("Error fetching quizzes:", error);
@@ -134,7 +137,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                     quiz.action.toLowerCase().includes(searchTerm.toLowerCase())
             );
         setFilteredQuizzes(filtered);
-        setCurrentQuizIndex(0);
+        // setCurrentQuizIndex(0);
     }, [searchTerm, quizzes]);
 
     const handleDeleteQuiz = async (taskId: string) => {
@@ -303,7 +306,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data) {
-                    fetchQuizzes();
+                    await fetchQuizzes(true);
                 }
             }
         } catch (error) { }
