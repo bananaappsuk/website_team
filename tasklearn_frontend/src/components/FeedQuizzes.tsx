@@ -313,7 +313,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
 
         const token = await user.getIdToken();
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/save/${filteredQuizzes[currentQuizIndex]._id}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/save/${quizId}`,
             {
                 method: "PATCH",
                 headers: {
@@ -333,9 +333,9 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
         }
     };
 
-    const handleSave = (quizId: string) => {
+    const handleSave = async (quizId: string) => {
         if (quizId) {
-            updateSaveQuiz(quizId);
+            await updateSaveQuiz(quizId);
         }
     };
 
@@ -456,8 +456,9 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                         <div className="relative group flex gap-4">
                             <div className="justify-end flex ml-auto">
                                 <button
-                                    className="p-2 px-7 rounded-md bg-[#68A86B] text-white"
+                                    className={`p-2 px-7 rounded-md bg-[#68A86B] text-white ${isSaved ? "cursor-default" : "cursor-pointer"}`}
                                     onClick={() => handleSave(filteredQuizzes[currentQuizIndex]._id)}
+                                    disabled={isSaved}
                                 >
                                     {isSaved ? "Saved" : "Save"}
                                 </button>
