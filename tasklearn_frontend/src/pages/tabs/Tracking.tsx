@@ -196,39 +196,39 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                 <h1 className=" font-bold flex justify-center text-[20px] mt-4">
                     Top Contributors
                 </h1>
-                {loading && <p className="text-center">Loading...</p>}
-                <div className="overflow-y-auto max-h-screen mt-4">
-                    {Object.entries(leaderboard)
-                        .sort((a, b) => b[1] - a[1]) // Sort by count in descending order
-                        .map(([key, count]) => {
-                            const [userName] = key.split(",");
-                            return (
-                                <React.Fragment key={key}>
-                                    <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[12rem]">
-                                        <button
-                                            className={`flex justify-start ${userName === currentUserData?.userName
-                                                ? "cursor-default"
-                                                : "cursor-pointer hover:underline"
-                                                }`}
-                                            onClick={() => handleProfile(key)}
-                                            disabled={userName === currentUserData?.userName}
-                                        >
-                                            {key}
-                                        </button>
-
-                                        <p className="ml-[60px] w-[50px] h-[25px] border border-[#848181] flex justify-center">
-                                            {count}
-                                        </p>
-
-                                    </div>
-                                    <div className="border border-gray-200 h-[1px] w-full my-4"></div>
-                                </React.Fragment>
-                            );
-                        }
+                {loading ? (
+                    <p className="text-center">Loading...</p>
+                ) : (
+                    <div className="overflow-y-auto max-h-screen mt-4">
+                        {Object.entries(leaderboard)
+                            .sort((a, b) => b[1] - a[1]) // Sort by count in descending order
+                            .map(([key, count]) => {
+                                const [userName] = key.split(",");
+                                return (
+                                    <React.Fragment key={key}>
+                                        <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[12rem]">
+                                            <button
+                                                className={`flex justify-start ${userName === currentUserData?.userName
+                                                        ? "cursor-default"
+                                                        : "cursor-pointer hover:underline"
+                                                    }`}
+                                                onClick={() => handleProfile(key)}
+                                                disabled={userName === currentUserData?.userName}
+                                            >
+                                                {key}
+                                            </button>
+                                            <p className="ml-[60px] w-[50px] h-[25px] border border-[#848181] flex justify-center">
+                                                {count}
+                                            </p>
+                                        </div>
+                                        <div className="border border-gray-200 h-[1px] w-full my-4"></div>
+                                    </React.Fragment>
+                                );
+                            })}
+                        {Object.keys(leaderboard).length === 0 && !loading && (
+                            <div className="mt-5">No contributors found</div>
                         )}
-                </div>
-                {Object.keys(leaderboard).length === 0 && !loading && (
-                    <div className="mt-5">No contributors found</div>
+                    </div>
                 )}
             </div>
         </div>

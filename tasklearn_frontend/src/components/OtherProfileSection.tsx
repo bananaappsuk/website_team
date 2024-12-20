@@ -34,12 +34,13 @@ const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
     const [userId, setUserId] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {
-        const fetchAllFollowRequests = async (otherUserId: string) => {
+        const fetchAllFollowRequests = async (otherUserId: string, currentUserId: string) => {
             try {
                 const q = query(
                     collection(db, "followRequests"),
                     where("status", "==", "accept"),
                     where("followeeId", "==", otherUserId),
+                    where("followerId", "==", currentUserId),
                 );
                 const AllDocs = await getDocs(q);
                 const followeeIds = AllDocs.docs.map((doc) => ({
@@ -52,8 +53,8 @@ const OtherProfileSection: React.FC<Props> = ({ otherUser, userData }) => {
                 toast.error(error.message);
             }
         };
-        if (otherUser?.uid) {
-            fetchAllFollowRequests(otherUser.uid);
+        if (otherUser?.uid && userData?.uid) {
+            fetchAllFollowRequests(otherUser.uid, userData?.uid);
         }
     }, [otherUser?.uid]);
     return (

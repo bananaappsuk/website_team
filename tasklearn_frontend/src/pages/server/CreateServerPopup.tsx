@@ -283,7 +283,7 @@ const CreateServerPopup: React.FC<CombinedProps> = ({
                                         }
                                     >
                                         <div
-                                            className={`w-full rounded-md py-4 items-center mb-4 flex ${server.channelName === "SpecialChannel"
+                                            className={`text-md w-full rounded-md py-4 items-center mb-4 flex ${server.channelName === "SpecialChannel"
                                                 ? "bg-blue-200"
                                                 : "bg-gray-100"
                                                 }`}
