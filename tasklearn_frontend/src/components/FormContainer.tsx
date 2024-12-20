@@ -401,7 +401,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className=" relative">
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Task Code:
+                  Task Code<span className="text-red-500">*</span>:
                 </label>
                 <input
                   type="text"
@@ -415,7 +415,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative">
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Created by:
+                  Created by<span className="text-red-500">*</span>:
                 </label>
                 <input
                   type="text"
@@ -436,7 +436,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative" ref={searchRef}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Tag staff for help / Completion:
+                  Tag staff for help / Completion<span className="text-red-500">*</span>:
                 </label>
                 <div className="flex gap-x-3">
                   <div className="">
@@ -582,15 +582,14 @@ const FormContainer: React.FC<combinedProps> = ({
             <div>
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
                 {" "}
-                Patient ID/Task Name/Instructions
+                Patient ID / Task Name / Instructions<span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <textarea
                 placeholder=""
-                className={` text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask || task.isShared || task.isCompleted
+                className={`resize-none text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-full input-field border border-gray p-1 rounded-md text-black ${selectedTask || task.isShared || task.isCompleted
                   ? "outline-none cursor-default"
                   : ""
-                  }`}
+                  }resize-none`}
                 value={task?.taskName}
                 onChange={(e) => setTask({ ...task, taskName: e.target.value })}
                 required
@@ -815,15 +814,19 @@ const FormContainer: React.FC<combinedProps> = ({
             <button
               type="button"
               onClick={handleComplete}
-              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit bg-[#68A86B] border border-[#68A86B] text-center text-white py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:bg-green-100 hover:text-black transition duration-300 ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
+              className={`text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] w-[20%] sm:w-[20%] md:w-[20%] lg:w-[15%] xl:w-[15%] btn-submit ${task?.isCompleted || task?.isDeleted ? "hidden" : "block"
                 } ${(selectedTask && btnDisable) ||
-                (!task.isShared && "cursor-not-allowed")
-                }  ${(!task?.isShared ||
-                  (userData?.userName &&
-                    !task?.taggedStaff?.includes(userData?.userName)) ||
-                  !task.Learn) &&
-                "bg-gray-400 hover:bg-gray-400 text-black border border-gray-400 cursor-not-allowed"
-                }`}
+                (!task.isShared || !task.Learn
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer")
+                } ${!task?.isShared ||
+                  !task.Learn ||
+                  (userData &&
+                    !task?.taggedStaff?.includes(userData?.userName) &&
+                    !task.Learn)
+                  ? "bg-gray-400 hover:bg-gray-400 hover:text-black border border-gray-400 cursor-not-allowed text-white"
+                  : "bg-[#68A86B] border border-[#68A86B] text-center text-white"
+                } py-1 px-1 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:text-black transition duration-300`}
               disabled={
                 (selectedTask && btnDisable) || !task.isShared || !task.Learn
               }

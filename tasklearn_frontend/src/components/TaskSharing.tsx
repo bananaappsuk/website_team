@@ -607,6 +607,7 @@ const TaskSharing = () => {
                 await fetchQuizzes();
                 setselectedTask(true);
                 setShowQuiz(true);
+                setFilteredTasks([]);
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -636,146 +637,42 @@ const TaskSharing = () => {
             );
 
             if (response.status === 200) {
+                const tasks = response.data.filter(
+                    (task: Task) => task.serverId === selectedServer?.serverId
+                );
                 if (filter === "Pending Tasks") {
-                    setTasksList(
-                        response.data.filter(
-                            (task: {
-                                isShared: Boolean;
-                                isDeleted: Boolean;
-                                serverId: string;
-                                taggedStaff: string[];
-                                contributingStaff: string[]
-                                isCompleted: boolean
-                            }) =>
-                                task.isShared &&
-                                !task.isDeleted &&
-                                selectedServer?.serverId &&
-                                userData &&
-                                task.taggedStaff?.includes(userData.uid) ||
-                                userData &&
-                                task.contributingStaff?.includes(userData.uid) &&
-                                !task.isCompleted
-
-
-                        )
-                    );
-                    const pendingTasks = response.data.filter(
-                        (task: {
-                            isShared: boolean;
-                            isDeleted: boolean;
-                            serverId: string;
-                            taggedStaff: string[];
-                            contributingStaff: string[];
-                            isCompleted: boolean;
-                        }) =>
-                            (task?.isShared &&
-                                !task?.isDeleted &&
-                                task.serverId === selectedServer?.serverId &&
-                                userData &&
-                                task.taggedStaff?.includes(userData.uid)) ||
-                            (userData &&
-                                task.contributingStaff?.includes(userData.uid)) &&
+                    const pendingTasks = tasks.filter(
+                        (task: Task) =>
+                            task.isShared &&
+                            !task.isDeleted &&
+                            (task.taggedStaff?.includes(userData?.uid) ||
+                                task.contributingStaff?.includes(userData?.uid)) &&
                             !task.isCompleted
                     );
-                    setFilteredTasks((prev) => {
-                        return {
-                            ...prev,
-                            [filter]: pendingTasks,
-                        };
-                    });
+                    setTasksList(pendingTasks);
+                    setFilteredTasks((prev) => ({ ...prev, [filter]: pendingTasks }));
                 } else if (filter === "All Tasks") {
-                    setTasksList(
-                        response.data.filter(
-                            (task: { isDeleted: Boolean; serverId: string }) =>
-                                !task.isDeleted && task.serverId === selectedServer?.serverId
-                        )
+                    const allTasks = tasks.filter(
+                        (task: Task) => !task.isDeleted
                     );
-                    const allTasks = response.data.filter(
-                        (task: { isDeleted: boolean; serverId: string }) =>
-                            !task?.isDeleted && task.serverId === selectedServer?.serverId
-                    );
-
-                    setFilteredTasks((prev) => {
-                        return {
-                            ...prev,
-                            [filter]: allTasks,
-                        };
-                    });
+                    setTasksList(tasks);
+                    setFilteredTasks((prev) => ({ ...prev, [filter]: allTasks }));
                 } else if (filter === "Completed Tasks") {
-                    setTasksList(
-                        response.data.filter(
-                            (task: {
-                                isCompleted: Boolean;
-                                isDeleted: Boolean;
-                                serverId: string;
-                            }) =>
-                                task.isCompleted &&
-                                !task.isDeleted &&
-                                task.serverId === selectedServer?.serverId
-                        )
+                    const completedTasks = tasks.filter(
+                        (task: Task) => task.isCompleted && !task.isDeleted
                     );
-
-                    const completedTasks = response.data.filter(
-                        (task: {
-                            isCompleted: boolean;
-                            isDeleted: Boolean;
-                            serverId: string;
-                        }) =>
-                            task?.isCompleted &&
-                            !task?.isDeleted &&
-                            task.serverId === selectedServer?.serverId
-                    );
-                    setFilteredTasks((prev) => {
-                        return {
-                            ...prev,
-                            [filter]: completedTasks,
-                        };
-                    });
+                    setTasksList(completedTasks);
+                    setFilteredTasks((prev) => ({ ...prev, [filter]: completedTasks }));
                 } else if (filter === "Learning") {
-                    setTasksList(
-                        response.data.filter(
-                            (task: {
-                                Learn: Boolean;
-                                isDeleted: Boolean;
-                                serverId: string;
-                            }) =>
-                                task.Learn &&
-                                !task.isDeleted &&
-                                task.serverId === selectedServer?.serverId
-                        )
+                    const learnTasks = tasks.filter(
+                        (task: Task) => task.Learn && !task.isDeleted
                     );
-
-                    const learnTasks = response.data.filter(
-                        (task: { Learn: boolean; isDeleted: Boolean; serverId: string }) =>
-                            task?.Learn &&
-                            !task?.isDeleted &&
-                            task.serverId === selectedServer?.serverId
-                    );
-                    setFilteredTasks((prev) => {
-                        return {
-                            ...prev,
-                            [filter]: learnTasks,
-                        };
-                    });
+                    setTasksList(learnTasks);
+                    setFilteredTasks((prev) => ({ ...prev, [filter]: learnTasks }));
                 } else if (filter === "Deleted Tasks") {
-                    setTasksList(
-                        response.data.filter(
-                            (task: { isDeleted: Boolean; serverId: string }) =>
-                                task.isDeleted && task.serverId === selectedServer?.serverId
-                        )
-                    );
-
-                    const deletedTasks = response.data.filter(
-                        (task: { isDeleted: Boolean; serverId: string }) =>
-                            task?.isDeleted && task.serverId === selectedServer?.serverId
-                    );
-
-                    setFilteredTasks((prev) => {
-                        return {
-                            ...prev,
-                            [filter]: deletedTasks,
-                        };
-                    });
+                    const deletedTasks = tasks.filter((task: Task) => task.isDeleted);
+                    setTasksList(deletedTasks);
+                    setFilteredTasks((prev) => ({ ...prev, [filter]: deletedTasks }));
                 }
             }
 
@@ -948,7 +845,7 @@ const TaskSharing = () => {
                 )}
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className="text-black w-[50%] sm:w-[60%] md:w-[50%] lg:w-[60%] xl:w-[60%] shadow-lg border-2 bg-white rounded-lg">
+                    <div className="text-black w-[30%] sm:w-[30%] md:w-[35%] lg:w-[30%] xl:w-[30%] 2xl:w-[30%] shadow-lg border-2 bg-white rounded-lg">
                         <div className="mt-10 sm:mt-14 lg:mt-16 xl:mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>

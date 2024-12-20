@@ -3,6 +3,11 @@
 @tailwind utilities;
 @import "react-toastify/dist/ReactToastify.css";
 
+.break-words-custom {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 /* :root {
   --background: #ffffff;
   --foreground: #171717;
