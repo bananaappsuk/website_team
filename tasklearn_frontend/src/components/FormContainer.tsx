@@ -401,7 +401,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className=" relative">
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Task Code<span className="text-red-500">*</span>:
+                  Task Code:<span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -415,7 +415,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative">
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Created by<span className="text-red-500">*</span>:
+                  Created by:<span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -436,7 +436,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative" ref={searchRef}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Tag staff for help / Completion<span className="text-red-500">*</span>:
+                  Tag staff for help / Completion:<span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-x-3">
                   <div className="">
@@ -510,7 +510,7 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative" ref={searchRef2}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Contributing Staff:
+                  Contributing Staff:{task.isShared && <span className="text-red-500">*</span>}
                 </label>
                 <div className="flex gap-x-3">
                   {contributingTags?.map((tag, index) => (
@@ -599,7 +599,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
             <div className="col-span-2">
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                History
+                History{(task.isShared || task.isCompleted) && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               <textarea
                 placeholder=""
@@ -615,7 +617,9 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="flex gap-4 w-full">
               <div className="flex-1">
                 <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                  Examination
+                  Examination{(task.isShared || task.isCompleted) && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </label>
                 <textarea
                   placeholder=""
@@ -632,7 +636,9 @@ const FormContainer: React.FC<combinedProps> = ({
               </div>
               <div className="flex-1">
                 <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                  Diagnosis
+                  Diagnosis{(task.isShared || task.isCompleted) && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </label>
                 <textarea
                   placeholder=""
@@ -651,7 +657,9 @@ const FormContainer: React.FC<combinedProps> = ({
 
             <div className="col-span-2">
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                Plan
+                Plan{(task.isShared || task.isCompleted) && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               <textarea
                 placeholder=""
@@ -666,7 +674,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
             <div className="col-span-2">
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                Follow Up
+                Follow Up{(task.isShared || task.isCompleted) && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               <textarea
                 placeholder=""
@@ -681,7 +691,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
             <div className="col-span-2">
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                Post Consultation
+                Post Consultation{(task.isShared || task.isCompleted) && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               <textarea
                 placeholder=""
@@ -698,7 +710,9 @@ const FormContainer: React.FC<combinedProps> = ({
             </div>
             <div className="col-span-2">
               <label className="block mb-1 text-[#666666] text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px]">
-                Feedback
+                Feedback{(task.isShared || task.isCompleted) && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               <textarea
                 placeholder=""

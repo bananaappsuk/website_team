@@ -196,7 +196,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
                 </div>
             )}
 
-            <main className="mt-8">
+            <main className="mt-8 overflow-y-auto max-h-screen">
                 {filteredLibraries.map((library) => (
                     <div key={library._id} className="">
                         <div className="h-[1px] w-full bg-gray-300" />

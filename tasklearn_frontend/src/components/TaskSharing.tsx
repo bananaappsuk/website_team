@@ -713,7 +713,7 @@ const TaskSharing = () => {
                     handleResetInputs={handleResetInputs}
                     setFilteredTasks={setFilteredTasks}
                 />
-                <div className="w-[25%] sm:w-[30%] md:w-[40%] lg:w-[30%] w-[25%] flex min-h-screen">
+                <div className="w-[35%] sm:w-[30%] md:w-[40%] lg:w-[30%] w-[25%] flex min-h-screen">
                     <div className="pt-4 sm:pt-8 lg:pt-6 w-full bg-white space-y-2">
                         <div className="text-center">
                             <h1 className="text-[10px] sm:text-md md:text-md lg:text-xl xl:text-3xl font-bold text-[#68A86B]">
@@ -780,7 +780,7 @@ const TaskSharing = () => {
                     </div>
                 </div>
                 {showForm && (
-                    <section className="w-[100%] sm:w-[100%] md:w-[100%] lg:w-[100%] xl:w-[100%] bg-white shadow">
+                    <section className="w-[55%] sm:w-[100%] md:w-[100%] lg:w-[100%] xl:w-[65%] bg-white shadow">
                         <div className="pt-1">
                             <div className="pt-1 sm:pt-5 px-1 sm:px-4 text-black font-bold items-center flex justify-between">
                                 <div className="flex gap-x-2 items-center">
@@ -845,7 +845,7 @@ const TaskSharing = () => {
                 )}
                 {/* Quiz Section */}
                 {showQuiz && (
-                    <div className="text-black w-[30%] sm:w-[30%] md:w-[35%] lg:w-[30%] xl:w-[30%] 2xl:w-[30%] shadow-lg border-2 bg-white rounded-lg">
+                    <div className="text-black w-[30%] sm:w-[30%] md:w-[35%] lg:w-[30%] xl:w-[30%] 2xl:w-[40%] shadow-lg border-2 bg-white rounded-lg">
                         <div className="mt-10 sm:mt-14 lg:mt-16 xl:mt-20">
                             <div className="h-[1px] w-full bg-gray-300" />
                         </div>
