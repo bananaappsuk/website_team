@@ -31,10 +31,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
         [userName: string]: number;
     }>({});
     const [loading, setLoading] = useState<boolean>(true);
-    //useEffect for fetch tasks
-    useEffect(() => {
-        fetchTasks();
-    }, [selectedServer?.serverId]);
+
 
     const fetchTasks = async () => {
         setLoading(true)
@@ -86,8 +83,11 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
         }
     };
     useEffect(() => {
-        allUserId();
-    }, []);
+        if (selectedServer?.serverId) {
+            fetchTasks();
+            allUserId();
+        }
+    }, [selectedServer?.serverId]);
     useEffect(() => {
         if (tasksList.length === 0 || allUsers.length === 0) {
             setLeaderboard({});
@@ -113,7 +113,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
             return acc;
         }, {} as { [key: string]: number });
         setLeaderboard(leaderboardData);
-    }, [tasksList, allUsers]);
+    }, [tasksList, allUsers, loading]);
     const handleProfile = async (data: string) => {
         const [userName] = data.split(",");
         try {
@@ -209,8 +209,8 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                                         <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[12rem]">
                                             <button
                                                 className={`flex justify-start ${userName === currentUserData?.userName
-                                                        ? "cursor-default"
-                                                        : "cursor-pointer hover:underline"
+                                                    ? "cursor-default"
+                                                    : "cursor-pointer hover:underline"
                                                     }`}
                                                 onClick={() => handleProfile(key)}
                                                 disabled={userName === currentUserData?.userName}
