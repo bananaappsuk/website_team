@@ -25,7 +25,7 @@ const Login: React.FC = () => {
         // Redirect if already logged in
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                router.replace("/Homepage");  // Prevent going back to sign-in
+                router.replace("/Homepage");
             }
         });
     }, [router]);
