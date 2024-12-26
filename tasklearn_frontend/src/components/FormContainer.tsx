@@ -510,7 +510,9 @@ const FormContainer: React.FC<combinedProps> = ({
             <div className="relative" ref={searchRef2}>
               <div className="text-[7px] sm:text-[12px] md:text-[14px] md:text-[16px] flex items-start sm:items-center border border-gray p-1 rounded-md">
                 <label className="whitespace-nowrap mr-2 text-[#666666]">
-                  Contributing Staff:{task.isShared && <span className="text-red-500">*</span>}
+                  Contributing Staff:{(task.isShared || task.isCompleted) && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </label>
                 <div className="flex gap-x-3">
                   {contributingTags?.map((tag, index) => (

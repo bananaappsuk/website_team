@@ -161,15 +161,15 @@ const Requests: React.FC<Props> = ({ userData }) => {
     };
 
     return (
-        <div className="w-full mx-auto p-4">
-            <h2 className="text-center text-lg font-semibold mb-4">
+        <div className="w-full mx-auto p-4 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
+            <h2 className="text-center text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-lg font-semibold mb-4">
                 Follow Requests
             </h2>
             <ul className="space-y-4">
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-[20px] text-center items-center font-bold text-black mt-4">No follow requests</div>
+                    <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] text-center items-center font-bold text-black mt-4">No follow requests</div>
                 ) : (
                     reqUsers?.map((user, index) => (
                         <li
@@ -177,7 +177,7 @@ const Requests: React.FC<Props> = ({ userData }) => {
                             className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
                         >
                             <div>
-                                <p className="text-[20px] font-medium">
+                                <p className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] font-medium">
                                     {user.userName + "," + user.jobRole}
                                 </p>
                             </div>
