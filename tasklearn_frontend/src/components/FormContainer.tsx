@@ -482,12 +482,12 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
               {showResults && serverUsers && !loading && !selectedTask && (
-                <div className="absolute left-[14.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
+                <div className="absolute left-[7rem] sm:left-[11.25rem] md:left-[15.25rem] lg:left-[15.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-[4rem] sm:w-[6rem] lg:w-[8rem] max-h-60 overflow-y-auto z-50 bg-red-500 cursor-pointer text-[8px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                   {serverUsers.length > 0
                     ? serverUsers?.map((user) => (
-                      <div key={user.uid} className="p-2 border-b">
+                      <div key={user.uid} className="p-1 sm:p-1.5 lg:p-2 border-b">
                         <p
-                          className="font-medium"
+                          className="font-medium text-center"
                           onClick={() =>
                             handleTagClick(user?.uid, user?.userName)
                           }
@@ -501,7 +501,7 @@ const FormContainer: React.FC<combinedProps> = ({
                     server?.memberList?.length > 0 &&
                     server?.memberList?.includes(userData?.uid) &&
                     searchUserName === "@" && (
-                      <div className="p-2 text-gray-500">No user found</div>
+                      <div className="p-2 text-gray-500 text-center">No user found</div>
                     )}
                 </div>
               )}
@@ -554,7 +554,7 @@ const FormContainer: React.FC<combinedProps> = ({
                 />
               </div>
               {showResults2 && serverUsers2 && !loading2 && !selectedTask && (
-                <div className="absolute left-[9.25rem] bg-white text-black shadow-lg rounded-lg mt-2 w-full sm:w-96 lg:w-[10rem] max-h-60 overflow-y-auto z-50 cursor-pointer">
+                <div className="absolute left-[4.5rem] sm:left-[7.25rem] md:left-[9.25rem] lg:left-[9.5rem] bg-white text-black shadow-lg rounded-lg mt-2 w-[4rem] sm:w-[6rem] lg:w-[8rem] max-h-60 overflow-y-auto z-50 cursor-pointer text-[8px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                   {serverUsers2.length > 0
                     ? serverUsers2?.map((user) => (
                       <div key={user.uid} className="p-2 border-b">
