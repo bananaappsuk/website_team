@@ -116,7 +116,7 @@ const Career: React.FC<Props> = ({ userData }) => {
         <>
             <ToastContainer />
 
-            <div className="w-full mx-auto p-4 bg-white rounded-md relative">
+            <div className="w-full mx-auto p-4 bg-white rounded-md relative text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                 <form action="">
                     <div className="mb-4">
                         <div className="bg-white rounded-md">
@@ -149,7 +149,7 @@ const Career: React.FC<Props> = ({ userData }) => {
                         </div>
                     </div>
                     <button
-                        className={`absolute right-4 text-white rounded-md p-1 px-6  ${isButtonDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-[#67A76B] hover:bg-green-600"}`}
+                        className={`absolute right-4 text-white rounded-md p-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6  ${isButtonDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-[#67A76B] hover:bg-green-600"}`}
                         onClick={handleSave}
                         disabled={isButtonDisabled}
                     >

@@ -140,13 +140,13 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
         }
     };
     return (
-        <div className="flex flex-col items-center">
-            <h1 className="font-bold text-[20px]">
+        <div className="flex flex-col items-center text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
+            <h1 className="font-bold text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px]">
                 {selectedServer && selectedServer.serverName}
             </h1>
-            <div className="grid grid-cols-2 gap-[2rem] items-center justify-center font-bold gap-x-[19rem] mt-[2.5rem] mb-8">
+            <div className="grid grid-cols-2 gap-[2rem] items-center justify-center font-bold gap-x-[2rem] sm:gap-x-[4rem] md:gap-x-[6rem] lg:gap-x-[8rem] xl:gap-x-[15rem] mt-[2.5rem] mb-8">
                 <p>Number of pending tasks</p>
-                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[20px] h-[14px] sm:w-[25px] sm:h-[17px] md:w-[30px] md:h-[20px] lg:w-[40px] lg:h-[22px] xl:w-[50px] xl:h-[25px] border border-[#848181] flex justify-center">
                     {
                         tasksList.filter(
                             (task: {
@@ -161,7 +161,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     }
                 </p>
                 <p>Number of completed tasks</p>
-                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[20px] h-[14px] sm:w-[25px] sm:h-[17px] md:w-[30px] md:h-[20px] lg:w-[40px] lg:h-[22px] xl:w-[50px] xl:h-[25px] border border-[#848181] flex justify-center">
                     {
                         tasksList.filter(
                             (task: {
@@ -176,7 +176,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                     }
                 </p>
                 <p>Number of learning tasks</p>
-                <p className="w-[50px] h-[25px] border border-[#848181] flex justify-center">
+                <p className="w-[20px] h-[14px] sm:w-[25px] sm:h-[17px] md:w-[30px] md:h-[20px] lg:w-[40px] lg:h-[22px] xl:w-[50px] xl:h-[25px] border border-[#848181] flex justify-center">
                     {" "}
                     {
                         tasksList.filter(
@@ -206,7 +206,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                                 const [userName] = key.split(",");
                                 return (
                                     <React.Fragment key={key}>
-                                        <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[12rem]">
+                                        <div className="mt-6 grid grid-cols-2 gap-[1rem] font-bold gap-x-[2rem] sm:gap-x-[4rem] md:gap-x-[6rem] lg:gap-x-[8rem] xl:gap-x-[19rem]">
                                             <button
                                                 className={`flex justify-start ${userName === currentUserData?.userName
                                                     ? "cursor-default"
@@ -217,7 +217,7 @@ const Tracking: React.FC<TrackingProps> = ({ selectedServer, currentUserData }) 
                                             >
                                                 {key}
                                             </button>
-                                            <p className="ml-[60px] w-[50px] h-[25px] border border-[#848181] flex justify-center">
+                                            <p className="ml-[60px] w-[20px] h-[14px] sm:w-[25px] sm:h-[17px] md:w-[30px] md:h-[20px] lg:w-[40px] lg:h-[22px] xl:w-[50px] xl:h-[25px] border border-[#848181] flex justify-center">
                                                 {count}
                                             </p>
                                         </div>

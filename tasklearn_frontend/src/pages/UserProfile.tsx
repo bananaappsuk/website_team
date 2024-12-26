@@ -443,7 +443,7 @@ const UserProfile = () => {
                 }} setFilteredTasks={function (value: React.SetStateAction<any[]>): void {
                     throw new Error("Function not implemented.");
                 }} />
-                <div className="md:w-full bg-white shadow-md rounded-lg text-black">
+                <div className="w-full bg-white shadow-md rounded-lg text-black">
                     <div className="p-4 flex justify-between">
                         <div className="text-start">
                             <h1 className="text-[12px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-[#68A86B]">
@@ -492,7 +492,7 @@ const UserProfile = () => {
                                         <img
                                             src={userData?.profilePicUrl}
                                             alt="profilePic"
-                                            className="bg-cover object-cover flex w-[67px] h-[67px] rounded-full"
+                                            className="bg-cover object-cover flex w-[37px] h-[37px] sm:w-[47px] sm:h-[47px] lg:w-[57px] lg:h-[57px] xl:w-[67px] xl:h-[67px] rounded-full"
                                         />
                                         <input
                                             type="file"
@@ -507,7 +507,7 @@ const UserProfile = () => {
                                     </div>
                                 ) : (
                                     <div
-                                        className="flex items-center justify-center w-[67px] h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg cursor-pointer"
+                                        className="flex items-center justify-center w-[37px] h-[37px] sm:w-[47px] sm:h-[47px] lg:w-[57px] lg:h-[57px] xl:w-[67px] xl:h-[67px] rounded-full bg-[#68A86B] text-white font-bold text-lg cursor-pointer"
                                         onClick={() => {
                                             if (!profilePicLoading) {
                                                 profilePicRef.current?.click();
@@ -614,7 +614,7 @@ const UserProfile = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="ml-auto relative mt-4 mr-8">
+                        <div className="ml-auto relative mt-4 mr-2 sm:mr-8">
                             <div ref={searchRef} className="relative">
                                 <input
                                     type="text"
@@ -664,7 +664,7 @@ const UserProfile = () => {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.name}
-                                    className={`px-3 lg:px-4 py-2 ${activeTab === tab.name
+                                    className={`text-[4px] sm:text-[10px] md:text-[12px] lg:text-[14px] 2xl:text-[16px] px-2 lg:px-4 py-1 sm:py-2 ${activeTab === tab.name
                                         ? "rounded-md border-b-2 border-[#68A86B] bg-[#68A86B] text-white"
                                         : "text-gray-500"
                                         }`}
@@ -679,9 +679,7 @@ const UserProfile = () => {
                                             <Image
                                                 src={activeTab === "Library" ? goldStar : grayStar}
                                                 alt="Star Icon"
-                                                width={20}
-                                                height={20}
-                                                className="ml-2"
+                                                className="ml-0.5 sm:ml-2 w-1.5 h-1.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5"
                                             />
                                         )}
                                     </span>
@@ -692,14 +690,14 @@ const UserProfile = () => {
                         <div className="p-4">
                             {activeTab === "MyQuiz" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
 
                                         <Quizzes userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Library" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         {selectedServer ? (
                                             <Libraries selectedServer={selectedServer} userData={userData} />
                                         ) : (
@@ -711,7 +709,7 @@ const UserProfile = () => {
                                 </div>
                             ) : activeTab === "Tracking" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%]  shadow-lg border-2 rounded-lg p-8">
                                         {selectedServer ? (
                                             <Tracking selectedServer={selectedServer} currentUserData={userData} />
                                         ) : (
@@ -723,37 +721,37 @@ const UserProfile = () => {
                                 </div>
                             ) : activeTab === "Followers" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Followers userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Following" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Following userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Career" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Career userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Requests" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Requests userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Feed" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Feed userData={userData} />
                                     </div>
                                 </div>
                             ) : activeTab === "Saved" ? (
                                 <div className="flex justify-center">
-                                    <div className="w-[70%] shadow-lg border-2 rounded-lg p-8">
+                                    <div className="w-full sm:w-[70%] shadow-lg border-2 rounded-lg p-8">
                                         <Saved userData={userData} />
                                     </div>
                                 </div>
