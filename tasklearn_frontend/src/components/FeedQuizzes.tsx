@@ -377,12 +377,12 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
     }
 
     if (quizzes.length === 0) {
-        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No feed quizzes available</div>;
+        return <div className="text-[11px] sm:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] text-center items-center font-bold text-black mt-12">No feed quizzes available</div>;
     }
 
 
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="w-full min-h-screen bg-white  text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <div className="flex">
                 {searchTerm && (
                     <div className="font-bold">
@@ -413,7 +413,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
             </div>
 
             {filteredQuizzes.length === 0 && (
-                <div className="text-[20px] text-center font-bold items-center text-black mt-12">
+                <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] text-center font-bold items-center text-black mt-12">
                     No feed quizzes available
                 </div>
             )}
@@ -421,7 +421,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                 <div>
                     <div className="my-8 flex justify-between items-center">
                         <div className="flex font-bold">
-                            <div className="text-[20px] text-start" >
+                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-start" >
                                 <div className="cursor-pointer text-black hover:underline" onClick={() =>
                                     handleProfile(
                                         `${userData[currentQuizIndex]?.userName},${userData[currentQuizIndex]?.jobRole}`
@@ -433,7 +433,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                     <span>{userData && userData[currentQuizIndex]?.jobRole}</span>{" "}
                                 </div>
                             </div>
-                            <div className="text-[20px] text-start">
+                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-start">
                                 <span className="ml-2">
                                     [
                                     {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
@@ -449,14 +449,14 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                             {filteredQuizzes[currentQuizIndex]?.Library && (
 
                                 <div className="ml-4">
-                                    <Image src={goldStar} alt="Star" className="h-6 w-6" />
+                                    <Image src={goldStar} alt="Star" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                                 </div>
                             )}
                         </div>
                         <div className="relative group flex gap-4">
                             <div className="justify-end flex ml-auto">
                                 <button
-                                    className={`p-2 px-7 rounded-md bg-[#68A86B] text-white ${isSaved ? "cursor-default" : "cursor-pointer"}`}
+                                    className={`p-2 px-3 sm:px-4 md:px-5 lg:px-6 xl:px-7 rounded-md bg-[#68A86B] text-white ${isSaved ? "cursor-default" : "cursor-pointer"}`}
                                     onClick={() => handleSave(filteredQuizzes[currentQuizIndex]._id)}
                                     disabled={isSaved}
                                 >
@@ -529,7 +529,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                 onClick={handleClear}
                             >
                                 <span className="mr-1">
-                                    <Image src={clear} alt="clear" className="h-8 w-8" />
+                                    <Image src={clear} alt="clear" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:h-8 xl:w-8" />
                                 </span>
                             </button>
                             <button
@@ -538,7 +538,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                 className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
                                 <span className="mr-1">
-                                    <Image src={submit} alt="submit" className="h-10 w-10" />
+                                    <Image src={submit} alt="submit" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 xl:h-10 xl:w-10" />
                                 </span>
                             </button>
                         </div>
@@ -578,9 +578,9 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                             </button>
                         </div>
 
-                        <div className="mt-12 text-black flex flex-col">
-                            <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
-                                <span className="w-48 text-right">Score:</span>
+                        <div className="mt-12 text-black flex flex-col justify-center items-center">
+                            <div className="flex justify-center items-center font-bold ml-4">
+                                <span className="text-right">Score:</span>
                                 <input
                                     className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                     value={score ?? 0}
@@ -593,8 +593,8 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                                     readOnly
                                 />
                             </div>
-                            <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
-                                <span className="w-48 text-right">Total Questions:</span>
+                            <div className="mt-4 flex justify-center items-center font-bold">
+                                <span className="text-right">Total Questions:</span>
                                 <input
                                     className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                     value={filteredQuizzes.length}

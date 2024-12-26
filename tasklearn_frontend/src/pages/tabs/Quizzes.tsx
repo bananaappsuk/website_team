@@ -323,7 +323,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
     // If there are no quizzes, show a message
     if (quizzes.length === 0) {
-        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No quizzes available</div>;
+        return <div className="text-[11px] sm:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] text-center items-center font-bold text-black mt-12">No quizzes available</div>;
     }
 
 
@@ -338,7 +338,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                 {!showQuiz && (
                     <div className="flex justify-end items-center">
                         {filteredQuizzes.length > 0 && (
-                            <div className="ml-20 lg:ml-60 text-center font-bold flex-1 text-[14px] xl:text-[20px]">Quiz Visible to</div>
+                            <div className="ml-2 sm:ml-8 md:ml-12 lg:ml-52 xl:ml-60 text-center font-bold flex-1 text-[5px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px]">Quiz Visible to</div>
                         )}
                         <div className="flex justify-end ml-auto relative">
                             <input
@@ -360,12 +360,12 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
 
                 <main className="">
                     {filteredQuizzes.length === 0 ? (
-                        <div className="text-[20px] text-center items-center font-bold text-black mt-12">
+                        <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[16px] text-center items-center font-bold text-black mt-12">
                             No quizzes available
                         </div>
                     ) : (
                         <>
-                            <div className="px-8 lg:px-28 pt-8 pb-4 flex justify-between items-center">
+                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] px-8 lg:px-28 pt-8 pb-4 flex justify-between items-center">
                                 <div>
                                     <input
                                         type="radio"
@@ -406,16 +406,16 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                 <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
                                     {searchTerm && (
                                         <div className="flex justify-start font-bold">
-                                            <span className="w-48">Total Questions (Filtered):</span>
+                                            <span className="w-48 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">Total Questions (Filtered):</span>
                                             <input
                                                 className="ml-2 w-12 border-2 text-center border-gray-300 rounded-md"
                                                 value={filteredQuizzes.length}
                                                 readOnly />
                                         </div>
                                     )}
-                                    <p className="flex ml-auto gap-4">
+                                    <p className="flex ml-auto gap-4 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                         {filteredQuizzes[currentQuizIndex]?.Library && (
-                                            <Image src={goldStar} alt="Star" className="h-6 w-6" />
+                                            <Image src={goldStar} alt="Star" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                                         )}
 
                                         {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
@@ -434,7 +434,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                             className="p-2"
                                             onClick={() => handleDeleteQuiz(filteredQuizzes[currentQuizIndex]?.taskId)}
                                         >
-                                            <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
+                                            <Image src={deleteIcon} alt="Delete" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                                         </button>
                                         <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                             Delete Quiz
@@ -442,7 +442,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex">
+                                <div className="mt-4 flex text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                     <div className="w-full flex-col">
                                         <div className="bg-white rounded-md">
                                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
@@ -476,7 +476,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-md my-6">
+                                <div className="bg-white rounded-md my-6 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                     <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
                                         Expected Action
                                     </h3>
@@ -494,7 +494,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     )}
                                 </div>
 
-                                <div className="flex justify-center mt-4 gap-8">
+                                <div className="flex justify-center mt-4 gap-8 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                     <button
                                         className="text-red-600 flex items-center"
                                         onClick={handleClear}
@@ -514,7 +514,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     </button>
                                 </div>
 
-                                <div className="my-8 flex justify-center">
+                                <div className="my-8 flex justify-center text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                     <button className="bg-[#67A76B] px-4 py-1 rounded-lg text-white font-bold"
                                         onClick={handleReset}
                                     >
@@ -523,7 +523,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                 </div>
 
 
-                                <div className="flex justify-center gap-40">
+                                <div className="flex justify-center gap-40 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                     <button onClick={() => {
                                         handlePrevQuiz();
                                         setIsAnswerSubmitted(false); // Re-enable submit for the previous question
@@ -554,9 +554,9 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                 </div>
 
 
-                                <div className="mt-12 text-black flex flex-col">
-                                    <div className="flex justify-center items-center font-bold mr-[140px]">
-                                        <span className="w-48 text-right">Score:</span>
+                                <div className="flex flex-col justify-center items-center mt-12 text-black flex flex-col text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
+                                    <div className="flex justify-center items-center font-bold">
+                                        <span className="text-right">Score:</span>
                                         <input
                                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                             value={score ?? 0}
@@ -567,8 +567,8 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                             value={`${question}`}
                                             readOnly />
                                     </div>
-                                    <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
-                                        <span className="w-48 text-right">Total Questions:</span>
+                                    <div className="mt-4 flex justify-center items-center font-bold">
+                                        <span className="text-right">Total Questions:</span>
                                         <input
                                             className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                             value={quizzes.length}

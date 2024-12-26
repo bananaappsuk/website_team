@@ -168,7 +168,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
     }
 
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="w-full min-h-screen bg-white text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <div className="w-full flex justify-center items-center">
                 <div className="relative w-[90%]">
                     <input
@@ -222,7 +222,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
                                             className="p-2"
                                             onClick={() => handleDeleteLibrary(library.taskId)}
                                         >
-                                            <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
+                                            <Image src={deleteIcon} alt="Delete" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                                         </button>
                                         <span className="absolute top-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                             Delete Library

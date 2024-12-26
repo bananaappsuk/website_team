@@ -166,7 +166,7 @@ const Followers: React.FC<Props> = ({ userData }) => {
     };
 
     return (
-        <div className="w-full mx-auto p-4">
+        <div className="w-full mx-auto p-4 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <h2 className="text-center text-lg font-semibold mb-4">
                 List of followers
             </h2>
@@ -175,7 +175,7 @@ const Followers: React.FC<Props> = ({ userData }) => {
                 {isloading ? (
                     <div className="text-center">Loading...</div>
                 ) : reqUsers.length === 0 ? (
-                    <div className="text-[20px] text-center items-center font-bold text-black mt-4">You don’t have any followers</div>
+                    <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-center items-center font-bold text-black mt-4">You don’t have any followers</div>
                 ) : (
                     reqUsers?.map((user, index) => {
                         const isPending = checkFollowRequest(user.uid);
@@ -198,7 +198,7 @@ const Followers: React.FC<Props> = ({ userData }) => {
                                 className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md"
                             >
                                 <div>
-                                    <p className="text-[20px] font-medium">
+                                    <p className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] font-medium">
                                         {user.userName + ", " + user.jobRole}
                                     </p>
                                 </div>

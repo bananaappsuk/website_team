@@ -316,12 +316,12 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
     }
 
     if (quizzes.length === 0) {
-        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No saved quizzes available</div>;
+        return <div className="text-[11px] sm:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] text-center items-center font-bold text-black mt-12">No saved quizzes available</div>;
     }
 
 
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="w-full min-h-screen bg-white text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <div className="my-4 flex justify-between items-center">
                 {searchTerm && (
                     <div className="font-bold">
@@ -349,7 +349,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                 </div>
             </div>
             {filteredQuizzes.length === 0 && (
-                <div className="text-[20px] text-center font-bold items-center text-black mt-12">
+                <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] text-center font-bold items-center text-black mt-12">
                     No saved quizzes available
                 </div>
             )}
@@ -358,7 +358,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                 <main className="">
                     <div className="text-black flex items-center gap-2 my-8">
                         <div className="font-bold">
-                            <div className="text-[20px] text-start" >
+                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-start" >
                                 <div className="cursor-pointer text-black hover:underline" onClick={() =>
                                     handleProfile(
                                         `${userData[currentQuizIndex]?.userName},${userData[currentQuizIndex]?.jobRole}`
@@ -371,7 +371,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="font-bold text-[20px] text-start">
+                        <div className="font-bold text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-start">
                             <span className="">
                                 [
                                 {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
@@ -386,7 +386,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                         </div>
                         {filteredQuizzes[currentQuizIndex]?.Library && (
                             <div className="ml-2">
-                                <Image src={goldStar} alt="Star" className="h-6 w-6 " />
+                                <Image src={goldStar} alt="Star" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                             </div>
                         )}
                         <div
@@ -396,7 +396,7 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                             }
                         >
                             <button className="">
-                                <Image src={deleteIcon} alt="Delete" className="h-6 w-6" />
+                                <Image src={deleteIcon} alt="Delete" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                             </button>
                             <span className="pt-1 absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                 Delete Quiz
@@ -513,9 +513,9 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                         </button>
                     </div>
 
-                    <div className="mt-12 text-black flex flex-col">
-                        <div className="flex justify-center items-center font-bold ml-4 mr-[140px]">
-                            <span className="w-48 text-right">Score:</span>
+                    <div className="mt-12 text-black flex flex-col justify-center items-center">
+                        <div className="flex justify-center items-center font-bold ml-4">
+                            <span className="text-right">Score:</span>
                             <input
                                 className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                 value={score ?? 0}
@@ -528,8 +528,8 @@ const SavedQuizzes: React.FC<Props> = ({ currentUserData }) => {
                                 readOnly
                             />
                         </div>
-                        <div className="mt-4 flex justify-center items-center font-bold mr-[44px]">
-                            <span className="w-48 text-right">Total Questions:</span>
+                        <div className="mt-4 flex justify-center items-center font-bold">
+                            <span className="text-right">Total Questions:</span>
                             <input
                                 className="w-12 text-center border-2 border-gray-300 rounded-md ml-2"
                                 value={filteredQuizzes.length}
