@@ -385,15 +385,16 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
         <div className="w-full min-h-screen bg-white  text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <div className="flex">
                 {searchTerm && (
-                    <div className="font-bold">
+                    <div className="sm:hidden font-bold">
                         <span className="w-100">Total Questions (Filtered):</span>
                         <input
-                            className="ml-2 w-12 border-2 text-center border-gray-300 rounded-md"
+                            className="ml-2 w-8 sm:w-9 md:w-10 lg:w-11 xl:w-12 h-5 md:h-6 lg:h-7 xl:h-8 2xl:h-9 border-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-center border-gray-300 rounded-md"
                             value={filteredQuizzes.length}
                             readOnly
                         />
                     </div>
                 )}
+
                 <div className="ml-auto">
                     <div className="relative">
                         <input
@@ -411,6 +412,16 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
                     </div>
                 </div>
             </div>
+            {searchTerm && (
+                <div className="mt-6 text-center hidden sm:block font-bold">
+                    <span className="w-100">Total Questions (Filtered):</span>
+                    <input
+                        className="ml-2 w-8 sm:w-9 md:w-10 lg:w-11 xl:w-12 h-5 md:h-6 lg:h-7 xl:h-8 2xl:h-9 border-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-center border-gray-300 rounded-md"
+                        value={filteredQuizzes.length}
+                        readOnly
+                    />
+                </div>
+            )}
 
             {filteredQuizzes.length === 0 && (
                 <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] text-center font-bold items-center text-black mt-12">
@@ -419,7 +430,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
             )}
             {filteredQuizzes.length > 0 && (
                 <div>
-                    <div className="my-8 flex justify-between items-center">
+                    <div className="my-4 sm:my-6 lg:my-8 flex justify-between items-center">
                         <div className="flex font-bold">
                             <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px] text-start" >
                                 <div className="cursor-pointer text-black hover:underline" onClick={() =>
@@ -483,7 +494,7 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
 
                                 <div className="bg-white rounded-md mb-4">
                                     <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                        Action
+                                        Your Action
                                     </h3>
                                     <textarea
                                         placeholder="Enter Answer"
@@ -507,11 +518,11 @@ const FeedQuizzes: React.FC<Props> = ({ fetchId, userId, currentUserData }) => {
 
                         <div className="bg-white rounded-md my-6">
                             <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                Action
+                                Expected Action
                             </h3>
                             {!showAnswer ? (
                                 <button
-                                    className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                    className="text-[#67A76B] font-bold underline w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm"
                                     onClick={handleRevealAnswer}
                                 >
                                     CLICK TO REVEAL ANSWER

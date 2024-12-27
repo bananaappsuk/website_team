@@ -299,13 +299,13 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
     }
 
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="w-full min-h-screen bg-white text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
             <div className="my-4 flex justify-between items-center">
                 {searchTerm && (
-                    <div className="text-[7px] sm:text-[12px] md:text-[14px] xl:text-[16px] flex justify-start font-bold">
-                        <span className="">Total Questions (Filtered):</span>
+                    <div className="sm:hidden font-bold">
+                        <span className="w-100">Total Questions (Filtered):</span>
                         <input
-                            className="ml-2 w-4 sm:w-6 md:w-8 lg:w-10 xl:w-12 border-2 text-center border-gray-300 rounded-md"
+                            className="ml-2 w-8 sm:w-9 md:w-10 lg:w-11 xl:w-12 h-5 md:h-6 lg:h-7 xl:h-8 2xl:h-9 border-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-center border-gray-300 rounded-md"
                             value={filteredQuizzes.length}
                             readOnly
                         />
@@ -326,6 +326,17 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
                     />
                 </div>
             </div>
+
+            {searchTerm && (
+                <div className="mt-6 text-center hidden sm:block font-bold">
+                    <span className="w-100">Total Questions (Filtered):</span>
+                    <input
+                        className="ml-2 w-8 sm:w-9 md:w-10 lg:w-11 xl:w-12 h-5 md:h-6 lg:h-7 xl:h-8 2xl:h-9 border-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-center border-gray-300 rounded-md"
+                        value={filteredQuizzes.length}
+                        readOnly
+                    />
+                </div>
+            )}
             {filteredQuizzes.length === 0 && (
                 <div className="text-[20px] text-center font-bold items-center text-black mt-12">
                     No quizzes available
@@ -334,7 +345,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
             {filteredQuizzes.length > 0 && (
                 <main className="">
                     <div className="text-sm text-black flex items-center gap-4 ">
-                        <div className="font-bold text-[16px] text-start">
+                        <div className="font-bold text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-start">
                             <span className="">
                                 {filteredQuizzes[currentQuizIndex]?.createdAt instanceof Timestamp
                                     ? filteredQuizzes[currentQuizIndex]?.createdAt
@@ -361,7 +372,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
                             </div>
                             <div className="bg-white rounded-md mb-4">
                                 <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                    Action
+                                    Your Action
                                 </h3>
                                 <textarea
                                     placeholder="Enter Answer"
@@ -385,11 +396,11 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
 
                     <div className="bg-white rounded-md my-6">
                         <h3 className="font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                            Action
+                            Expected Action
                         </h3>
                         {!showAnswer ? (
                             <button
-                                className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                className="text-[#67A76B] font-bold underline w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm"
                                 onClick={handleRevealAnswer}
                             >
                                 CLICK TO REVEAL ANSWER
@@ -406,7 +417,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
                             onClick={handleClear}
                         >
                             <span className="mr-1">
-                                <Image src={clear} alt="clear" className="h-8 w-8" />
+                                <Image src={clear} alt="clear" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:h-8 xl:w-8" />
                             </span>
                         </button>
                         <button
@@ -415,7 +426,7 @@ const OtherProfileQuizzes: React.FC<Props> = ({ fetchId, otherUser, userDataCurr
                             className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                             <span className="mr-1">
-                                <Image src={submit} alt="submit" className="h-10 w-10" />
+                                <Image src={submit} alt="submit" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 xl:h-10 xl:w-10" />
                             </span>
                         </button>
                     </div>

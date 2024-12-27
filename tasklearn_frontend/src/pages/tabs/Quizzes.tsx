@@ -338,7 +338,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                 {!showQuiz && (
                     <div className="flex justify-end items-center">
                         {filteredQuizzes.length > 0 && (
-                            <div className="ml-2 sm:ml-8 md:ml-12 lg:ml-52 xl:ml-60 text-center font-bold flex-1 text-[5px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[20px]">Quiz Visible to</div>
+                            <div className="ml-52 xl:ml-60 text-center font-bold flex-1 text-[14px] xl:text-[20px] hidden lg:block">Quiz Visible to</div>
                         )}
                         <div className="flex justify-end ml-auto relative">
                             <input
@@ -357,6 +357,10 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                     </div>
                 )}
 
+                {filteredQuizzes.length > 0 && (
+                    <div className="py-4 sm:py-5 md:py-6 text-[12px] sm:text-[14px] md:text-[14px] text-center font-bold lg:hidden">Quiz Visible to</div>
+                )}
+
 
                 <main className="">
                     {filteredQuizzes.length === 0 ? (
@@ -365,7 +369,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                         </div>
                     ) : (
                         <>
-                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] px-8 lg:px-28 pt-8 pb-4 flex justify-between items-center">
+                            <div className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] px-8 lg:px-28 lg:pt-8 pb-4 flex justify-between items-center">
                                 <div>
                                     <input
                                         type="radio"
@@ -405,15 +409,15 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                             </div><div className="">
                                 <div className="text-sm text-black flex flex-row justify-between items-center gap-4">
                                     {searchTerm && (
-                                        <div className="flex justify-start font-bold">
-                                            <span className="w-48 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">Total Questions (Filtered):</span>
+                                        <div className="flex items-center justify-start font-bold">
+                                            <span className="text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">Total Questions (Filtered):</span>
                                             <input
-                                                className="ml-2 w-12 border-2 text-center border-gray-300 rounded-md"
+                                                className="ml-2 w-8 sm:w-9 md:w-10 lg:w-11 xl:w-12 h-5 md:h-6 lg:h-7 xl:h-8 2xl:h-9 border-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] text-center border-gray-300 rounded-md"
                                                 value={filteredQuizzes.length}
                                                 readOnly />
                                         </div>
                                     )}
-                                    <p className="flex ml-auto gap-4 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
+                                    <p className="flex items-center ml-auto gap-4 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px]">
                                         {filteredQuizzes[currentQuizIndex]?.Library && (
                                             <Image src={goldStar} alt="Star" className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 xl:h-6 xl:w-6" />
                                         )}
@@ -482,7 +486,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                     </h3>
                                     {!showAnswer ? (
                                         <button
-                                            className="text-[#67A76B] font-bold underline w-full px-10 py-6 border shadow-sm"
+                                            className="text-[#67A76B] font-bold underline w-full px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm"
                                             onClick={handleRevealAnswer}
                                         >
                                             CLICK TO REVEAL ANSWER
@@ -500,7 +504,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         onClick={handleClear}
                                     >
                                         <span className="mr-1">
-                                            <Image src={clear} alt="clear" className="h-8 w-8" />
+                                            <Image src={clear} alt="clear" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:h-8 xl:w-8" />
                                         </span>
                                     </button>
                                     <button
@@ -509,7 +513,7 @@ const Quizzes: React.FC<Props> = ({ userData, showQuiz = false }) => {
                                         className={`text-green-600 flex items-center ${isCurrentQuestionAnswered ? "opacity-50 cursor-not-allowed" : ""}`}
                                     >
                                         <span className="mr-1">
-                                            <Image src={submit} alt="submit" className="h-10 w-10" />
+                                            <Image src={submit} alt="submit" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 xl:h-10 xl:w-10" />
                                         </span>
                                     </button>
                                 </div>

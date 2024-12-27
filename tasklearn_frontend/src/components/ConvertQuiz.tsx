@@ -367,7 +367,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
                         <div className="bg-white rounded-md mb-4">
                             <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                                Action
+                                Your Action
                             </h3>
                             <textarea
                                 placeholder="Enter Answer"
@@ -391,7 +391,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
                 <div className="bg-white rounded-md my-2 lg:my-6">
                     <h3 className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] font-semibold text-black bg-[#E7E7E7] pl-2 py-1">
-                        Action
+                        Expected Action
                     </h3>
                     {!showAnswer ? (
                         <button
@@ -401,7 +401,7 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
                             CLICK TO REVEAL ANSWER
                         </button>
                     ) : (
-                        <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-black w-full font-bold text-center px-10 py-6 border shadow-sm break-words">
+                        <p className="text-[8px] sm:text-[10px] md:text-[12px] lg:text-[16px] text-black w-full font-bold text-center px-1 py-3 sm:px-2 sm:py-4 lg:px-10 lg:py-6 border shadow-sm break-words">
                             Answer:
                             <span className="ml-1">{filteredQuizzes[currentQuizIndex]?.action}</span>
                         </p>
