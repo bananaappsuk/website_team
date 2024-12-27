@@ -163,7 +163,7 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
         return <div>Error: {error}</div>;
     }
 
-    if (filteredLibraries.length === 0) {
+    if (libraries.length === 0) {
         return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No Library quizzes available</div>;
     }
 

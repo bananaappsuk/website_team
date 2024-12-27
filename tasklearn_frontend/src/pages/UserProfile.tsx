@@ -642,8 +642,8 @@ const UserProfile = () => {
                                                             key={user.email}
                                                             className="p-2 border-b w-full"
                                                         >
-                                                            <p className="font-semibold">{user.userName}</p>
-                                                            <p className="text-sm text-gray-500">
+                                                            <p className="font-semibold text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[18px]">{user.userName}</p>
+                                                            <p className="text-gray-500 text-[7px] sm:text-[9px] md:text-[11px] lg:text-[13px] xl:text-[15px]">
                                                                 {user.jobRole}
                                                             </p>
                                                         </div>
