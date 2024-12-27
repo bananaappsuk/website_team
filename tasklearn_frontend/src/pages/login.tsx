@@ -154,7 +154,7 @@ const Login: React.FC = () => {
                     if (serverId) {
                         router.push(`/join/${serverId}`); // Redirect to the server join page
                     } else {
-                        router.push("/Homepage"); // Redirect to homepage if no serverId
+                        router.push("/Homepage");
                     }
                 }, 500);
             }
