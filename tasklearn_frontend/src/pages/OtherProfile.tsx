@@ -367,7 +367,7 @@ const OtherProfile = () => {
 
 
     return (
-        <div className="w-full flex gap-2 bg-gray-100">
+        <div className="w-full flex gap-2 bg-gray-100 ">
             <div className="flex flex-col 2xl:flex-row w-full">
                 <div className="w-full lg:w-[100%] bg-white shadow-md p-4">
                     {/* Header */}
@@ -439,15 +439,15 @@ const OtherProfile = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center">
                             {/* Followers Section */}
                             <div className="w-full flex justify-around border-b mb-4 block lg:hidden">
-                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                <button className="text-center text-[11px] sm:text-[14px] md:text-[16px] lg:text-[14px] xl:text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
                                     Followers
                                 </button>
                             </div>
                             <div className="bg-white p-4 shadow-md rounded-md">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                                <h3 className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[14px] xl:text-lg font-bold border-b pb-2 mb-4">
                                     List of Followers
                                 </h3>
-                                <ul className="space-y-2 text-[14px] sm:text-[15px] ">
+                                <ul className="space-y-2 text-[7px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-lg">
                                     {followerUsers.length === 0 && <p>No Followers List Found</p>}
                                     {followerUsers?.map((user, index) => {
                                         const isPending = checkOtherFollowRequest(user.uid);
@@ -472,12 +472,12 @@ const OtherProfile = () => {
                                                 key={index}
                                                 className=" flex items-center gap-x-1 border-b py-2"
                                             >
-                                                <p className="w-[70%] text-[14px] text-left">
+                                                <p className="w-[70%] text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-[14px] text-left">
                                                     {user.userName + "," + user.jobRole}
                                                 </p>
 
                                                 <button
-                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-sm ${css.buttonStyle}`}
                                                     onClick={() => handleOtherFollower(user.uid)}
                                                     disabled={user.uid === userData?.uid}
                                                 >
@@ -491,12 +491,12 @@ const OtherProfile = () => {
                             </div>
                             {/* Following Section */}
                             <div className="flex justify-around border-b mb-4 block lg:hidden">
-                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                <button className="text-center text-[11px] sm:text-[14px] md:text-[16px] lg:text-[14px] xl:text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
                                     Following
                                 </button>
                             </div>
                             <div className="bg-white p-4 shadow-md rounded-md w-[100%]">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                                <h3 className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[14px] xl:text-lg font-bold border-b pb-2 mb-4">
                                     Following List
                                 </h3>
                                 <ul className="space-y-2">
@@ -526,12 +526,12 @@ const OtherProfile = () => {
                                                 key={index}
                                                 className="flex items-center gap-x-1 border-b py-2"
                                             >
-                                                <p className="w-[70%] text-[14px] text-left">
+                                                <p className="w-[70%] text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-[14px] text-left">
                                                     {user.userName + "," + user.jobRole}
                                                 </p>
 
                                                 <button
-                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-sm ${css.buttonStyle}`}
+                                                    className={`rounded-md transition  duration-300 px-10 py-1 w-[30%] flex justify-center text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-sm ${css.buttonStyle}`}
                                                     onClick={() => handleOtherFollower(user.uid)}
                                                     disabled={user.uid === userData?.uid}
                                                 >
@@ -546,26 +546,26 @@ const OtherProfile = () => {
                             </div>
                             {/* Career Section */}
                             <div className="flex justify-around border-b mb-4 block lg:hidden">
-                                <button className="text-center text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
+                                <button className="text-center text-[11px] sm:text-[14px] md:text-[16px] lg:text-[14px] xl:text-lg font-bold flex-1 py-2 border-gray-400 bg-gray-200">
                                     Career
                                 </button>
                             </div>
                             <div className="bg-white p-4 shadow-md rounded-md w-[100%]">
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                                <h3 className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[14px] xl:text-lg font-bold border-b pb-2 mb-4">
                                     Job role and description
                                 </h3>
                                 <textarea
                                     disabled
                                     value={otherUser?.jobsAndDescriptions || ""}
-                                    className="border mb-4 p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
+                                    className="border mb-4 p-2 h-24 w-full resize-none text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-[14px]" // Fixed height, full width, no resize
                                 ></textarea>
-                                <h3 className="text-lg font-bold border-b pb-2 mb-4">
+                                <h3 className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[14px] xl:text-lg font-bold border-b pb-2 mb-4">
                                     Career Aspirations
                                 </h3>
                                 <textarea
                                     disabled
                                     value={otherUser?.careerAspirations || ""}
-                                    className="border p-2 h-24 w-full resize-none" // Fixed height, full width, no resize
+                                    className="border p-2 h-24 w-full resize-none text-[7px] sm:text-[10px] md:text-[12px] lg:text-[10px] xl:text-[14px]" // Fixed height, full width, no resize
                                 ></textarea>
                             </div>
                         </div>

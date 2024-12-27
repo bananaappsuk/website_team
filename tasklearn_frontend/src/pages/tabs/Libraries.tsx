@@ -163,8 +163,8 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
         return <div>Error: {error}</div>;
     }
 
-    if (filteredLibraries.length === 0) {
-        return <div className="text-[20px] text-center items-center font-bold text-black mt-12">No Library quizzes available</div>;
+    if (libraries.length === 0) {
+        return <div className="text-[11px] sm:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] text-center items-center font-bold text-black mt-12">No Library quizzes available</div>;
     }
 
     return (
@@ -193,6 +193,12 @@ const Libraries: React.FC<Props> = ({ selectedServer, userData }) => {
                         value={filteredLibraries.length}
                         readOnly
                     />
+                </div>
+            )}
+
+            {filteredLibraries.length === 0 && (
+                <div className="text-[9px] sm:text-[12px] md:text-[14px] lg:text-[16px] xl:text-[20px] text-center items-center font-bold text-black mt-12">
+                    No Library quizzes available
                 </div>
             )}
 
