@@ -571,7 +571,7 @@ const UserProfile = () => {
                                             </select>
                                         </form>
                                     ) : (
-                                        <div className="flex items-center">
+                                        <div className="">
                                             <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg mt-2 font-bold">
                                                 {userData?.userName}, <span>{userData?.jobRole}</span>
                                             </p>
