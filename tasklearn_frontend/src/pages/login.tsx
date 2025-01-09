@@ -57,7 +57,6 @@ const Login: React.FC = () => {
             }
         };
 
-
         if (isUsername) {
             userName();
         }
