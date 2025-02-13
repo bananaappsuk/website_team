@@ -1,4 +1,4 @@
-// File: C:\Users\ajith\OneDrive\Documents\Ajith\Tasklearn_bananaappssuk\website_team\tasklearn_frontend\src\app\layout.tsx
+// File: R:\Grethena&ITTH-OfficeRelatedFilesandPPT\TRAININGS RELATED\Task-Learn-Live-Project-Related-Documents\Live Project - Mark 3 - Banana Apps Repo\website_team\tasklearn_frontend\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
