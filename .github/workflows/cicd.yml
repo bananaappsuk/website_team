@@ -14,7 +14,15 @@ jobs:
     - name: 📥 Checkout Repository
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}  # Uses the stored GitHub token
+        token: ${{ secrets.GH_TOKEN }}  # Uses PAT from GitHub Secrets
+
+    - name: 🛠 Configure Git Authentication
+      run: |
+        git config --global user.email "janjirala.KiranKumar@itth.co.uk"
+        git config --global user.name "kiran-kumar"
+        git config --global credential.helper store
+        echo "https://x-access-token:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+        chmod 600 ~/.git-credentials
 
     - name: 🛠 Install Dependencies (Backend)
       run: |
