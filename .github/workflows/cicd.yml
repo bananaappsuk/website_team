@@ -13,11 +13,13 @@ jobs:
     
     - name: 📥 Checkout Repository
       uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_TOKEN }}  # Uses the stored GitHub token
 
     - name: 🛠 Install Dependencies (Backend)
       run: |
         cd /home/ubuntu/website_team/tasklearn-backend
-        git pull https://x-access-token:${GH_TOKEN}@github.com/bananaappsuk/website_team.git staging-live-project-branch
+        git pull origin staging-live-project-branch
         npm install
         pm2 restart backend || pm2 start server.js --name backend
         pm2 save
@@ -25,7 +27,7 @@ jobs:
     - name: 🛠 Install Dependencies (Frontend)
       run: |
         cd /home/ubuntu/website_team/tasklearn_frontend
-        git pull https://x-access-token:${GH_TOKEN}@github.com/bananaappsuk/website_team.git staging-live-project-branch
+        git pull origin staging-live-project-branch
         npm install
         npm run build
         pm2 restart frontend || pm2 start npm --name frontend -- start
