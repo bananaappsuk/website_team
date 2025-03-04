@@ -3,32 +3,41 @@ name: 🚀 Deploy to AWS EC2 (Self-Hosted)
 on:
   push:
     branches:
-      - staging-live-project-branch  # Runs on every push to 'staging-live-project-branch.'
+      - staging-live-project-branch  # Runs on every push
 
 jobs:
   deploy:
     runs-on: self-hosted  # Uses EC2 as runner
 
     steps:
-    
+
     - name: 📥 Checkout Repository
       uses: actions/checkout@v3
 
+    - name: 🔧 Install Git & PM2
+      run: |
+        sudo apt update && sudo apt install -y git
+        npm install -g pm2
+
     - name: 🛠 Install Dependencies (Backend)
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         cd /home/ubuntu/website_team/tasklearn-backend
-        git pull origin staging-live-project-branch
+        git pull https://x-access-token:${GH_TOKEN}@github.com/bananaappsuk/website_team.git staging-live-project-branch
         npm install
-        pm2 restart backend || pm2 start server.js --name backend
+        pm2 restartOrStart backend -- start server.js
         pm2 save
 
     - name: 🛠 Install Dependencies (Frontend)
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         cd /home/ubuntu/website_team/tasklearn_frontend
-        git pull origin staging-live-project-branch
+        git pull https://x-access-token:${GH_TOKEN}@github.com/bananaappsuk/website_team.git staging-live-project-branch
         npm install
         npm run build
-        pm2 restart frontend || pm2 start npm --name frontend -- start
+        pm2 restartOrStart frontend -- start npm
         pm2 save
 
     - name: 🔄 Restart Nginx
