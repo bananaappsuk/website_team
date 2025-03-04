@@ -3,7 +3,7 @@ name: 🚀 Deploy to AWS EC2 (Self-Hosted)
 on:
   push:
     branches:
-      - staging-live-project-branch-tbd  # Runs on every push to 'staging-live-project-branch'
+      - staging-live-project-branch  # Runs on every push to 'staging-live-project-branch'
 
 jobs:
   deploy:
