@@ -145,12 +145,15 @@ const ConvertQuiz: React.FC<TaskSectionProps> = ({
 
 
     useEffect(() => {
+        console.log("Current selectedQuizTaskId:", selectedQuizTaskId); 
+
         if (selectedQuizTaskId && showQuiz) {
             const filtered = quizzes.filter(
                 (quiz) => quiz.taskId === selectedQuizTaskId
             );
             setFilteredQuizzes(filtered);
             if (filtered.length > 0) {
+                console.log("Filtered Quizzes:", filtered); 
                 const Newfiltered = quizzes.filter(
                     (quiz) => quiz.taskId !== selectedQuizTaskId
                 );
