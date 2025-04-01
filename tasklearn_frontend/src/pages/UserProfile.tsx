@@ -63,7 +63,7 @@
             followeeId: string;
             status: string;
         };
-        const [showLogout, setShowLogout] = useState(false);
+        const [show, setShowLogout] = useState(false);
         const dropdownRef = useRef<HTMLDivElement>(null);
         const [searchTerm, setSearchTerm] = useState("");
         const [activeTab, setActiveTab] = useState("MyQuiz");

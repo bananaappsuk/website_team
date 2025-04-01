@@ -6,6 +6,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { HiChevronRight } from "react-icons/hi";
 import deleteIcon from "../assets/Quiz/Vector.png";
+import removeUserIcon from "../assets/home/remove-user.jpg";
+import exitIcon from "../assets/home/exit.png"
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Task, useTask } from "../components/TaskContext";
 import axios from "axios";
@@ -66,11 +68,17 @@ type Props = {
 interface UserName {
     userName: string;
 }
-
-interface TaskSectionProps {
-    server: { serverId: string; serverName: string; createdByUserId: string } | null;
+interface JobRole {
+    jobRole: string;
 }
-
+interface TaskSectionProps {
+    server: { serverId: string; serverName: string; createdByUserId: string; memberList: string[] } | null;
+}
+interface ServerMember {
+    uid: string;  
+    username: string;
+    jobRole: string;
+}
 type CombinedProps = ServerDisplayProps & Props & Server & TaskSectionProps;
 
 const TaskSection: React.FC<CombinedProps> = ({
@@ -101,6 +109,13 @@ const TaskSection: React.FC<CombinedProps> = ({
     setContributingTags,
     handleResetInputs,
 }) => {
+    const [exitPopupOpen, setExitPopupOpen] = useState(false);
+    const [removePopupOpen, setRemovePopupOpen] = useState(false);
+    const [userToRemove, setUserToRemove] = useState<{ userId: string; username: string } | null>(null);
+    const [removeMsgText, setRemoveMsgText] = useState("");
+    const [serverMembers, setServerMembers] = useState<ServerMember[]>([]);
+    const userId = userData ? userData.uid : null;
+
     const { task, setTask, selectedServerId } = useTask();
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
@@ -111,7 +126,9 @@ const TaskSection: React.FC<CombinedProps> = ({
     const router = useRouter();
     const { id } = router.query;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [servers, setServers] = useState<Server | null>(null);
+   // const [servers, setServers] = useState<Server | null>(null);
+   const [servers, setServers] = useState<Server[]>([]);
+
     const [inviteLink, setInviteLink] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [buttonText, setButtonText] = useState("Copy");
@@ -153,18 +170,22 @@ const TaskSection: React.FC<CombinedProps> = ({
         });
         return await Promise.all(promises);
     };
+    const fetchJobRole = async (uids: string[]): Promise<JobRole[]> => {
+        const promises = uids.map(async (uid) => {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            return userDoc.data()?.jobRole;
+        });
+        return await Promise.all(promises);
+    };
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
     };
+    {/**
     const handleDropdown = (index: any) => {
-
-
         if (task.isCompleted) {
             setselectedTask(true)
         }
-
-
         const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
             i === index ? !isVisible : isVisible
         );
@@ -177,7 +198,39 @@ const TaskSection: React.FC<CombinedProps> = ({
         } else if (newDropdownVisible[index]) {
             fetchTasks(taskCategories[index]);
         }
+    }; */}
+
+    const handleDropdown = (index: any, item: string) => {
+        if (task?.isCompleted) {
+            setselectedTask(true);
+        }
+    
+        const newDropdownVisible = [...dropdownVisible]; // Creating a new dropdown visibility array
+    
+        // Toggle the dropdown visibility for the clicked item
+        newDropdownVisible[index] = !newDropdownVisible[index];
+        setDropdownVisible(newDropdownVisible);
+    
+        if (!newDropdownVisible[index]) {
+            // If the dropdown is closing, clear filtered tasks for the selected category
+            if (item !== "Server Member List") {
+                setFilteredTasks((prev) => ({
+                    ...prev,
+                    [item]: [], // Clear tasks for the clicked category
+                }));
+            }
+        } else {
+            // If the dropdown is opening, fetch tasks or server members
+            if (item === "Server Member List") {
+                // When "Server Member List" is clicked, fetch server members
+                fetchServerMembers();
+            } else {
+                // Otherwise, fetch tasks for the selected category
+                fetchTasks(item);
+            }
+        }
     };
+    
 
 
 
@@ -686,7 +739,174 @@ const TaskSection: React.FC<CombinedProps> = ({
         }
     }, []);
 
+    const fetchServerMembers = async () => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+    
+            if (!user) return;
+    
+            const token = await user.getIdToken();
+            const serverId = server?.serverId;
+    
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/server-members`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+    
+            if (response.status === 200) {
 
+              console.log("Fetched server members:", response.data);
+              // Fetch usernames using the uids
+              const usernames = await fetchUsernames2(response.data.members);
+
+              const jobRoles = await fetchJobRole(response.data.members); // Fetch job roles for the members
+
+              // Combine the user IDs with their respective usernames
+              const membersWithUsernames = response.data.members.map((memberId: number, index:number) => ({
+                  userId: memberId,
+                  username: usernames[index],  // Map the username fetched from fetchUsernames2
+                  jobRole: jobRoles[index],    // Map the job role fetched from fetchJobRoles
+              }));
+              setServerMembers(membersWithUsernames); // Store members with usernames
+            }
+        } catch (error) {
+            toast.error("Failed to fetch server members");
+            console.error("Error fetching server members:", error);
+        }
+    };
+    
+    // Fetch members when `server` changes
+    useEffect(() => {
+        if (server) {
+            fetchServerMembers();
+        }
+    }, [server]);
+    
+
+    const handleRemoveServerMember = async (serverId: string, userId: string): Promise<boolean> => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+    
+            if (!user) {
+                toast.error('User not authenticated');
+                return false;
+            }
+    
+            const token = await user.getIdToken();
+            console.log("Token", token);
+            
+            const response = await axios.delete(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/remove-member/${userId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+    
+            // Assuming the response contains a success message
+            if (response.data && response.data.message) {
+                toast.success(response.data.message || 'User h removed successfully!');
+                return true;  // Indicate success
+            }
+            return false;  // Indicate failure
+    
+        } catch (error) {
+            console.error('Error removing user from server:', error);
+            toast.error('Failed to remove user');
+            return false;  // Indicate failure
+        }
+    };
+    
+    const handleRemoveUserClick = (member: { userId: string; username: string }) => {
+        setRemoveMsgText(`Are you sure you want to remove "${member.username}" from the server?`);
+        setUserToRemove(member);
+        setRemovePopupOpen(true);
+    };
+    
+    const handleConfirmRemoveUser = async () => {
+        if (!server) {
+            toast.error("Server not found.");
+            return;
+        }
+    
+        if (userToRemove) {
+            const success = await handleRemoveServerMember(server.serverId, userToRemove.userId);
+    
+            if (success) {
+                // Update UI to remove user instantly without reloading
+                setServerMembers(prevMembers => prevMembers.filter(member => member.userId !== userToRemove.userId));
+    
+                // Close the confirmation popup and reset the state
+                setRemovePopupOpen(false);
+                setUserToRemove(null);
+            }
+        }
+    };
+    
+    const handleExitServer = async (serverId: string) => {
+        
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+    
+            if (!user) {
+                toast.error("You must be logged in to exit the server.");
+                return;
+            }
+    
+            const token = await user.getIdToken();
+            console.log("Token", token)
+    
+            // Make the API call to remove the user from the server
+            const response = await axios.delete(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/exit`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+    
+            // Check if the response is successful
+            if (response.status === 200) {
+                toast.success("You have exited server successfully.");
+            // Remove the server from local state
+            setServers((prevServers) =>
+                prevServers?.filter((server) => server._id !== serverId) || []
+              );
+              
+            // Redirect to homepage after updating the state
+            
+                router.push('/');
+           
+         // setExitPopupOpen(false); // Close the popup
+              
+            } else {
+                // Handle any error messages coming from the backend
+                toast.error(response.data.message || "Failed to exit the server.");
+                
+            }
+        } catch (error) {
+            console.error("Error exiting server:", error);
+    
+            // If error.response exists, use the message from the backend response
+            if (error.response) {
+                toast.error(error.response.data.message || "An error occurred while trying to exit the server.");
+            } else {
+                // Handle cases where no response is available (network error, etc.)
+                toast.error("Network error or backend is down.");
+            }
+        }
+    };
+    
+    
     return (
         <div>
             {deletePopupOpen && (
@@ -698,7 +918,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                 className=" text-white py-1 px-5 rounded-md hover:bg-red-600 bg-[#D26767] font-semibold transition duration-300"
                                 onClick={handleConfirmClick}
                             >
-                                Yes
+                                Remove
                             </button>
                             <button
                                 className={` text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300`}
@@ -709,7 +929,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                     setServerToDelete(null);
                                 }}
                             >
-                                No
+                                Cancel
                             </button>
                         </div>
                     </div>
@@ -750,6 +970,58 @@ const TaskSection: React.FC<CombinedProps> = ({
                                 </div>
                             </>
                         )}
+                        {/* Exit Server Button (for members who are not the creator) */}
+                        {/** 
+                            {server && user?.uid !== server.createdByUserId && (
+                                <>
+                                    <div className="sm:hidden relative group">
+                                        <button
+                                            className="h-1 w-1"
+                                            onClick={() => handleExitServer({ serverId: server.serverId })}
+                                        >
+                                            <Image src={exitIcon} alt="Exit" className="" />
+                                        </button>
+                                    </div>
+
+                                    <div className="hidden sm:block ml-auto relative group">
+                                        <button
+                                            className="flex items-center h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
+                                            onClick={() => handleExitServer({ serverId: server.serverId })}
+                                        >
+                                            <Image 
+                                            height={50}
+                                            src={exitIcon} 
+                                            alt="Exit" className="ml-8" />
+                                        </button>
+                                    </div>
+                                </>
+                            )}*/}
+                            {/* Exit Server Button (for members who are not the creator) */}
+                            {server && user?.uid !== server.createdByUserId && (
+                                <>
+                                    <div className="sm:hidden relative group">
+                                        <button
+                                            className="h-1 w-1"
+                                            onClick={() => setExitPopupOpen(true)} 
+                                        >
+                                            <Image src={exitIcon} alt="Exit" className="" />
+                                        </button>
+                                    </div>
+
+                                    <div className="hidden sm:block ml-auto relative group">
+                                        <button
+                                            className="flex items-center h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
+                                            onClick={() => setExitPopupOpen(true)} 
+                                        >
+                                            <Image 
+                                                height={50}
+                                                src={exitIcon} 
+                                                alt="Exit" className="ml-8" />
+                                        </button>
+                                    </div>
+                                </>
+                             )}
+
                         {isOpen ? (
                             <HiChevronDown className="mt-2 sm:mt-0 h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         ) : (
@@ -881,13 +1153,14 @@ const TaskSection: React.FC<CombinedProps> = ({
             {server ? (
                 <div className="mt-2">
                     <ul className="px-1 space-y-2 sm:px-2 sm:space-y-2 md:px-3 md:space-y-3 lg:px-4 lg:space-y-4">
+                     
                         {taskCategories.map((item: any, index: any) => (
                             <>
                                 <li
                                     key={item}
                                     onClick={() => {
                                         handleTasksClick(item);
-                                        handleDropdown(index);
+                                        handleDropdown(index,item);
                                     }}
                                     className="text-[6px] sm:text-[7px] md:text-[10px] lg:text-[12px] xl:text-[16px] flex justify-between items-center text-black font-bold cursor-pointer"
                                 >
@@ -898,6 +1171,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                         <HiChevronRight />
                                     )}
                                 </li>
+                                
                                 {dropdownVisible[index] &&
                                     filteredTasks[item]?.map((newItem: any, index: any) => {
                                         return (
@@ -924,9 +1198,82 @@ const TaskSection: React.FC<CombinedProps> = ({
                                                 </div>
                                             </>
                                         );
-                                    })}
-                            </>
+                                })}
+                                {/* Show Server Members list if it's the correct category */}
+                                
+                                {dropdownVisible[index] && item === "Server Member List" && 
+                                 user?.uid === server.createdByUserId &&
+                                (
+                                    <div className="text-black justify-between flex flex-col space-y-2">
+                                        {serverMembers
+                                                    ?.filter((member: ServerMember) => member.uid !== server.createdByUserId) // Exclude server creator
+
+                                        .map((member, idx) => (
+                                            <div key={idx} className="flex justify-between items-center">
+                                                <p className="text-[6px] sm:text-[7px] lg:text-[12px] xl:text-[16px] cursor-pointer hover:text-[#68A86B]">
+                                                    {member.username}  - {member.jobRole} {/* Display the username */}
+                                                </p>
+                                                <Image
+                                                    className="object-contain w-[5px] sm:w-[8px] lg:w-[12px] xl:w-[16px] cursor-pointer"
+                                                    src={removeUserIcon}
+                                                    alt="remove user"
+                                                    onClick={() => handleRemoveUserClick(member)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}  
+                        {removePopupOpen && (
+                            <div className="fixed inset-[-60px] bg-gray-800 bg-opacity-10 flex justify-center items-center z-10 text-black">
+                                <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+                                    <h1 className="text-center font-bold">{removeMsgText}</h1>
+                                    <div className="mt-5 flex justify-center gap-x-6">
+                                        <button
+                                            className=" text-white py-1 px-5 rounded-md hover:bg-red-600 bg-[#D26767] font-semibold transition duration-300"
+                                            onClick={handleConfirmRemoveUser}
+                                        >
+                                            Confirm
+                                        </button>
+                                        <button
+                                            className={` text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300`}
+                                            onClick={() => setRemovePopupOpen(false)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                          {/* Exit Confirmation Popup */}
+                          {exitPopupOpen &&  (
+                            <div className="fixed inset-[-60px] bg-gray-800 bg-opacity-10 flex justify-center items-center z-10 text-black">
+                                <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        Are you sure you want to leave <strong>{server.serverName}</strong>? You won’t be able to access this server anymore.
+                                    </p>                       
+                                    <div className="mt-5 flex justify-center gap-x-6">
+                                         <button
+                                            className={` text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300`}
+                                            onClick={() => handleExitServer(server.serverId)} // Pass serverId to handleExitServer
+
+                                        >
+                                            Exit Server
+                                        </button>
+                                        <button
+                                            className=" text-white py-1 px-5 rounded-md hover:bg-red-600 bg-[#D26767] font-semibold transition duration-300"
+                                            onClick={()=>setExitPopupOpen(false)}
+                                        >
+                                            Cancel
+                                        </button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        </>
+                            
                         ))}
+                    
                     </ul>
                 </div>
             ) : (

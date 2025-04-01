@@ -26,6 +26,7 @@ import { getAuth } from 'firebase/auth';
 
 
 const TaskSharing = () => {
+    
     const [showLogout, setShowLogout] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -43,13 +44,8 @@ const TaskSharing = () => {
         // Toggle the refresh trigger state
         setRefreshTrigger((prev) => !prev);
     };
-    const taskCategories = [
-        "All Tasks",
-        "Pending Tasks",
-        "Completed Tasks",
-        "Deleted Tasks",
-        "Learning",
-    ];
+    
+    
     type UserData = {
         uid: any;
         email: string;
@@ -73,9 +69,7 @@ const TaskSharing = () => {
         taskId: string;
     }
 
-    const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
-        Array(taskCategories.length).fill(false)
-    );
+    
     const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
     const [selectedTask, setselectedTask] = useState<any>(false);
     const [user, setUser] = useState<User | null>(null);
@@ -99,7 +93,18 @@ const TaskSharing = () => {
     const [btnDisable, setBtnDisble] = useState<boolean>(false)
     const [btnDisable2, setBtnDisble2] = useState<boolean>(false)
 
+    const taskCategories = [
+        "All Tasks",
+        "Pending Tasks",
+        "Completed Tasks",
+        "Deleted Tasks",
+        "Learning",
+        ...(selectedServer && user?.uid === selectedServer.createdByUserId ? ["Server Member List"] : [])
 
+    ];
+    const [dropdownVisible, setDropdownVisible] = useState<boolean[]>(
+        Array(taskCategories.length).fill(false)
+    );
     const handleServerSelect = (server: {
         serverId: string;
         serverName: string;
@@ -260,7 +265,6 @@ const TaskSharing = () => {
         const userDoc = await getDoc(doc(db, "users", uid));
         return userDoc.data()?.userName;
     };
-
     const userId = userData ? userData.uid : null;
 
     const handleResetInputs = () => {
@@ -613,8 +617,7 @@ const TaskSharing = () => {
             toast.error(error.message);
         }
     };
-
-
+   
 
     const fetchTasks = async (filter: any) => {
         setTaskLoading(true);
@@ -674,6 +677,18 @@ const TaskSharing = () => {
                     setTasksList(deletedTasks);
                     setFilteredTasks((prev) => ({ ...prev, [filter]: deletedTasks }));
                 }
+                // Check if filter includes "Server Member List" and if the task was created by the current user
+            if (filter === "Server Member List") {
+                // Only show the "Server Member List" dropdown if the current user is the task creator
+                const serverMembers = tasks.filter((task: Task) => task.createdBy === userData?.uid);
+                if (serverMembers.length > 0) {
+                    // Logic to display the dropdown for "Server Member List"
+                    setDropdownVisible((prevState) => ({
+                        ...prevState,
+                        "Server Member List": true, // Ensure the dropdown for server members is visible
+                    }));
+                }
+            }
             }
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
