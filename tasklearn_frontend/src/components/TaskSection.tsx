@@ -18,6 +18,7 @@ import { useRouter } from "next/router";
 import Plus from "../assets/home/icon.png";
 import { getAuth } from "firebase/auth";
 import { Router } from "react-router-dom";
+import { RxExit } from "react-icons/rx";
 
 interface Server {
     _id: string;
@@ -26,7 +27,8 @@ interface Server {
 }
 
 interface ServerDisplayProps {
-    server: { serverId: string; serverName: string; createdByUserId: string } | null;
+    server: { serverId: string; serverName: string; createdByUserId: string, memberList: string[]; } | null;
+
 }
 
 type UserData = {
@@ -125,8 +127,6 @@ const TaskSection: React.FC<CombinedProps> = ({
     const ServerDropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const { id } = router.query;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-   // const [servers, setServers] = useState<Server | null>(null);
    const [servers, setServers] = useState<Server[]>([]);
 
     const [inviteLink, setInviteLink] = useState("");
@@ -181,24 +181,6 @@ const TaskSection: React.FC<CombinedProps> = ({
     const toggleOpen = () => {
         setIsOpen(!isOpen);
     };
-    {/**
-    const handleDropdown = (index: any) => {
-        if (task.isCompleted) {
-            setselectedTask(true)
-        }
-        const newDropdownVisible = dropdownVisible.map((isVisible, i) =>
-            i === index ? !isVisible : isVisible
-        );
-        setDropdownVisible(newDropdownVisible);
-        if (!newDropdownVisible[index]) {
-            setFilteredTasks((prev) => ({
-                ...prev,
-                [taskCategories[index]]: [],
-            }));
-        } else if (newDropdownVisible[index]) {
-            fetchTasks(taskCategories[index]);
-        }
-    }; */}
 
     const handleDropdown = (index: any, item: string) => {
         if (task?.isCompleted) {
@@ -772,6 +754,8 @@ const TaskSection: React.FC<CombinedProps> = ({
                   username: usernames[index],  // Map the username fetched from fetchUsernames2
                   jobRole: jobRoles[index],    // Map the job role fetched from fetchJobRoles
               }));
+              console.log("Username",usernames)
+              console.log("Job Role", jobRoles)
               setServerMembers(membersWithUsernames); // Store members with usernames
             }
         } catch (error) {
@@ -787,20 +771,21 @@ const TaskSection: React.FC<CombinedProps> = ({
         }
     }, [server]);
     
-
-    const handleRemoveServerMember = async (serverId: string, userId: string): Promise<boolean> => {
+    const handleRemoveServerMember = async (
+        serverId: string,
+        userId: string
+    ): Promise<{ serverName: string; username: string } | null> => {
         try {
             const auth = getAuth();
             const user = auth.currentUser;
     
             if (!user) {
                 toast.error('User not authenticated');
-                return false;
+                return null;
             }
     
             const token = await user.getIdToken();
-            console.log("Token", token);
-            
+    
             const response = await axios.delete(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/remove-member/${userId}`,
                 {
@@ -810,17 +795,18 @@ const TaskSection: React.FC<CombinedProps> = ({
                 }
             );
     
-            // Assuming the response contains a success message
-            if (response.data && response.data.message) {
-                toast.success(response.data.message || 'User h removed successfully!');
-                return true;  // Indicate success
+            if (response.status === 200) {
+                return {
+                    serverName: response.data.serverName,
+                    username: response.data.username,
+                };
             }
-            return false;  // Indicate failure
+    
+            return null;
     
         } catch (error) {
             console.error('Error removing user from server:', error);
-            toast.error('Failed to remove user');
-            return false;  // Indicate failure
+            return null;
         }
     };
     
@@ -831,81 +817,75 @@ const TaskSection: React.FC<CombinedProps> = ({
     };
     
     const handleConfirmRemoveUser = async () => {
-        if (!server) {
-            toast.error("Server not found.");
+        if (!server || !userToRemove) {
+            toast.error("Server not found or user missing.");
             return;
         }
     
-        if (userToRemove) {
-            const success = await handleRemoveServerMember(server.serverId, userToRemove.userId);
+        const { username, userId } = userToRemove;
     
-            if (success) {
-                // Update UI to remove user instantly without reloading
-                setServerMembers(prevMembers => prevMembers.filter(member => member.userId !== userToRemove.userId));
+        const removed = await handleRemoveServerMember(server.serverId, userId);
     
-                // Close the confirmation popup and reset the state
-                setRemovePopupOpen(false);
-                setUserToRemove(null);
-            }
+        if (removed) {
+            toast.success(`Successfully removed "${username}" from the server`);
+            setServerMembers(prev => prev.filter(member => member.userId !== userId));
+        } else {
+            toast.error(`Failed to remove "${username}" from the server`);
         }
+    
+        setRemovePopupOpen(false);
+        setUserToRemove(null);
     };
     
     const handleExitServer = async (serverId: string) => {
-        
+        const auth = getAuth();
+        const user = auth.currentUser;
+    
+        if (!user) {
+            toast.error("You must be logged in to exit the server.");
+            return;
+        }
+    
+        const token = await user.getIdToken();
+    
         try {
-            const auth = getAuth();
-            const user = auth.currentUser;
-    
-            if (!user) {
-                toast.error("You must be logged in to exit the server.");
-                return;
-            }
-    
-            const token = await user.getIdToken();
-            console.log("Token", token)
-    
-            // Make the API call to remove the user from the server
             const response = await axios.delete(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/servers/${serverId}/exit`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                    },
+                        'Content-Type': 'application/json'
+                    }
                 }
             );
     
-            // Check if the response is successful
-            if (response.status === 200) {
-                toast.success("You have exited server successfully.");
-            // Remove the server from local state
-            setServers((prevServers) =>
-                prevServers?.filter((server) => server._id !== serverId) || []
-              );
-              
-            // Redirect to homepage after updating the state
-            
+            const updatedServer = response.data.updatedServer;
+            console.log("Response updatedServer:", updatedServer);
+    
+            if (updatedServer) {
+                if (updatedServer.isDeleted) {
+                    toast.success('The server has been successfully deleted.');
+    
+                    setServers((prevServers) => {
+                        const filtered = prevServers.filter((server) => server._id !== serverId);
+                        return filtered;
+                    });
+                } else {
+                    toast.info('You have successfully exited the server.');
+
+                }
                 router.push('/');
-           
-         // setExitPopupOpen(false); // Close the popup
-              
+
             } else {
-                // Handle any error messages coming from the backend
-                toast.error(response.data.message || "Failed to exit the server.");
-                
+                toast.error('Unable to update server details.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error exiting server:", error);
-    
-            // If error.response exists, use the message from the backend response
-            if (error.response) {
-                toast.error(error.response.data.message || "An error occurred while trying to exit the server.");
-            } else {
-                // Handle cases where no response is available (network error, etc.)
-                toast.error("Network error or backend is down.");
-            }
+            toast.error(error.response?.data?.message || "Something went wrong.");
         }
-    };
     
+        setExitPopupOpen(false);
+    };
     
     return (
         <div>
@@ -970,58 +950,16 @@ const TaskSection: React.FC<CombinedProps> = ({
                                 </div>
                             </>
                         )}
-                        {/* Exit Server Button (for members who are not the creator) */}
-                        {/** 
-                            {server && user?.uid !== server.createdByUserId && (
-                                <>
-                                    <div className="sm:hidden relative group">
-                                        <button
-                                            className="h-1 w-1"
-                                            onClick={() => handleExitServer({ serverId: server.serverId })}
-                                        >
-                                            <Image src={exitIcon} alt="Exit" className="" />
-                                        </button>
-                                    </div>
 
-                                    <div className="hidden sm:block ml-auto relative group">
-                                        <button
-                                            className="flex items-center h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
-                                            onClick={() => handleExitServer({ serverId: server.serverId })}
-                                        >
-                                            <Image 
-                                            height={50}
-                                            src={exitIcon} 
-                                            alt="Exit" className="ml-8" />
-                                        </button>
-                                    </div>
-                                </>
-                            )}*/}
                             {/* Exit Server Button (for members who are not the creator) */}
                             {server && user?.uid !== server.createdByUserId && (
                                 <>
-                                    <div className="sm:hidden relative group">
-                                        <button
-                                            className="h-1 w-1"
-                                            onClick={() => setExitPopupOpen(true)} 
-                                        >
-                                            <Image src={exitIcon} alt="Exit" className="" />
-                                        </button>
-                                    </div>
-
-                                    <div className="hidden sm:block ml-auto relative group">
-                                        <button
-                                            className="flex items-center h-1 w-1 md:h-2 md:w-2 lg:h-3 lg:w-3 xl:h-3 xl:w-3"
-                                            onClick={() => setExitPopupOpen(true)} 
-                                        >
-                                            <Image 
-                                                height={50}
-                                                src={exitIcon} 
-                                                alt="Exit" className="ml-8" />
-                                        </button>
-                                    </div>
+                                        <RxExit 
+                                        onClick={() => setExitPopupOpen(true)} 
+                                        className="flex items-center ml-auto text-[#67A76B] hover:text-green-700 "/>
                                 </>
                              )}
-
+                    
                         {isOpen ? (
                             <HiChevronDown className="mt-2 sm:mt-0 h-2 w-2 sm:w-3 sm:h-3 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-gray-600" />
                         ) : (
@@ -1254,8 +1192,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                                     <div className="mt-5 flex justify-center gap-x-6">
                                          <button
                                             className={` text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300`}
-                                            onClick={() => handleExitServer(server.serverId)} // Pass serverId to handleExitServer
-
+                                           onClick={() => handleExitServer(server.serverId)} // Pass serverId to handleExitServer
                                         >
                                             Exit Server
                                         </button>

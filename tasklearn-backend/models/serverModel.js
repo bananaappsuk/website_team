@@ -14,6 +14,11 @@ const serverSchema = new mongoose.Schema({
   channelImage: { type: String, required: true },
   createdByUserId: { type: String, required: true },
   memberList: { type: [String], default: [] },
+  isDeleted: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
 });
 
 const Server = mongoose.model('Server', serverSchema);
