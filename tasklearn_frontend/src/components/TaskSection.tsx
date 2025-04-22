@@ -77,6 +77,7 @@ interface TaskSectionProps {
     server: { serverId: string; serverName: string; createdByUserId: string; memberList: string[] } | null;
 }
 interface ServerMember {
+    userId: string;
     uid: string;  
     username: string;
     jobRole: string;
@@ -828,7 +829,10 @@ const TaskSection: React.FC<CombinedProps> = ({
     
         if (removed) {
             toast.success(`Successfully removed "${username}" from the server`);
-            setServerMembers(prev => prev.filter(member => member.userId !== userId));
+           // setServerMembers(prev => prev.filter(member => member.userId !== userId));
+           setServerMembers(prev => {
+            return prev.filter((member: ServerMember) => member.userId !== userId);
+        });
         } else {
             toast.error(`Failed to remove "${username}" from the server`);
         }
