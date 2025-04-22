@@ -795,7 +795,6 @@ const TaskSection: React.FC<CombinedProps> = ({
                     },
                 }
             );
-    
             if (response.status === 200) {
                 return {
                     serverName: response.data.serverName,
@@ -922,8 +921,10 @@ const TaskSection: React.FC<CombinedProps> = ({
             {server ? (
                 <div ref={ServerDropdownRef} className="w-full max-w-md mx-auto">
                     <div
-                        className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10 sm:gap-0"
-                        onClick={toggleOpen}
+                       // className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10 sm:gap-0"
+                       className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10"
+
+                       onClick={toggleOpen}
                     >
                         <span className="mt-2 sm:mt-0 text-md font-bold text-black text-[6px] sm:text-[7px] md:text-[10px] lg:text-[14px] xl:text-[16px]">
                             {server.serverName}
@@ -1218,16 +1219,19 @@ const TaskSection: React.FC<CombinedProps> = ({
                     </ul>
                 </div>
             ) : (
+                
                 <div>
-                    <div className="text-[8px] flex items-center justify-center font-bold lg:px-4 lg:py-1 text-black block sm:hidden">
-                        {" "}
-                        Select a server
-                    </div>
-                    <div className="text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] flex items-center text-center justify-center font-bold lg:px-4 lg:py-1 text-black hidden sm:block">
-                        {" "}
-                        Create or Select a server
-                    </div>
+                {/* This shows only on extra-small screens */}
+                <div className="text-[8px] flex items-center justify-center font-bold lg:px-4 lg:py-1 text-black sm:hidden">
+                  Select a server
                 </div>
+              
+                {/* This shows on small screens and larger */}
+                <div className="text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] hidden sm:flex items-center justify-center text-center font-bold lg:px-4 lg:py-1 text-black">
+                  Create or Select a server
+                </div>
+              </div>
+              
             )}
         </div>
     );

@@ -884,7 +884,9 @@ var TaskSection = function (_a) {
                             setServerToDelete(null);
                         } }, "Cancel"))))),
         server ? (react_1["default"].createElement("div", { ref: ServerDropdownRef, className: "w-full max-w-md mx-auto" },
-            react_1["default"].createElement("div", { className: "flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10 sm:gap-0", onClick: toggleOpen },
+            react_1["default"].createElement("div", { 
+                // className="flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10 sm:gap-0"
+                className: "flex items-center justify-between px-2 sm:px-4 py-1 cursor-pointer gap-4 sm:gap-10", onClick: toggleOpen },
                 react_1["default"].createElement("span", { className: "mt-2 sm:mt-0 text-md font-bold text-black text-[6px] sm:text-[7px] md:text-[10px] lg:text-[14px] xl:text-[16px]" }, server.serverName),
                 server && (user === null || user === void 0 ? void 0 : user.uid) === server.createdByUserId && (react_1["default"].createElement(react_1["default"].Fragment, null,
                     react_1["default"].createElement("div", { className: "sm:hidden relative group" },
@@ -978,11 +980,7 @@ var TaskSection = function (_a) {
                                 react_1["default"].createElement("button", { className: " text-white bg-[#68A86B] hover:bg-gray-600 py-1 px-5 rounded-md font-semibold $transition duration-300", onClick: function () { return handleExitServer(server.serverId); } }, "Exit Server"),
                                 react_1["default"].createElement("button", { className: " text-white py-1 px-5 rounded-md hover:bg-red-600 bg-[#D26767] font-semibold transition duration-300", onClick: function () { return setExitPopupOpen(false); } }, "Cancel")))))));
             })))) : (react_1["default"].createElement("div", null,
-            react_1["default"].createElement("div", { className: "text-[8px] flex items-center justify-center font-bold lg:px-4 lg:py-1 text-black block sm:hidden" },
-                " ",
-                "Select a server"),
-            react_1["default"].createElement("div", { className: "text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] flex items-center text-center justify-center font-bold lg:px-4 lg:py-1 text-black hidden sm:block" },
-                " ",
-                "Create or Select a server")))));
+            react_1["default"].createElement("div", { className: "text-[8px] flex items-center justify-center font-bold lg:px-4 lg:py-1 text-black sm:hidden" }, "Select a server"),
+            react_1["default"].createElement("div", { className: "text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] hidden sm:flex items-center justify-center text-center font-bold lg:px-4 lg:py-1 text-black" }, "Create or Select a server")))));
 };
 exports["default"] = TaskSection;
