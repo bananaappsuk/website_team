@@ -609,7 +609,7 @@ var TaskSection = function (_a) {
     }); };
     react_1.useEffect(function () {
         var fetchServer = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var auth_7, user_6, token, baseUrl, response, data, error_7;
+            var auth_7, user_6, token, response, data, error_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -622,8 +622,7 @@ var TaskSection = function (_a) {
                         return [4 /*yield*/, user_6.getIdToken()];
                     case 1:
                         token = _a.sent();
-                        baseUrl = window.location.origin;
-                        return [4 /*yield*/, fetch(baseUrl + "/api/servers/" + id, {
+                        return [4 /*yield*/, fetch(window.location.origin + "/api/servers/" + id, {
                                 headers: {
                                     Authorization: "Bearer " + token
                                 }
