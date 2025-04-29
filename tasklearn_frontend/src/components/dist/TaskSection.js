@@ -622,7 +622,7 @@ var TaskSection = function (_a) {
                         return [4 /*yield*/, user_6.getIdToken()];
                     case 1:
                         token = _a.sent();
-                        return [4 /*yield*/, fetch(window.location.origin + "/api/servers/" + id, {
+                        return [4 /*yield*/, fetch(process.env.LIVE_URL + "/api/servers/" + id, {
                                 headers: {
                                     Authorization: "Bearer " + token
                                 }
