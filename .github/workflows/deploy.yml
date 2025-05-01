@@ -3,18 +3,17 @@ name: 🚀 Deploy to AWS EC2 (Self-Hosted)
 on:
   push:
     branches:
-      - feature-2admin-3normalmember  # Runs on every push to 'feature-2admin-3normalmember'
+      - feature-2admin-3normalmember
 
 jobs:
   deploy:
-    runs-on: self-hosted  # Uses EC2 as runner
+    runs-on: self-hosted
 
     steps:
-    
     - name: 📥 Checkout Repository
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}  # Uses PAT from GitHub Secrets
+        token: ${{ secrets.GH_TOKEN }}
 
     - name: 🛠 Configure Git Authentication
       run: |
@@ -25,18 +24,16 @@ jobs:
         chmod 600 ~/.git-credentials
 
     - name: 🛠 Install Dependencies (Backend)
+      working-directory: /home/ubuntu/website_team/tasklearn-backend
       run: |
-        cd /home/ubuntu/website_team/tasklearn-backend
-        git pull origin feature-2admin-3normalmember
-        npm install
+        NODE_ENV=production npm install
         pm2 restart backend || pm2 start server.js --name backend
         pm2 save
 
     - name: 🛠 Install Dependencies (Frontend)
+      working-directory: /home/ubuntu/website_team/tasklearn_frontend
       run: |
-        cd /home/ubuntu/website_team/tasklearn_frontend
-        git pull origin feature-2admin-3normalmember
-        npm install
+        NODE_ENV=production npm install
         npm run build
         pm2 restart frontend || pm2 start npm --name frontend -- start
         pm2 save
