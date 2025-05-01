@@ -3,7 +3,7 @@ name: 🚀 Deploy to AWS EC2 (Self-Hosted)
 on:
   push:
     branches:
-      - feature-2admin-3normalmember  # Runs on every push to 'feature-2admin-3normalmember.'
+      - feature-2admin-3normalmember-tbd  # Runs on every push to 'feature-2admin-3normalmember.'
 
 jobs:
   deploy:
