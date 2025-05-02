@@ -844,7 +844,7 @@ const FormContainer: React.FC<combinedProps> = ({
                   : "bg-[#68A86B] border border-[#68A86B] text-center text-white"
                 } py-1 px-0.5 sm:px-2 xl:px-5 rounded-md md:rounded-lg hover:text-black transition duration-300`}
               disabled={
-                (selectedTask && btnDisable) || !task.isShared || !task.Learn
+                (selectedTask && btnDisable) || !task.isShared || !task.Learn 
               }
             >
               Complete

@@ -15,6 +15,7 @@ const {
   deleteSavedQuizzes,
   getFollowerQuizzesOtherProfile,
   getPublicQuizzesOtherProfile,
+  getQuizzesByContributingStaff,
 } = require("../controllers/quizController");
 
 const router = express.Router();
@@ -33,5 +34,6 @@ router.patch("/feed/saved/delete/:id", deleteSavedQuizzes);
 router.patch("/save/:id",saveQuizzes);
 router.get("/feed/followers/:id",getFollowerQuizzesOtherProfile);
 router.get("/all/feed/public",getPublicQuizzesOtherProfile);
+router.get('/contributing-staff/:id', getQuizzesByContributingStaff);
 
 module.exports = router;

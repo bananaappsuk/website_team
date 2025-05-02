@@ -4,106 +4,106 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @next/next/no-html-link-for-pages */
-import React, { useEffect, useRef, useState } from "react";
-import { useTask } from "../components/TaskContext";
-import { User } from "firebase/auth";
-import { auth, db } from "../firebase";
-import { getDoc, doc, query, where, updateDoc } from "firebase/firestore";
-import "../../src/app/globals.css";
-import Quizzes from "./tabs/Quizzes";
-import Image from "next/image";
-import searchIcon from "../../src/assets/Quiz/Group 1.png";
-import goldStar from "../../src/assets/Library/Vector (1).png";
-import grayStar from "../../src/assets/Library/Vector.png";
-import { useRouter } from "next/router";
-import Libraries from "./tabs/Libraries";
-import Tracking from "./tabs/Tracking";
-import { useAuth } from "../auth";
-import { collection, getDocs, addDoc, deleteDoc } from "firebase/firestore";
-import SidebarProfile from "@/components/SidebarProfile";
-import Followers from "./tabs/Followers";
-import Following from "./tabs/Following";
-import Career from "./tabs/Career";
-import Requests from "./tabs/FollowRequests";
-import { toast, ToastContainer } from "react-toastify";
-import { encryptData, decryptData } from "../utils/cryptoUtils";
-import Feed from "./tabs/Feed";
-import Saved from "./tabs/Saved";
-import { MdModeEditOutline } from "react-icons/md";
-import { getAuth } from 'firebase/auth';
+    import React, { useEffect, useRef, useState } from "react";
+    import { useTask } from "../components/TaskContext";
+    import { User } from "firebase/auth";
+    import { auth, db } from "../firebase";
+    import { getDoc, doc, query, where, updateDoc } from "firebase/firestore";
+    import "../../src/app/globals.css";
+    import Quizzes from "./tabs/Quizzes";
+    import Image from "next/image";
+    import searchIcon from "../../src/assets/Quiz/Group 1.png";
+    import goldStar from "../../src/assets/Library/Vector (1).png";
+    import grayStar from "../../src/assets/Library/Vector.png";
+    import { useRouter } from "next/router";
+    import Libraries from "./tabs/Libraries";
+    import Tracking from "./tabs/Tracking";
+    import { useAuth } from "../auth";
+    import { collection, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+    import SidebarProfile from "@/components/SidebarProfile";
+    import Followers from "./tabs/Followers";
+    import Following from "./tabs/Following";
+    import Career from "./tabs/Career";
+    import Requests from "./tabs/FollowRequests";
+    import { toast, ToastContainer } from "react-toastify";
+    import { encryptData, decryptData } from "../utils/cryptoUtils";
+    import Feed from "./tabs/Feed";
+    import Saved from "./tabs/Saved";
+    import { MdModeEditOutline } from "react-icons/md";
+    import { getAuth } from 'firebase/auth';
 
-type Profile = {
-    userName: string;
-    jobRole: string;
-};
-
-const tabs = [
-    { name: "MyQuiz" },
-    { name: "Library" },
-    { name: "Tracking", content: "Tracking Content" },
-    { name: "Feed", content: "Feed Content" },
-    { name: "Followers", content: "Followers Content" },
-    { name: "Following", content: "Following Content" },
-    { name: "Saved", content: "Saved Content" },
-    { name: "Career", content: "Career Content" },
-    { name: "Requests", content: "Requests Content" },
-];
-
-const UserProfile = () => {
-    type UserData = {
-        uid: any;
-        email: string;
+    type Profile = {
         userName: string;
         jobRole: string;
-        profilePicUrl: string | undefined;
     };
-    type Follow = {
-        uid: string;
-        followerId: string;
-        followeeId: string;
-        status: string;
-    };
-    const [showLogout, setShowLogout] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState("MyQuiz");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { task, selectedServerId } = useTask();
-    const [user, setUser] = useState<User | null>(null);
-    const [userData, setUserData] = useState<UserData | null>(null);
-    const [followDocs, setFollowDocs] = useState<Follow[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const router = useRouter();
-    const [redirecting, setRedirecting] = useState(false);
-    const { logout } = useAuth();
-    const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
-    const searchRef = useRef<HTMLDivElement>(null);
-    const [showResults, setShowResults] = useState(false);
-    const [selectedServer, setSelectedServer] = useState<{
-        serverId: string;
-        serverName: string;
-        memberList: string[];
-        createdByUserId: string;
-    } | null>(null);
-    const { jobRoleLists } = useTask();
-    const [edit, setEdit] = useState<boolean>(false);
-    const [profileEdit, setProfileEdit] = useState<boolean>(false);
-    const profilePicRef = useRef<HTMLInputElement>(null);
-    const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(true);
-    const [buttonText, setButtonText] = useState("Save");
-    const [profilePicLoading, setProfilePicLoading] = useState<boolean>(false)
-    const [updatedProfileData, setUpdatedProfileData] = useState<Profile>({
-        userName: "",
-        jobRole: "",
-    });
-    useEffect(() => {
-        if (userData && !profileEdit) {
-            setUpdatedProfileData({
-                userName: userData?.userName || "",
-                jobRole: userData?.jobRole || "",
-            });
-        }
-    }, [userData, profileEdit]);
+
+    const tabs = [
+        { name: "MyQuiz" },
+        { name: "Library" },
+        { name: "Tracking", content: "Tracking Content" },
+        { name: "Feed", content: "Feed Content" },
+        { name: "Followers", content: "Followers Content" },
+        { name: "Following", content: "Following Content" },
+        { name: "Saved", content: "Saved Content" },
+        { name: "Career", content: "Career Content" },
+        { name: "Requests", content: "Requests Content" },
+    ];
+
+    const UserProfile = () => {
+        type UserData = {
+            uid: any;
+            email: string;
+            userName: string;
+            jobRole: string;
+            profilePicUrl: string | undefined;
+        };
+        type Follow = {
+            uid: string;
+            followerId: string;
+            followeeId: string;
+            status: string;
+        };
+        const [show, setShowLogout] = useState(false);
+        const dropdownRef = useRef<HTMLDivElement>(null);
+        const [searchTerm, setSearchTerm] = useState("");
+        const [activeTab, setActiveTab] = useState("MyQuiz");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { task, selectedServerId } = useTask();
+        const [user, setUser] = useState<User | null>(null);
+        const [userData, setUserData] = useState<UserData | null>(null);
+        const [followDocs, setFollowDocs] = useState<Follow[]>([]);
+        const [loading, setLoading] = useState<boolean>(true);
+        const router = useRouter();
+        const [redirecting, setRedirecting] = useState(false);
+        const { logout } = useAuth();
+        const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
+        const searchRef = useRef<HTMLDivElement>(null);
+        const [showResults, setShowResults] = useState(false);
+        const [selectedServer, setSelectedServer] = useState<{
+            serverId: string;
+            serverName: string;
+            memberList: string[];
+            createdByUserId: string;
+        } | null>(null);
+        const { jobRoleLists } = useTask();
+        const [edit, setEdit] = useState<boolean>(false);
+        const [profileEdit, setProfileEdit] = useState<boolean>(false);
+        const profilePicRef = useRef<HTMLInputElement>(null);
+        const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(true);
+        const [buttonText, setButtonText] = useState("Save");
+        const [profilePicLoading, setProfilePicLoading] = useState<boolean>(false)
+        const [updatedProfileData, setUpdatedProfileData] = useState<Profile>({
+            userName: "",
+            jobRole: "",
+        });
+        useEffect(() => {
+            if (userData && !profileEdit) {
+                setUpdatedProfileData({
+                    userName: userData?.userName || "",
+                    jobRole: userData?.jobRole || "",
+                });
+            }
+        }, [userData, profileEdit]);
 
 
     useEffect(() => {

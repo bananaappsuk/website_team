@@ -63,7 +63,32 @@ const getQuizzesByTaskId = async (req, res) => {
     res.status(500).json({ message: "Failed to retrieve quizzes", error });
   }
 };
+const getQuizzesByContributingStaff = async(req, res)=>{
+  const {id} = req.params;
+  console.log("Request for quizzes by contributing staff:", id);  
 
+  try{
+    //Find all task IDs where the user is a contributing staff
+    const tasks = await Task.find({ contributingStaff: { $in: [id] } });
+
+    if (!tasks.length) {
+      return res.status(404).json({ message: "No tasks found for contributing staff" });
+    }
+    //Find quizzes where the taskId is in the list of task IDs
+    const quizzes = await Quiz.find({
+      taskId: { $in: tasks.map(task => task._id) }
+    });
+
+    if (!quizzes.length) {
+      return res.status(404).json({ message: "No quizzes found for contributing staff" });
+    }
+    res.status(200).json(quizzes);
+  }catch(error){
+    console.error("Failed to fetch contributing quizzes", error);
+    res.status(500).json({ message: 'Failed to retrieve contributing quiz ', error });
+
+  }
+}
 const deleteQuiz = async (req, res) => {
   const { id } = req.params;
 
@@ -328,4 +353,5 @@ module.exports = {
   deleteSavedQuizzes,
   getPublicQuizzesOtherProfile,
   getFollowerQuizzesOtherProfile,
+  getQuizzesByContributingStaff
 };
