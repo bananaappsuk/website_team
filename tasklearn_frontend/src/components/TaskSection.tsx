@@ -667,7 +667,7 @@ const TaskSection: React.FC<CombinedProps> = ({
                 const token = await user.getIdToken();
 
                 const response = await fetch(
-                    `${process.env.LIVE_URL}/api/servers/${id}`,
+                    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/servers/${id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
