@@ -571,16 +571,16 @@ const UserProfile = () => {
                                             </select>
                                         </form>
                                     ) : (
-                                        <div className="flex items-center">
+                                        <div className="flex">
                                             <p className="text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-lg mt-2 font-bold">
                                                 {userData?.userName}, <span>{userData?.jobRole}</span>
                                             </p>
                                             <div
-                                                className={`ml-2 w-5 flex justify-center items-center mt-3 cursor-pointer`}
+                                                className={`ml-0.5 sm:ml-1 md:ml-1.5 flex justify-center items-center mt-2 sm:mt-1.5 md:mt-2 cursor-pointer`}
                                                 onClick={handleEditProfile}
                                             >
                                                 <MdModeEditOutline
-                                                    className={`transition-opacity duration-300 ease-in-out ${edit && !profileEdit ? "flex" : "hidden"
+                                                    className={`transition-opacity duration-300 ease-in-out ${edit && !profileEdit ? "w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 sm:w-2.5 md:w-2.5 md:h-2.5 xl:w-3.5 xl:h-3.5 flex" : "hidden"
                                                         }`}
                                                 />
                                             </div>
@@ -614,7 +614,7 @@ const UserProfile = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="ml-auto relative mt-4 mr-2 sm:mr-8">
+                        <div className="ml-auto relative mt-4 mr-1 sm:mr-8">
                             <div ref={searchRef} className="relative">
                                 <input
                                     type="text"
